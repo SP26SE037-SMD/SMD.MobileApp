@@ -13,7 +13,7 @@ export default function WishlistScreen() {
     const isDark = colorScheme === "dark";
 
     const bookmarkedIds = useWishlistStore(state => state.bookmarkedSubjects);
-    const wishlistSubjects = MOCK_SYLLABUSES.filter(s => bookmarkedIds.includes(s.id));
+    const wishlistSubjects = MOCK_SYLLABUSES.filter(s => bookmarkedIds.includes(s.subjectCode));
 
     const colors = {
         background: isDark ? "#0F172A" : "#F8FAFC",
@@ -77,7 +77,7 @@ export default function WishlistScreen() {
             {/* Absolute positioning for un-favorite action */}
             <TouchableOpacity
                 style={{ position: 'absolute', top: 12, right: 12, backgroundColor: "rgba(245,158,11,0.15)", padding: 6, borderRadius: 10 }}
-                onPress={() => useWishlistStore.getState().toggleBookmark(item.id)}
+                onPress={() => useWishlistStore.getState().toggleBookmark(item.subjectCode)}
             >
                 <Ionicons name="star" size={18} color="#F59E0B" />
             </TouchableOpacity>
@@ -106,7 +106,7 @@ export default function WishlistScreen() {
 
                 <FlatList
                     data={wishlistSubjects}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.subjectCode}
                     renderItem={renderItem}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={renderEmptyState}

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/src/store/useSettingsStore';
+import { useWishlistStore } from '@/src/store/useWishlistStore';
 import { MOCK_CURRICULUMS } from '@/src/constants/mockData';
 
 export default function CurriculumDetailsScreen() {
@@ -28,6 +29,9 @@ export default function CurriculumDetailsScreen() {
     };
 
     const curriculum = MOCK_CURRICULUMS.find(c => c.id === id);
+
+    const bookmarkedSubjects = useWishlistStore(state => state.bookmarkedSubjects);
+    const toggleBookmark = useWishlistStore(state => state.toggleBookmark);
 
     // Group subjects by semester
     const groupedSubjects = React.useMemo(() => {
@@ -165,6 +169,20 @@ export default function CurriculumDetailsScreen() {
                                                 <View style={[styles.subjectCodeBadge, { backgroundColor: colors.background }]}>
                                                     <Text style={{ fontWeight: '700', color: colors.textPrimary, fontSize: 14 }}>{sub.code}</Text>
                                                 </View>
+                                                <TouchableOpacity
+                                                    onPress={(e) => { e.stopPropagation(); toggleBookmark(sub.code); }}
+                                                    style={{
+                                                        padding: 6,
+                                                        borderRadius: 10,
+                                                        backgroundColor: bookmarkedSubjects.includes(sub.code) ? "rgba(245,158,11,0.15)" : "transparent"
+                                                    }}
+                                                >
+                                                    <Ionicons
+                                                        name={bookmarkedSubjects.includes(sub.code) ? "star" : "star-outline"}
+                                                        size={22}
+                                                        color={bookmarkedSubjects.includes(sub.code) ? "#F59E0B" : colors.textSecondary}
+                                                    />
+                                                </TouchableOpacity>
                                             </View>
 
                                             <Text style={{ fontWeight: '600', color: colors.textPrimary, fontSize: 16, marginBottom: 8, lineHeight: 22 }}>

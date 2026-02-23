@@ -21,7 +21,7 @@ export default function SubjectDetailsScreen() {
     // In a real app, you might have an API like getSyllabusBySubjectCode(code)
     const syllabus = MOCK_SYLLABUSES.find(s => s.subjectCode.toLowerCase() === code?.toLowerCase());
 
-    const isBookmarked = useWishlistStore(state => syllabus ? state.isBookmarked(syllabus.id) : false);
+    const isBookmarked = useWishlistStore(state => syllabus ? state.isBookmarked(syllabus.subjectCode) : false);
     const toggleBookmark = useWishlistStore(state => state.toggleBookmark);
 
     const colors = {
@@ -290,7 +290,7 @@ export default function SubjectDetailsScreen() {
                 </View>
                 {syllabus && (
                     <TouchableOpacity
-                        onPress={() => toggleBookmark(syllabus.id)}
+                        onPress={() => toggleBookmark(syllabus.subjectCode)}
                         activeOpacity={0.7}
                         style={{
                             marginRight: 10,

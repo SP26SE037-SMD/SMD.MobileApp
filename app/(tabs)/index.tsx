@@ -319,14 +319,14 @@ export default function DashboardScreen() {
 
                 {/* Wishlist Star Button */}
                 <TouchableOpacity
-                  onPress={() => toggleBookmark(item.id)}
+                  onPress={() => toggleBookmark(item.code)}
                   activeOpacity={0.7}
                   style={{
                     alignSelf: "flex-end",
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: bookmarkedSubjects.includes(item.id)
+                    backgroundColor: bookmarkedSubjects.includes(item.code)
                       ? "rgba(245,158,11,0.15)"
                       : isDark
                         ? "rgba(255,255,255,0.06)"
@@ -336,9 +336,9 @@ export default function DashboardScreen() {
                   }}
                 >
                   <Ionicons
-                    name={bookmarkedSubjects.includes(item.id) ? "star" : "star-outline"}
+                    name={bookmarkedSubjects.includes(item.code) ? "star" : "star-outline"}
                     size={20}
-                    color={bookmarkedSubjects.includes(item.id) ? "#F59E0B" : colors.textSecondary}
+                    color={bookmarkedSubjects.includes(item.code) ? "#F59E0B" : colors.textSecondary}
                   />
                 </TouchableOpacity>
               </TouchableOpacity>
