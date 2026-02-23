@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { MOCK_SYLLABUSES } from '@/src/constants/mockData';
 import { useWishlistStore } from '@/src/store/useWishlistStore';
 
-type TabKey = 'general' | 'materials' | 'clos' | 'sessions' | 'questions' | 'assessments';
+type TabKey = 'general' | 'lessons' | 'materials' | 'clos' | 'sessions' | 'questions' | 'assessments';
 
 export default function SubjectDetailsScreen() {
     const { code } = useLocalSearchParams<{ code: string }>();
@@ -16,6 +16,7 @@ export default function SubjectDetailsScreen() {
     const isDark = colorScheme === "dark";
 
     const [activeTab, setActiveTab] = useState<TabKey>('general');
+    const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
 
     // Find the syllabus by subjectCode
     // In a real app, you might have an API like getSyllabusBySubjectCode(code)
@@ -59,6 +60,7 @@ export default function SubjectDetailsScreen() {
 
     const tabs = [
         { key: 'general', label: language === 'vi' ? 'Chung' : 'General', icon: 'information-circle-outline' as const },
+        { key: 'lessons', label: language === 'vi' ? 'Bài học' : 'Lessons', icon: 'book-outline' as const },
         { key: 'materials', label: language === 'vi' ? 'Tài liệu' : 'Materials', icon: 'library-outline' as const },
         { key: 'clos', label: 'CLOs', icon: 'list-circle-outline' as const },
         { key: 'sessions', label: language === 'vi' ? 'Lịch trình' : 'Sessions', icon: 'calendar-outline' as const },
@@ -252,9 +254,85 @@ export default function SubjectDetailsScreen() {
         </View>
     );
 
+    const getLessonIcon = (type: string) => {
+        switch (type) {
+            case 'video': return 'play-circle-outline';
+            case 'pdf': return 'document-text-outline';
+            case 'slide': return 'albums-outline';
+            case 'doc': return 'document-outline';
+            default: return 'document-outline';
+        }
+    };
+
+    const renderLessonsTab = () => {
+        const chapters = (syllabus as any).chapters || [];
+        if (chapters.length === 0) {
+            return (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                    <Ionicons name="folder-open-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
+                    <Text style={{ color: colors.textSecondary, fontStyle: 'italic', textAlign: 'center' }}>
+                        {language === 'vi' ? "Chưa có bài học nào được cập nhật cho môn này." : "No lessons available for this subject yet."}
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <View>
+                {chapters.map((chapter: any, index: number) => {
+                    const isExpanded = expandedChapter === chapter.id;
+                    return (
+                        <View key={chapter.id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, padding: 0, overflow: 'hidden', ...styles.shadowSmall }]}>
+                            <TouchableOpacity
+                                activeOpacity={0.7}
+                                onPress={() => setExpandedChapter(isExpanded ? null : chapter.id)}
+                                style={{ flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: isExpanded ? colors.primaryBg : 'transparent' }}
+                            >
+                                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: isExpanded ? colors.primary : colors.divider, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                                    <Text style={{ color: isExpanded ? 'white' : colors.textPrimary, fontWeight: '700', fontSize: 16 }}>{index + 1}</Text>
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 16, fontWeight: '700', color: isExpanded ? colors.primary : colors.textPrimary, marginBottom: 4 }}>{chapter.title}</Text>
+                                    <Text style={{ fontSize: 13, color: colors.textSecondary }} numberOfLines={isExpanded ? undefined : 1}>{chapter.description}</Text>
+                                </View>
+                                <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color={colors.textSecondary} style={{ marginLeft: 8 }} />
+                            </TouchableOpacity>
+
+                            {isExpanded && chapter.lessons && chapter.lessons.length > 0 && (
+                                <View style={{ backgroundColor: colors.background, paddingVertical: 8 }}>
+                                    {chapter.lessons.map((lesson: any, lIdx: number) => (
+                                        <TouchableOpacity
+                                            key={lesson.id}
+                                            activeOpacity={0.7}
+                                            onPress={() => router.push({ pathname: "/subject/lesson/[id]", params: { id: lesson.id, url: lesson.url, title: lesson.title, type: lesson.type } } as any)}
+                                            style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: lIdx < chapter.lessons.length - 1 ? 1 : 0, borderBottomColor: colors.divider }}
+                                        >
+                                            <Ionicons name={getLessonIcon(lesson.type)} size={24} color={colors.primary} style={{ marginRight: 12 }} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 }}>{lesson.title}</Text>
+                                                {lesson.duration && (
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <Ionicons name="time-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                                                        <Text style={{ fontSize: 12, color: colors.textSecondary }}>{lesson.duration}</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                            <Ionicons name="play-circle" size={20} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                    );
+                })}
+            </View>
+        );
+    };
+
     const renderActiveTab = () => {
         switch (activeTab) {
             case 'general': return renderGeneralTab();
+            case 'lessons': return renderLessonsTab();
             case 'materials': return renderMaterialsTab();
             case 'clos': return renderCLOsTab();
             case 'sessions': return renderSessionsTab();

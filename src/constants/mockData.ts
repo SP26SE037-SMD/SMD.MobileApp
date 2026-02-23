@@ -61,6 +61,21 @@ export interface Assessment {
     note: string;
 }
 
+export interface Lesson {
+    id: string;
+    title: string;
+    type: 'pdf' | 'video' | 'doc' | 'slide';
+    url: string; // Mock URL or local path
+    duration?: string; // e.g., "15 min"
+}
+
+export interface Chapter {
+    id: string;
+    title: string;
+    description?: string;
+    lessons: Lesson[];
+}
+
 export interface Syllabus {
     id: string; // Syllabus ID
     name: string; // Syllabus Name
@@ -86,6 +101,7 @@ export interface Syllabus {
     sessions: Session[];
     constructiveQuestions: ConstructiveQuestion[];
     assessments: Assessment[];
+    chapters?: Chapter[];
 }
 
 export interface Curriculum {
@@ -306,6 +322,36 @@ export const MOCK_SYLLABUSES: Syllabus[] = [
                 gradingGuide: "Machine graded",
                 note: "Closed book"
             }
+        ],
+        chapters: [
+            {
+                id: "ch-1",
+                title: "Chapter 1: Introduction to C Programming",
+                description: "Basic concepts, environment setup, and the anatomy of a C program.",
+                lessons: [
+                    { id: "ls-1-1", title: "Course Introduction & Setup", type: "video", url: "https://www.w3schools.com/c/c_intro.php", duration: "10 min" },
+                    { id: "ls-1-2", title: "Slide: Anatomy of C Program", type: "slide", url: "https://www.w3schools.com/c/c_syntax.php", duration: "15 min" },
+                    { id: "ls-1-3", title: "Reading: Basic syntax", type: "pdf", url: "https://www.tutorialspoint.com/cprogramming/cprogramming_tutorial.pdf", duration: "20 min" }
+                ]
+            },
+            {
+                id: "ch-2",
+                title: "Chapter 2: Variables and Data Types",
+                description: "Understanding primitive data types, variable declaration, and initialization.",
+                lessons: [
+                    { id: "ls-2-1", title: "Data Types Overview", type: "video", url: "https://www.w3schools.com/c/c_data_types.php", duration: "12 min" },
+                    { id: "ls-2-2", title: "Slide: Variables in C", type: "slide", url: "https://www.w3schools.com/c/c_variables.php", duration: "18 min" }
+                ]
+            },
+            {
+                id: "ch-3",
+                title: "Chapter 3: Control Structures",
+                description: "Logical operators, if/else statements, and looping structures.",
+                lessons: [
+                    { id: "ls-3-1", title: "If/Else Statements", type: "doc", url: "https://www.w3schools.com/c/c_conditions.php", duration: "15 min" },
+                    { id: "ls-3-2", title: "While and For Loops", type: "pdf", url: "https://www.w3schools.com/c/c_while_loop.php", duration: "25 min" }
+                ]
+            }
         ]
     },
     {
@@ -387,6 +433,26 @@ export const MOCK_SYLLABUSES: Syllabus[] = [
                 knowledgeAndSkill: "Java Coding",
                 gradingGuide: "Passed test cases",
                 note: "Allowed documentation"
+            }
+        ],
+        chapters: [
+            {
+                id: "ch-oop-1",
+                title: "Chapter 1: Objects and Classes",
+                description: "Deep dive into classes, objects, and constructors in Java.",
+                lessons: [
+                    { id: "ls-oop-1-1", title: "Video: Java Objects", type: "video", url: "https://www.w3schools.com/java/java_classes.asp", duration: "12 min" },
+                    { id: "ls-oop-1-2", title: "Slide: Constructors", type: "slide", url: "https://www.w3schools.com/java/java_constructors.asp", duration: "15 min" }
+                ]
+            },
+            {
+                id: "ch-oop-2",
+                title: "Chapter 2: Inheritance & Polymorphism",
+                description: "Reusability and method overriding.",
+                lessons: [
+                    { id: "ls-oop-2-1", title: "Reading: Inheritance in Java", type: "doc", url: "https://www.w3schools.com/java/java_inheritance.asp", duration: "25 min" },
+                    { id: "ls-oop-2-2", title: "PDF: Polymorphism Guide", type: "pdf", url: "https://www.tutorialspoint.com/java/java_pdf_version.htm", duration: "30 min" }
+                ]
             }
         ]
     },
