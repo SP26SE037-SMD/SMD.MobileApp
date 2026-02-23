@@ -41,3 +41,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Custom Ignores
+skills/
+*.md
+!README.md

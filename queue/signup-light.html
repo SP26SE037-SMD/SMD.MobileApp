@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Syllabus Planner - Sign Up</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#216fed",
+                        "background-light": "#f1f5f9",
+                        "background-dark": "#101722",
+                        "field-bg": "#f8fafc",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .ios-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4">
+<!-- Main Mobile Container (Phone Form Factor) -->
+<div class="w-full max-w-[400px] flex flex-col items-center">
+<!-- Brand Header Section -->
+<div class="mb-8 text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-sm mb-4">
+<span class="material-symbols-outlined text-primary text-4xl">school</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Syllabus Planner</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1 font-medium">Create your academic account</p>
+</div>
+<!-- Signup Card Container -->
+<div class="w-full bg-white dark:bg-slate-900 rounded-xl p-6 ios-shadow border border-slate-100 dark:border-slate-800">
+<form class="space-y-4" onsubmit="return false;">
+<!-- Full Name Field -->
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ml-1">Full Name</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-slate-400 text-[20px]">person</span>
+<input class="w-full bg-field-bg dark:bg-slate-800 border-none rounded-lg py-3.5 pl-12 pr-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 transition-all text-sm" placeholder="Enter your full name" type="text"/>
+</div>
+</div>
+<!-- Email Field -->
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ml-1">Email</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-slate-400 text-[20px]">mail</span>
+<input class="w-full bg-field-bg dark:bg-slate-800 border-none rounded-lg py-3.5 pl-12 pr-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 transition-all text-sm" placeholder="example@email.com" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ml-1">Password</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-slate-400 text-[20px]">lock</span>
+<input class="w-full bg-field-bg dark:bg-slate-800 border-none rounded-lg py-3.5 pl-12 pr-12 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 transition-all text-sm" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 text-slate-400 hover:text-slate-600" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Confirm Password Field -->
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ml-1">Confirm Password</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-slate-400 text-[20px]">lock_reset</span>
+<input class="w-full bg-field-bg dark:bg-slate-800 border-none rounded-lg py-3.5 pl-12 pr-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 transition-all text-sm" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Create Account Button -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-lg shadow-lg shadow-primary/20 transition-all mt-6 text-base" type="submit">
+                    Create Account
+                </button>
+</form>
+<!-- Divider -->
+<div class="relative flex py-6 items-center">
+<div class="flex-grow border-t border-slate-100 dark:border-slate-800"></div>
+<span class="flex-shrink mx-4 text-slate-400 text-xs font-bold uppercase tracking-widest">or</span>
+<div class="flex-grow border-t border-slate-100 dark:border-slate-800"></div>
+</div>
+<!-- Social Signup -->
+<button class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 py-3.5 rounded-lg transition-colors">
+<img alt="Google Logo" class="w-5 h-5" data-alt="Google colorful G logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe90tfK5Zp2QYZPs5Vx4Vcmy6NqUI8oW_Khi3FXVwkrNrDuK8vZFs1UyP5Jv9nHqHMeShYMjcjLBo6VW4f62v9aPXl2C9CrzIB_gKu43lN4xWo1ieUXY0mzIacffWPzA72C0p4eDK_uiueoqhzHWV4EKstjHr1qqjWnKV3JeDOmowicC05jKlKnAN3GAOda6KTcSfMRAPj7F6IqGuNkkDZQj4nehvZ09wCeQ9hzNU8I3weWWLG42we7otBpGMV_1XcR3dyCyNF0Nqd"/>
+<span class="text-slate-700 dark:text-slate-200 font-semibold text-sm">Continue with Google</span>
+</button>
+</div>
+<!-- Bottom Link -->
+<p class="mt-8 text-slate-600 dark:text-slate-400 text-sm">
+            Already have an account? 
+            <a class="text-primary font-bold hover:underline ml-1" href="#">Login</a>
+</p>
+<!-- Academic Illustration (Optional Subtle Background) -->
+<div class="mt-12 opacity-30 dark:opacity-10 grayscale pointer-events-none">
+<div class="flex gap-4 items-center">
+<div class="w-12 h-1 rounded-full bg-slate-400"></div>
+<div class="w-2 h-2 rounded-full bg-slate-400"></div>
+<div class="w-12 h-1 rounded-full bg-slate-400"></div>
+</div>
+</div>
+</div>
+</body></html>
