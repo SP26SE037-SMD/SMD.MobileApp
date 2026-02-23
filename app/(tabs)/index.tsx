@@ -12,52 +12,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
+import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
 
-// Mock data - Môn học gợi ý cho học kỳ hiện tại
-const SUGGESTED_SUBJECTS = [
-  {
-    id: "1",
-    code: "CS301",
-    name: "Trí tuệ nhân tạo",
-    credits: 3,
-    color: "#2563EB",
-  },
-  {
-    id: "2",
-    code: "CS302",
-    name: "Học máy",
-    credits: 3,
-    color: "#0D9488",
-  },
-  {
-    id: "3",
-    code: "SE201",
-    name: "Phát triển ứng dụng di động",
-    credits: 4,
-    color: "#7C3AED",
-  },
-  {
-    id: "4",
-    code: "CS305",
-    name: "An toàn thông tin",
-    credits: 3,
-    color: "#EA580C",
-  },
-  {
-    id: "5",
-    code: "DB201",
-    name: "Cơ sở dữ liệu nâng cao",
-    credits: 3,
-    color: "#16A34A",
-  },
-  {
-    id: "6",
-    code: "CS310",
-    name: "Điện toán đám mây",
-    credits: 3,
-    color: "#0EA5E9",
-  },
-];
+// Colors for suggested subjects
+const COLORS = ["#2563EB", "#0D9488", "#7C3AED", "#EA580C", "#16A34A", "#0EA5E9"];
+
+// Map mock syllabus to the format required by the UI
+const getSuggestedSubjects = (lang: string) => MOCK_SYLLABUSES.slice(0, 6).map((syl, index) => ({
+  id: syl.id,
+  code: syl.subjectCode,
+  name: lang === 'vi' ? syl.name : (syl.englishName || syl.name),
+  credits: syl.credits,
+  color: COLORS[index % COLORS.length]
+}));
 
 export default function DashboardScreen() {
   const { language } = useSettingsStore();
@@ -289,7 +256,7 @@ export default function DashboardScreen() {
           </View>
 
           <FlatList
-            data={SUGGESTED_SUBJECTS}
+            data={getSuggestedSubjects(language)}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20 }}
@@ -297,6 +264,7 @@ export default function DashboardScreen() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 activeOpacity={0.85}
+                onPress={() => router.push({ pathname: "/subject/[code]", params: { code: item.code } } as any)}
                 style={{
                   width: 220,
                   backgroundColor: colors.card,
