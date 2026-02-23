@@ -5,6 +5,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { MOCK_SYLLABUSES } from '@/src/constants/mockData';
+import { useWishlistStore } from '@/src/store/useWishlistStore';
 
 type TabKey = 'general' | 'materials' | 'clos' | 'sessions' | 'questions' | 'assessments';
 
@@ -19,6 +20,9 @@ export default function SubjectDetailsScreen() {
     // Find the syllabus by subjectCode
     // In a real app, you might have an API like getSyllabusBySubjectCode(code)
     const syllabus = MOCK_SYLLABUSES.find(s => s.subjectCode.toLowerCase() === code?.toLowerCase());
+
+    const isBookmarked = useWishlistStore(state => syllabus ? state.isBookmarked(syllabus.id) : false);
+    const toggleBookmark = useWishlistStore(state => state.toggleBookmark);
 
     const colors = {
         background: isDark ? "#0F172A" : "#F8FAFC",
@@ -284,6 +288,24 @@ export default function SubjectDetailsScreen() {
                         {language === 'vi' ? syllabus.name : (syllabus.englishName || syllabus.name)}
                     </Text>
                 </View>
+                {syllabus && (
+                    <TouchableOpacity
+                        onPress={() => toggleBookmark(syllabus.id)}
+                        activeOpacity={0.7}
+                        style={{
+                            marginRight: 10,
+                            padding: 6,
+                            borderRadius: 12,
+                            backgroundColor: isBookmarked ? "rgba(245,158,11,0.15)" : (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"),
+                        }}
+                    >
+                        <Ionicons
+                            name={isBookmarked ? "star" : "star-outline"}
+                            size={20}  // Slightly smaller than the back arrow to match the credits badge
+                            color={isBookmarked ? "#F59E0B" : colors.textSecondary}
+                        />
+                    </TouchableOpacity>
+                )}
                 <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
                     <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>
                         {syllabus.credits} {syllabus.credits > 1 ? (language === 'vi' ? 'Tín chỉ' : 'Credits') : (language === 'vi' ? 'Tín chỉ' : 'Credit')}

@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
+import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
 
 // Colors for suggested subjects
@@ -97,20 +98,9 @@ export default function DashboardScreen() {
     },
   ];
 
-  const [starredSubjects, setStarredSubjects] = useState<Set<string>>(new Set());
+  const bookmarkedSubjects = useWishlistStore(state => state.bookmarkedSubjects);
+  const toggleBookmark = useWishlistStore(state => state.toggleBookmark);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-
-  const toggleStar = (id: string) => {
-    setStarredSubjects((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -329,14 +319,14 @@ export default function DashboardScreen() {
 
                 {/* Wishlist Star Button */}
                 <TouchableOpacity
-                  onPress={() => toggleStar(item.id)}
+                  onPress={() => toggleBookmark(item.id)}
                   activeOpacity={0.7}
                   style={{
                     alignSelf: "flex-end",
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: starredSubjects.has(item.id)
+                    backgroundColor: bookmarkedSubjects.includes(item.id)
                       ? "rgba(245,158,11,0.15)"
                       : isDark
                         ? "rgba(255,255,255,0.06)"
@@ -346,9 +336,9 @@ export default function DashboardScreen() {
                   }}
                 >
                   <Ionicons
-                    name={starredSubjects.has(item.id) ? "star" : "star-outline"}
+                    name={bookmarkedSubjects.includes(item.id) ? "star" : "star-outline"}
                     size={20}
-                    color={starredSubjects.has(item.id) ? "#F59E0B" : colors.textSecondary}
+                    color={bookmarkedSubjects.includes(item.id) ? "#F59E0B" : colors.textSecondary}
                   />
                 </TouchableOpacity>
               </TouchableOpacity>
@@ -370,13 +360,13 @@ export default function DashboardScreen() {
             {language === 'vi' ? 'Khám phá' : 'Explore'}
           </Text>
 
-          <View style={{ flexDirection: "row", gap: 14 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 14 }}>
             {/* Tìm Curriculum Card */}
             <TouchableOpacity
               onPress={() => router.push("/search-curriculum")}
               activeOpacity={0.85}
               style={{
-                flex: 1,
+                width: 160,
                 backgroundColor: colors.card,
                 borderRadius: 18,
                 padding: 20,
@@ -432,7 +422,7 @@ export default function DashboardScreen() {
               onPress={() => router.push("/search-subject")}
               activeOpacity={0.85}
               style={{
-                flex: 1,
+                width: 160,
                 backgroundColor: colors.card,
                 borderRadius: 18,
                 padding: 20,
@@ -482,7 +472,62 @@ export default function DashboardScreen() {
                 {language === 'vi' ? 'Tra cứu thông tin môn học' : 'Lookup subject information'}
               </Text>
             </TouchableOpacity>
-          </View>
+            {/* Wishlist Card */}
+            <TouchableOpacity
+              onPress={() => router.push("/wishlist")}
+              activeOpacity={0.85}
+              style={{
+                width: 160,
+                backgroundColor: colors.card,
+                borderRadius: 18,
+                padding: 20,
+                borderWidth: 1,
+                borderColor: colors.cardBorder,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0 : 0.05,
+                shadowRadius: 12,
+                elevation: isDark ? 0 : 3,
+              }}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  backgroundColor: "rgba(245,158,11,0.15)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 14,
+                }}
+              >
+                <Ionicons
+                  name="star"
+                  size={24}
+                  color="#F59E0B"
+                />
+              </View>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: colors.textPrimary,
+                  marginBottom: 4,
+                }}
+              >
+                {language === 'vi' ? 'Yêu thích' : 'Wishlist'}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.textSecondary,
+                  lineHeight: 18,
+                }}
+              >
+                {language === 'vi' ? 'Môn học đã lưu' : 'Saved subjects'}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
 
         {/* Recent Activity */}
@@ -719,6 +764,6 @@ export default function DashboardScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 }
