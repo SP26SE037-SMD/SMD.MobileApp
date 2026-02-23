@@ -1,127 +1,235 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, useColorScheme, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    ActivityIndicator,
+    Linking,
+    useColorScheme,
+    StyleSheet,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
 import { useSettingsStore } from '@/src/store/useSettingsStore';
 
 export default function LessonViewerScreen() {
-    const { id, url, title, type } = useLocalSearchParams<{ id: string, url: string, title: string, type: string }>();
+    const { url, title, type } = useLocalSearchParams<{
+        id: string;
+        url: string;
+        title: string;
+        type: string;
+    }>();
     const { language } = useSettingsStore();
     const colorScheme = useColorScheme();
-    const isDark = colorScheme === "dark";
+    const isDark = colorScheme === 'dark';
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     const colors = {
-        background: isDark ? "#0F172A" : "#F8FAFC",
-        card: isDark ? "#1E293B" : "#FFFFFF",
-        textPrimary: isDark ? "#F1F5F9" : "#0F172A",
-        textSecondary: isDark ? "#94A3B8" : "#64748B",
-        primary: isDark ? "#3B82F6" : "#2563EB",
-        primaryBg: isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.08)",
-        divider: isDark ? "#334155" : "#E2E8F0",
+        background: isDark ? '#0F172A' : '#F8FAFC',
+        card: isDark ? '#1E293B' : '#FFFFFF',
+        textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+        textSecondary: isDark ? '#94A3B8' : '#64748B',
+        primary: isDark ? '#3B82F6' : '#2563EB',
+        divider: isDark ? '#334155' : '#E2E8F0',
     };
 
-    const handleOpenExternal = async () => {
+    // For PDFs, use Google Docs Viewer so it renders inside the WebView
+    const finalUrl =
+        type === 'pdf'
+            ? `https://docs.google.com/gviewer?embedded=true&url=${encodeURIComponent(url)}`
+            : url;
+
+    const isPDFOrDoc = type === 'pdf' || type === 'doc';
+
+    const openInBrowser = async () => {
         if (url) {
             try {
-                const supported = await Linking.canOpenURL(url);
-                if (supported) {
-                    await Linking.openURL(url);
-                }
-            } catch (error) {
-                console.error("Failed to open URL:", error);
-            }
+                await Linking.openURL(url);
+            } catch (_) { }
         }
     };
 
-    const getIconForType = () => {
+    const getTypeLabel = () => {
         switch (type) {
-            case 'video': return 'play-circle';
-            case 'pdf': return 'document-text';
-            case 'slide': return 'albums';
-            default: return 'document';
+            case 'pdf':
+                return language === 'vi' ? 'Tài liệu PDF' : 'PDF Document';
+            case 'video':
+                return language === 'vi' ? 'Video Bài giảng' : 'Video Lecture';
+            case 'slide':
+                return language === 'vi' ? 'Slide Bài trình chiếu' : 'Presentation Slide';
+            case 'doc':
+                return language === 'vi' ? 'Tài liệu đọc' : 'Reading Document';
+            default:
+                return language === 'vi' ? 'Tài liệu học' : 'Lesson Material';
         }
     };
 
-    const getFormatName = () => {
+    const getTypeIcon = () => {
         switch (type) {
-            case 'video': return language === 'vi' ? 'Video Bài Giảng' : 'Video Lecture';
-            case 'pdf': return language === 'vi' ? 'Tài Liệu Đọc (PDF)' : 'Reading Material (PDF)';
-            case 'slide': return language === 'vi' ? 'Bài Trình Chiếu' : 'Presentation Slide';
-            default: return language === 'vi' ? 'Tài Liệu' : 'Document';
+            case 'pdf':
+                return 'document-text';
+            case 'video':
+                return 'play-circle';
+            case 'slide':
+                return 'albums';
+            default:
+                return 'document';
         }
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-            <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 20,
-                paddingVertical: 16,
-                backgroundColor: colors.card,
-                borderBottomWidth: 1,
-                borderBottomColor: colors.divider
-            }}>
-                <TouchableOpacity onPress={() => router.back()} style={{ padding: 8, marginRight: 12, marginLeft: -8, borderRadius: 20 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'left', 'right']}>
+            {/* Header */}
+            <View
+                style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                    backgroundColor: colors.card,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.divider,
+                }}
+            >
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    style={{ padding: 8, marginRight: 12, marginLeft: -8, borderRadius: 20 }}
+                >
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
-                <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
-                    {title || (language === 'vi' ? "Chi Tiết Bài Học" : "Lesson Details")}
-                </Text>
-            </View>
 
-            <ScrollView contentContainerStyle={{ padding: 24, alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
-                <View style={{
-                    width: 100, height: 100, borderRadius: 50,
-                    backgroundColor: colors.primaryBg,
-                    alignItems: 'center', justifyContent: 'center',
-                    marginBottom: 24
-                }}>
-                    <Ionicons name={getIconForType()} size={48} color={colors.primary} />
-                </View>
+                <Ionicons
+                    name={getTypeIcon()}
+                    size={20}
+                    color={colors.primary}
+                    style={{ marginRight: 8 }}
+                />
 
-                <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary, textAlign: 'center', marginBottom: 8 }}>
-                    {title}
-                </Text>
-
-                <Text style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 32, textAlign: 'center' }}>
-                    {getFormatName()}
-                </Text>
-
-                <View style={{ backgroundColor: colors.card, padding: 20, borderRadius: 16, width: '100%', borderWidth: 1, borderColor: colors.divider, marginBottom: 24 }}>
-                    <Text style={{ color: colors.textPrimary, fontSize: 15, lineHeight: 22, textAlign: 'center' }}>
-                        {language === 'vi'
-                            ? "Đây là phiên bản xem trước hoặc liên kết ngoài của tài liệu học tập. Bấm vào nút bên dưới để mở tài liệu trong trình duyệt của bạn."
-                            : "This is a preview or external link for the learning material. Tap the button below to open it in your browser."}
+                <View style={{ flex: 1 }}>
+                    <Text
+                        style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary }}
+                        numberOfLines={1}
+                    >
+                        {title}
                     </Text>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>{getTypeLabel()}</Text>
                 </View>
 
+                {/* Open in external browser button */}
                 <TouchableOpacity
-                    onPress={handleOpenExternal}
-                    activeOpacity={0.8}
+                    onPress={openInBrowser}
                     style={{
-                        backgroundColor: colors.primary,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        paddingVertical: 16,
-                        paddingHorizontal: 32,
-                        borderRadius: 14,
-                        width: '100%',
-                        shadowColor: colors.primary,
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                        elevation: 5
+                        padding: 8,
+                        borderRadius: 10,
+                        backgroundColor: colors.primary + '20',
                     }}
                 >
-                    <Ionicons name="open-outline" size={20} color="white" style={{ marginRight: 12 }} />
-                    <Text style={{ color: 'white', fontSize: 16, fontWeight: '700' }}>
-                        {language === 'vi' ? "Mở Trình Duyệt" : "Open in Browser"}
-                    </Text>
+                    <Ionicons name="open-outline" size={20} color={colors.primary} />
                 </TouchableOpacity>
-            </ScrollView>
+            </View>
+
+            {/* WebView for PDF / doc types */}
+            {(isPDFOrDoc || type === 'slide' || type === 'video') ? (
+                <View style={{ flex: 1 }}>
+                    {/* Loading and Error overlays */}
+                    {loading && !error && (
+                        <View style={styles.overlay}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>
+                                {language === 'vi' ? 'Đang tải tài liệu...' : 'Loading document...'}
+                            </Text>
+                        </View>
+                    )}
+
+                    {error && (
+                        <View style={styles.overlay}>
+                            <Ionicons
+                                name="cloud-offline-outline"
+                                size={56}
+                                color={colors.textSecondary}
+                                style={{ opacity: 0.5, marginBottom: 16 }}
+                            />
+                            <Text
+                                style={{
+                                    color: colors.textPrimary,
+                                    fontSize: 17,
+                                    fontWeight: '700',
+                                    marginBottom: 8,
+                                    textAlign: 'center',
+                                }}
+                            >
+                                {language === 'vi' ? 'Không thể tải tài liệu' : 'Could not load document'}
+                            </Text>
+                            <Text
+                                style={{
+                                    color: colors.textSecondary,
+                                    textAlign: 'center',
+                                    marginBottom: 24,
+                                    lineHeight: 22,
+                                    paddingHorizontal: 30,
+                                }}
+                            >
+                                {language === 'vi'
+                                    ? 'Có lỗi xảy ra khi tải tài liệu. Hãy thử mở trong trình duyệt.'
+                                    : 'Something went wrong loading this document. Try opening it in your browser.'}
+                            </Text>
+                            <TouchableOpacity
+                                onPress={openInBrowser}
+                                style={{
+                                    backgroundColor: colors.primary,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingVertical: 14,
+                                    paddingHorizontal: 28,
+                                    borderRadius: 12,
+                                }}
+                            >
+                                <Ionicons
+                                    name="open-outline"
+                                    size={18}
+                                    color="white"
+                                    style={{ marginRight: 8 }}
+                                />
+                                <Text style={{ color: 'white', fontWeight: '700', fontSize: 15 }}>
+                                    {language === 'vi' ? 'Mở Trình Duyệt' : 'Open in Browser'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    <WebView
+                        source={{ uri: finalUrl }}
+                        style={{ flex: 1, opacity: loading || error ? 0 : 1 }}
+                        onLoad={() => setLoading(false)}
+                        onError={() => {
+                            setLoading(false);
+                            setError(true);
+                        }}
+                        onHttpError={() => {
+                            setLoading(false);
+                            setError(true);
+                        }}
+                        javaScriptEnabled
+                        domStorageEnabled
+                        startInLoadingState={false}
+                        allowsInlineMediaPlayback
+                        mediaPlaybackRequiresUserAction={false}
+                    />
+                </View>
+            ) : null}
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+    },
+});
