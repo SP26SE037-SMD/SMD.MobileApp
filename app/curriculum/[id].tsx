@@ -155,7 +155,12 @@ export default function CurriculumDetailsScreen() {
                                     </View>
 
                                     {subjects.map((sub, idx) => (
-                                        <View key={idx} style={[styles.subjectCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadowSmall }]}>
+                                        <TouchableOpacity
+                                            key={idx}
+                                            activeOpacity={0.7}
+                                            onPress={() => router.push({ pathname: "/subject/[code]", params: { code: sub.code } } as any)}
+                                            style={[styles.subjectCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadowSmall }]}
+                                        >
                                             <View style={styles.subjectHeader}>
                                                 <View style={[styles.subjectCodeBadge, { backgroundColor: colors.background }]}>
                                                     <Text style={{ fontWeight: '700', color: colors.textPrimary, fontSize: 14 }}>{sub.code}</Text>
@@ -183,7 +188,7 @@ export default function CurriculumDetailsScreen() {
                                                     </Text>
                                                 </View>
                                             ) : null}
-                                        </View>
+                                        </TouchableOpacity>
                                     ))}
                                 </View>
                             ))}
