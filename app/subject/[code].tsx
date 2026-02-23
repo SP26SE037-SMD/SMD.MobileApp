@@ -285,7 +285,9 @@ export default function SubjectDetailsScreen() {
                     </Text>
                 </View>
                 <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
-                    <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>{syllabus.credits} Cr</Text>
+                    <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>
+                        {syllabus.credits} {syllabus.credits > 1 ? (language === 'vi' ? 'Tín chỉ' : 'Credits') : (language === 'vi' ? 'Tín chỉ' : 'Credit')}
+                    </Text>
                 </View>
             </View>
 
