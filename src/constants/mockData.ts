@@ -133,11 +133,29 @@ export const MOCK_CURRICULUMS: Curriculum[] = [
             { name: "PLO 3", description: "Làm việc hiệu quả trong các nhóm đa ngành để đạt được mục tiêu chung." }
         ],
         subjects: [
+            // Semester 1 - No prerequisites
             { code: "PRF192", name: "Cơ sở lập trình", semester: 1, credits: 3, prerequisite: "" },
+            { code: "MAE101", name: "Toán ứng dụng", semester: 1, credits: 3, prerequisite: "" },
+            { code: "CEA201", name: "Nguyên lý máy tính", semester: 1, credits: 3, prerequisite: "" },
+            { code: "ENW492", name: "Tiếng Anh căn bản", semester: 1, credits: 3, prerequisite: "" },
+            // Semester 2
             { code: "PRO192", name: "Lập trình hướng đối tượng", semester: 2, credits: 3, prerequisite: "PRF192" },
+            { code: "MAD101", name: "Toán rời rạc", semester: 2, credits: 3, prerequisite: "MAE101" },
+            { code: "OSG202", name: "Hệ điều hành", semester: 2, credits: 3, prerequisite: "CEA201" },
+            { code: "SSG104", name: "Kỹ năng mềm", semester: 2, credits: 2, prerequisite: "" },
+            // Semester 3
             { code: "CSD201", name: "Cấu trúc dữ liệu và giải thuật", semester: 3, credits: 3, prerequisite: "PRO192" },
+            { code: "DBI202", name: "Cơ sở dữ liệu", semester: 3, credits: 3, prerequisite: "PRO192" },
+            { code: "NWC203", name: "Mạng máy tính", semester: 3, credits: 3, prerequisite: "OSG202" },
+            { code: "LAB211", name: "Java lập trình hướng đối tượng", semester: 3, credits: 3, prerequisite: "PRO192" },
+            // Semester 4
             { code: "PRJ301", name: "Lập trình Java Web", semester: 4, credits: 3, prerequisite: "PRO192" },
-            { code: "SWP391", name: "Dự án ứng dụng phần mềm", semester: 5, credits: 3, prerequisite: "PRJ301" }
+            { code: "SWR302", name: "Kiểm thử phần mềm", semester: 4, credits: 3, prerequisite: "CSD201" },
+            { code: "SWT301", name: "KH phát triển phần mềm", semester: 4, credits: 3, prerequisite: "DBI202" },
+            { code: "ITE302", name: "Bảo mật CNTT", semester: 4, credits: 3, prerequisite: "NWC203" },
+            // Semester 5
+            { code: "SWP391", name: "Dự án ứng dụng phần mềm", semester: 5, credits: 3, prerequisite: "PRJ301" },
+            { code: "SEP490", name: "Dự án tốt nghiệp KT PM", semester: 5, credits: 9, prerequisite: "SWP391" }
         ]
     },
     {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useColorScheme, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -220,7 +220,7 @@ export default function CurriculumDetailsScreen() {
                 {/* View Map Button */}
                 <TouchableOpacity
                     style={[styles.mapButton, { backgroundColor: colors.primary, ...styles.shadow }]}
-                    onPress={() => Alert.alert("Thông báo", "Tính năng xem sơ đồ đang được phát triển.")}
+                    onPress={() => router.push({ pathname: '/curriculum/prerequisite-map' as any, params: { curriculumId: curriculum.id } })}
                     activeOpacity={0.8}
                 >
                     <Ionicons name="git-network-outline" size={22} color="white" style={{ marginRight: 10 }} />
