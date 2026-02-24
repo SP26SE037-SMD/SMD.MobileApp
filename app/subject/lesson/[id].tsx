@@ -192,18 +192,6 @@ export default function LessonViewerScreen() {
                     </Text>
                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>{getTypeLabel()}</Text>
                 </View>
-
-                {/* Open in external browser button */}
-                <TouchableOpacity
-                    onPress={openInBrowser}
-                    style={{
-                        padding: 8,
-                        borderRadius: 10,
-                        backgroundColor: colors.primary + '20',
-                    }}
-                >
-                    <Ionicons name="open-outline" size={20} color={colors.primary} />
-                </TouchableOpacity>
             </View>
 
             {/* PDF Viewer */}
