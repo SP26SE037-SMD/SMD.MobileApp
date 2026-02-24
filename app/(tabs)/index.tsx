@@ -472,61 +472,6 @@ export default function DashboardScreen() {
                 {language === 'vi' ? 'Tra cứu thông tin môn học' : 'Lookup subject information'}
               </Text>
             </TouchableOpacity>
-            {/* Wishlist Card */}
-            <TouchableOpacity
-              onPress={() => router.push("/wishlist")}
-              activeOpacity={0.85}
-              style={{
-                width: 160,
-                backgroundColor: colors.card,
-                borderRadius: 18,
-                padding: 20,
-                borderWidth: 1,
-                borderColor: colors.cardBorder,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: isDark ? 0 : 0.05,
-                shadowRadius: 12,
-                elevation: isDark ? 0 : 3,
-              }}
-            >
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 14,
-                  backgroundColor: "rgba(245,158,11,0.15)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 14,
-                }}
-              >
-                <Ionicons
-                  name="star"
-                  size={24}
-                  color="#F59E0B"
-                />
-              </View>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: "600",
-                  color: colors.textPrimary,
-                  marginBottom: 4,
-                }}
-              >
-                {language === 'vi' ? 'Yêu thích' : 'Wishlist'}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                  lineHeight: 18,
-                }}
-              >
-                {language === 'vi' ? 'Môn học đã lưu' : 'Saved subjects'}
-              </Text>
-            </TouchableOpacity>
           </ScrollView>
         </View>
 
