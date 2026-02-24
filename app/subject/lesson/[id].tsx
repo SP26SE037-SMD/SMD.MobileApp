@@ -197,11 +197,12 @@ export default function LessonViewerScreen() {
             {/* PDF Viewer */}
             {type === 'pdf' ? (
                 <View style={{ flex: 1, backgroundColor: colors.background }}>
-                    {(loading || !generatedPdfUri) && !error && (
+                    {/* Single spinner covering both generation + PdfReader render phases */}
+                    {(!generatedPdfUri || loading) && !error && (
                         <View style={styles.overlay}>
                             <ActivityIndicator size="large" color={colors.primary} />
                             <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>
-                                {language === 'vi' ? 'Đang tạo tài liệu PDF...' : 'Generating PDF document...'}
+                                {language === 'vi' ? 'Đang tải tài liệu...' : 'Loading document...'}
                             </Text>
                         </View>
                     )}
@@ -214,7 +215,7 @@ export default function LessonViewerScreen() {
                                 setLoading(false);
                                 setError(true);
                             }}
-                            style={{ flex: 1, backgroundColor: colors.background, opacity: error ? 0 : 1 }}
+                            style={{ flex: 1, backgroundColor: colors.background, opacity: loading ? 0 : 1 }}
                         />
                     )}
                     {error && (
