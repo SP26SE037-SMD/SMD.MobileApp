@@ -97,8 +97,21 @@ export default function PrerequisiteMapScreen() {
         return Object.entries(map).sort(([a], [b]) => Number(a) - Number(b));
     }, [subjects]);
 
-    // Card layout positions for SVG lines [code -> {x, y}]
-    const cardPositions = useRef<Record<string, { x: number; y: number }>>({});
+    // Pre-compute card centre positions from layout constants.
+    // Each row is: paddingLeft(8) + semLabel(72) + colIdx*(CARD_WIDTH+CARD_MARGIN) + CARD_MARGIN/2 + CARD_WIDTH/2
+    // Each row y: rowIdx * ROW_HEIGHT + paddingVertical(20) + CARD_HEIGHT/2
+    // We keep top-of-card (y) and bottom-of-card (y + CARD_HEIGHT).
+    const cardPositions = React.useMemo(() => {
+        const pos: Record<string, { x: number; y: number }> = {};
+        grouped.forEach(([, semSubjects], rowIdx) => {
+            semSubjects.forEach((sub, colIdx) => {
+                const x = 8 + SEM_LABEL_WIDTH + colIdx * (CARD_WIDTH + CARD_MARGIN) + CARD_MARGIN / 2;
+                const y = rowIdx * ROW_HEIGHT + 20; // top of card
+                pos[sub.code] = { x, y };
+            });
+        });
+        return pos;
+    }, [grouped]);
 
     const openSheet = useCallback((code: string) => {
         setSelectedCode(code);
@@ -224,8 +237,8 @@ export default function PrerequisiteMapScreen() {
                                 pointerEvents="none"
                             >
                                 {buildConnectors().map(({ from, to }) => {
-                                    const fromPos = cardPositions.current[from];
-                                    const toPos = cardPositions.current[to];
+                                    const fromPos = cardPositions[from];
+                                    const toPos = cardPositions[to];
                                     if (!fromPos || !toPos) return null;
                                     const isHighlighted = highlighted && (highlighted.has(from) && highlighted.has(to));
                                     const opacity = highlighted ? (isHighlighted ? 1 : 0.08) : 0.35;
@@ -271,13 +284,7 @@ export default function PrerequisiteMapScreen() {
                                                 key={sub.code}
                                                 activeOpacity={0.8}
                                                 onPress={() => isSelected ? closeSheet() : openSheet(sub.code)}
-                                                onLayout={(e) => {
-                                                    const { x } = e.nativeEvent.layout;
-                                                    cardPositions.current[sub.code] = {
-                                                        x: SEM_LABEL_WIDTH + x,
-                                                        y: rowIdx * ROW_HEIGHT + 20,
-                                                    };
-                                                }}
+                                                onLayout={undefined}
                                                 style={[
                                                     styles.courseCard,
                                                     {
