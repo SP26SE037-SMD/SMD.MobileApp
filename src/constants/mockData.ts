@@ -1,544 +1,919 @@
 export interface PLO {
-    name: string;
-    description: string;
+  name: string;
+  description: string;
 }
 
 export interface Subject {
-    code: string;
-    name: string;
-    englishName?: string;
-    semester: number;
-    credits: number;
-    prerequisite?: string;
+  code: string;
+  name: string;
+  englishName?: string;
+  semester: number;
+  credits: number;
+  prerequisite?: string;
+  isElective?: boolean; // Đánh dấu đây là nhóm môn tự chọn
+  electiveGroupId?: string; // ID của nhóm tự chọn
+}
+
+// Nhóm môn tự chọn (Elective Group)
+export interface ElectiveGroup {
+  id: string;
+  name: string; // VD: "Môn tự chọn 1", "Elective 1"
+  englishName?: string;
+  curriculumId: string; // Thuộc curriculum nào
+  semester: number;
+  credits: number; // Số tín chỉ cần chọn
+  minSubjects?: number; // Số môn tối thiểu phải chọn
+  maxSubjects?: number; // Số môn tối đa được chọn
+  subjects: Subject[]; // Các môn trong nhóm tự chọn
 }
 
 export interface Material {
-    description: string;
-    author: string;
-    publisher: string;
-    publishedDate: string;
-    edition: string;
-    isbn: string;
-    isMainMaterial: boolean;
-    isHardCopy: boolean;
-    isOnline: boolean;
-    note: string;
+  description: string;
+  author: string;
+  publisher: string;
+  publishedDate: string;
+  edition: string;
+  isbn: string;
+  isMainMaterial: boolean;
+  isHardCopy: boolean;
+  isOnline: boolean;
+  note: string;
 }
 
 export interface CLO {
-    name: string;
-    description: string;
+  name: string;
+  description: string;
 }
 
 export interface Session {
-    sessionNo: number;
-    topic: string;
-    learningTeachingType: string;
-    lo: string;
-    itu: string;
-    studentMaterials: string;
-    studentTasks: string;
+  sessionNo: number;
+  topic: string;
+  learningTeachingType: string;
+  lo: string;
+  itu: string;
+  studentMaterials: string;
+  studentTasks: string;
 }
 
 export interface ConstructiveQuestion {
-    sessionNo: number;
-    name: string;
-    details: string;
+  sessionNo: number;
+  name: string;
+  details: string;
 }
 
 export interface Assessment {
-    category: string;
-    type: string;
-    part: string;
-    weight: string;
-    completionCriteria: string;
-    duration: string;
-    clo: string;
-    questionType: string;
-    noQuestion: string;
-    knowledgeAndSkill: string;
-    gradingGuide: string;
-    note: string;
+  category: string;
+  type: string;
+  part: string;
+  weight: string;
+  completionCriteria: string;
+  duration: string;
+  clo: string;
+  questionType: string;
+  noQuestion: string;
+  knowledgeAndSkill: string;
+  gradingGuide: string;
+  note: string;
 }
 
 export interface Lesson {
-    id: string;
-    title: string;
-    type: 'pdf' | 'video' | 'doc' | 'slide';
-    url: string; // Mock URL or local path
-    duration?: string; // e.g., "15 min"
+  id: string;
+  title: string;
+  type: "pdf" | "video" | "doc" | "slide";
+  url: string; // Mock URL or local path
+  duration?: string; // e.g., "15 min"
 }
 
 export interface Chapter {
-    id: string;
-    title: string;
-    description?: string;
-    lessons: Lesson[];
+  id: string;
+  title: string;
+  description?: string;
+  lessons: Lesson[];
 }
 
 export interface Syllabus {
-    id: string; // Syllabus ID
-    name: string; // Syllabus Name
-    englishName: string; // Syllabus English
-    subjectCode: string;
-    credits: number; // NoCredit
-    degreeLevel: string;
-    timeAllocation: string;
-    prerequisite: string;
-    description: string;
-    studentTasks: string;
-    tools: string;
-    scoringScale: number;
-    decisionNo: string;
-    isApproved: boolean;
-    note: string;
-    minAvgMarkToPass: number;
-    isActive: boolean;
-    approvedDate: string;
+  id: string; // Syllabus ID
+  name: string; // Syllabus Name
+  englishName: string; // Syllabus English
+  subjectCode: string;
+  credits: number; // NoCredit
+  degreeLevel: string;
+  timeAllocation: string;
+  prerequisite: string;
+  description: string;
+  studentTasks: string;
+  tools: string;
+  scoringScale: number;
+  decisionNo: string;
+  isApproved: boolean;
+  note: string;
+  minAvgMarkToPass: number;
+  isActive: boolean;
+  approvedDate: string;
 
-    materials: Material[];
-    clos: CLO[];
-    sessions: Session[];
-    constructiveQuestions: ConstructiveQuestion[];
-    assessments: Assessment[];
-    chapters?: Chapter[];
+  materials: Material[];
+  clos: CLO[];
+  sessions: Session[];
+  constructiveQuestions: ConstructiveQuestion[];
+  assessments: Assessment[];
+  chapters?: Chapter[];
 }
 
 export interface Curriculum {
-    id: string;
-    name: string;
-    englishName: string;
-    code: string;
-    credits: number;
-    department: string;
-    description?: string;
-    decisionNo?: string;
-    plos?: PLO[];
-    subjects?: Subject[];
+  id: string;
+  name: string;
+  englishName: string;
+  code: string;
+  credits: number;
+  department: string;
+  description?: string;
+  decisionNo?: string;
+  plos?: PLO[];
+  subjects?: Subject[];
+  electiveGroups?: ElectiveGroup[]; // Nhóm môn tự chọn
 }
 
 export const MOCK_CURRICULUMS: Curriculum[] = [
-    {
-        id: "c-se",
-        name: "Kỹ thuật phần mềm",
-        englishName: "Software Engineering",
-        code: "SE",
-        credits: 145,
-        department: "Công nghệ thông tin",
-        description: "Chương trình đào tạo Kỹ sư Kỹ thuật phần mềm trang bị cho sinh viên kiến thức chuyên sâu về công nghệ và quy trình sản xuất phần mềm. Đặc biệt là các hệ thống phần mềm quy mô lớn.",
-        decisionNo: "123/QD-DH 10/15/2023",
-        plos: [
-            { name: "PLO 1", description: "Áp dụng kiến thức toán học, khoa học, khoa học máy tính và kỹ thuật để giải quyết các vấn đề phức tạp." },
-            { name: "PLO 2", description: "Phân tích, thiết kế, triển khai và đánh giá các giải pháp phần mềm đáp ứng các yêu cầu cụ thể." },
-            { name: "PLO 3", description: "Làm việc hiệu quả trong các nhóm đa ngành để đạt được mục tiêu chung." }
-        ],
+  {
+    id: "c-se",
+    name: "Kỹ thuật phần mềm",
+    englishName: "Software Engineering",
+    code: "SE",
+    credits: 145,
+    department: "Công nghệ thông tin",
+    description:
+      "Chương trình đào tạo Kỹ sư Kỹ thuật phần mềm trang bị cho sinh viên kiến thức chuyên sâu về công nghệ và quy trình sản xuất phần mềm. Đặc biệt là các hệ thống phần mềm quy mô lớn.",
+    decisionNo: "123/QD-DH 10/15/2023",
+    plos: [
+      {
+        name: "PLO 1",
+        description:
+          "Áp dụng kiến thức toán học, khoa học, khoa học máy tính và kỹ thuật để giải quyết các vấn đề phức tạp.",
+      },
+      {
+        name: "PLO 2",
+        description:
+          "Phân tích, thiết kế, triển khai và đánh giá các giải pháp phần mềm đáp ứng các yêu cầu cụ thể.",
+      },
+      {
+        name: "PLO 3",
+        description:
+          "Làm việc hiệu quả trong các nhóm đa ngành để đạt được mục tiêu chung.",
+      },
+    ],
+    subjects: [
+      // Semester 1 - No prerequisites
+      {
+        code: "PRF192",
+        name: "Cơ sở lập trình",
+        semester: 1,
+        credits: 3,
+        prerequisite: "",
+      },
+      {
+        code: "MAE101",
+        name: "Toán ứng dụng",
+        semester: 1,
+        credits: 3,
+        prerequisite: "",
+      },
+      {
+        code: "CEA201",
+        name: "Nguyên lý máy tính",
+        semester: 1,
+        credits: 3,
+        prerequisite: "",
+      },
+      {
+        code: "ENW492",
+        name: "Tiếng Anh căn bản",
+        semester: 1,
+        credits: 3,
+        prerequisite: "",
+      },
+      // Semester 2
+      {
+        code: "PRO192",
+        name: "Lập trình hướng đối tượng",
+        semester: 2,
+        credits: 3,
+        prerequisite: "PRF192",
+      },
+      {
+        code: "MAD101",
+        name: "Toán rời rạc",
+        semester: 2,
+        credits: 3,
+        prerequisite: "MAE101",
+      },
+      {
+        code: "OSG202",
+        name: "Hệ điều hành",
+        semester: 2,
+        credits: 3,
+        prerequisite: "CEA201",
+      },
+      {
+        code: "SSG104",
+        name: "Kỹ năng mềm",
+        semester: 2,
+        credits: 2,
+        prerequisite: "",
+      },
+      // Semester 3
+      {
+        code: "CSD201",
+        name: "Cấu trúc dữ liệu và giải thuật",
+        semester: 3,
+        credits: 3,
+        prerequisite: "PRO192",
+      },
+      {
+        code: "DBI202",
+        name: "Cơ sở dữ liệu",
+        semester: 3,
+        credits: 3,
+        prerequisite: "PRO192",
+      },
+      {
+        code: "NWC203",
+        name: "Mạng máy tính",
+        semester: 3,
+        credits: 3,
+        prerequisite: "OSG202",
+      },
+      {
+        code: "LAB211",
+        name: "Java lập trình hướng đối tượng",
+        semester: 3,
+        credits: 3,
+        prerequisite: "PRO192",
+      },
+      // Semester 4
+      {
+        code: "PRJ301",
+        name: "Lập trình Java Web",
+        semester: 4,
+        credits: 3,
+        prerequisite: "PRO192",
+      },
+      {
+        code: "SWR302",
+        name: "Kiểm thử phần mềm",
+        semester: 4,
+        credits: 3,
+        prerequisite: "CSD201",
+      },
+      {
+        code: "SWT301",
+        name: "KH phát triển phần mềm",
+        semester: 4,
+        credits: 3,
+        prerequisite: "DBI202",
+      },
+      {
+        code: "ITE302",
+        name: "Bảo mật CNTT",
+        semester: 4,
+        credits: 3,
+        prerequisite: "NWC203",
+      },
+      // Môn tự chọn 1 - Semester 4 (hiển thị như một môn, bấm vào sẽ hiện danh sách)
+      {
+        code: "ELEC-SE-1",
+        name: "Môn tự chọn 1",
+        englishName: "Elective 1",
+        semester: 4,
+        credits: 3,
+        isElective: true,
+        electiveGroupId: "elec-se-1",
+      },
+      // Semester 5
+      {
+        code: "SWP391",
+        name: "Dự án ứng dụng phần mềm",
+        semester: 5,
+        credits: 3,
+        prerequisite: "PRJ301",
+      },
+      // Môn tự chọn 2 - Semester 5
+      {
+        code: "ELEC-SE-2",
+        name: "Môn tự chọn 2",
+        englishName: "Elective 2",
+        semester: 5,
+        credits: 3,
+        isElective: true,
+        electiveGroupId: "elec-se-2",
+      },
+      // Semester 6
+      {
+        code: "SEP490",
+        name: "Dự án tốt nghiệp KT PM",
+        semester: 6,
+        credits: 9,
+        prerequisite: "SWP391",
+      },
+      // Môn tự chọn 3 - Semester 6
+      {
+        code: "ELEC-SE-3",
+        name: "Môn tự chọn 3",
+        englishName: "Elective 3",
+        semester: 6,
+        credits: 3,
+        isElective: true,
+        electiveGroupId: "elec-se-3",
+      },
+    ],
+    electiveGroups: [
+      {
+        id: "elec-se-1",
+        name: "Môn tự chọn 1",
+        englishName: "Elective 1",
+        curriculumId: "c-se",
+        semester: 4,
+        credits: 3,
+        minSubjects: 1,
+        maxSubjects: 1,
         subjects: [
-            // Semester 1 - No prerequisites
-            { code: "PRF192", name: "Cơ sở lập trình", semester: 1, credits: 3, prerequisite: "" },
-            { code: "MAE101", name: "Toán ứng dụng", semester: 1, credits: 3, prerequisite: "" },
-            { code: "CEA201", name: "Nguyên lý máy tính", semester: 1, credits: 3, prerequisite: "" },
-            { code: "ENW492", name: "Tiếng Anh căn bản", semester: 1, credits: 3, prerequisite: "" },
-            // Semester 2
-            { code: "PRO192", name: "Lập trình hướng đối tượng", semester: 2, credits: 3, prerequisite: "PRF192" },
-            { code: "MAD101", name: "Toán rời rạc", semester: 2, credits: 3, prerequisite: "MAE101" },
-            { code: "OSG202", name: "Hệ điều hành", semester: 2, credits: 3, prerequisite: "CEA201" },
-            { code: "SSG104", name: "Kỹ năng mềm", semester: 2, credits: 2, prerequisite: "" },
-            // Semester 3
-            { code: "CSD201", name: "Cấu trúc dữ liệu và giải thuật", semester: 3, credits: 3, prerequisite: "PRO192" },
-            { code: "DBI202", name: "Cơ sở dữ liệu", semester: 3, credits: 3, prerequisite: "PRO192" },
-            { code: "NWC203", name: "Mạng máy tính", semester: 3, credits: 3, prerequisite: "OSG202" },
-            { code: "LAB211", name: "Java lập trình hướng đối tượng", semester: 3, credits: 3, prerequisite: "PRO192" },
-            // Semester 4
-            { code: "PRJ301", name: "Lập trình Java Web", semester: 4, credits: 3, prerequisite: "PRO192" },
-            { code: "SWR302", name: "Kiểm thử phần mềm", semester: 4, credits: 3, prerequisite: "CSD201" },
-            { code: "SWT301", name: "KH phát triển phần mềm", semester: 4, credits: 3, prerequisite: "DBI202" },
-            { code: "ITE302", name: "Bảo mật CNTT", semester: 4, credits: 3, prerequisite: "NWC203" },
-            // Semester 5
-            { code: "SWP391", name: "Dự án ứng dụng phần mềm", semester: 5, credits: 3, prerequisite: "PRJ301" },
-            { code: "SEP490", name: "Dự án tốt nghiệp KT PM", semester: 5, credits: 9, prerequisite: "SWP391" }
-        ]
-    },
-    {
-        id: "c-ia",
-        name: "An toàn thông tin",
-        englishName: "Information Assurance",
-        code: "IA",
-        credits: 142,
-        department: "Công nghệ thông tin",
-    },
-    {
-        id: "c-ai",
-        name: "Trí tuệ nhân tạo",
-        englishName: "Artificial Intelligence",
-        code: "AI",
-        credits: 145,
-        department: "Công nghệ thông tin",
-    },
-    {
-        id: "c-gd",
-        name: "Thiết kế đồ họa số",
-        englishName: "Digital Art & Design",
-        code: "GD",
-        credits: 135,
-        department: "Thiết kế",
-    },
-    {
-        id: "c-ib",
-        name: "Kinh doanh quốc tế",
-        englishName: "International Business",
-        code: "IB",
-        credits: 130,
-        department: "Kinh tế",
-    },
-    {
-        id: "c-mc",
-        name: "Truyền thông đa phương tiện",
-        englishName: "Multimedia Communications",
-        code: "MC",
-        credits: 132,
-        department: "Truyền thông",
-    },
-    {
-        id: "c-jl",
-        name: "Ngôn ngữ Nhật",
-        englishName: "Japanese Language",
-        code: "JL",
-        credits: 138,
-        department: "Ngôn ngữ học",
-    },
-    {
-        id: "c-el",
-        name: "Ngôn ngữ Anh",
-        englishName: "English Language",
-        code: "EL",
-        credits: 138,
-        department: "Ngôn ngữ học",
-    },
-    {
-        id: "c-is",
-        name: "Hệ thống thông tin",
-        englishName: "Information Systems",
-        code: "IS",
-        credits: 140,
-        department: "Công nghệ thông tin",
-    },
-    {
-        id: "c-mk",
-        name: "Quản trị Marketing",
-        englishName: "Digital Marketing",
-        code: "MK",
-        credits: 130,
-        department: "Kinh tế",
-    },
-    {
-        id: "c-st",
-        name: "Khoa học công nghệ",
-        englishName: "Science and Technology",
-        code: "ST",
-        credits: 140,
-        department: "Công nghệ thông tin",
-    }
+          {
+            code: "MMA301",
+            name: "Phát triển ứng dụng di động",
+            englishName: "Mobile App Development",
+            semester: 4,
+            credits: 3,
+            prerequisite: "PRO192",
+          },
+          {
+            code: "IOT102",
+            name: "Internet vạn vật",
+            englishName: "Internet of Things",
+            semester: 4,
+            credits: 3,
+            prerequisite: "NWC203",
+          },
+          {
+            code: "WDP301",
+            name: "Phát triển Web nâng cao",
+            englishName: "Advanced Web Development",
+            semester: 4,
+            credits: 3,
+            prerequisite: "PRJ301",
+          },
+        ],
+      },
+      {
+        id: "elec-se-2",
+        name: "Môn tự chọn 2",
+        englishName: "Elective 2",
+        curriculumId: "c-se",
+        semester: 5,
+        credits: 3,
+        minSubjects: 1,
+        maxSubjects: 1,
+        subjects: [
+          {
+            code: "AID391",
+            name: "Trí tuệ nhân tạo ứng dụng",
+            englishName: "Applied AI",
+            semester: 5,
+            credits: 3,
+            prerequisite: "CSD201",
+          },
+          {
+            code: "BDI301",
+            name: "Phân tích dữ liệu lớn",
+            englishName: "Big Data Analytics",
+            semester: 5,
+            credits: 3,
+            prerequisite: "DBI202",
+          },
+          {
+            code: "CLS301",
+            name: "Điện toán đám mây",
+            englishName: "Cloud Computing",
+            semester: 5,
+            credits: 3,
+            prerequisite: "NWC203",
+          },
+        ],
+      },
+      {
+        id: "elec-se-3",
+        name: "Môn tự chọn 3",
+        englishName: "Elective 3",
+        curriculumId: "c-se",
+        semester: 6,
+        credits: 3,
+        minSubjects: 1,
+        maxSubjects: 1,
+        subjects: [
+          {
+            code: "PMG201",
+            name: "Quản lý dự án phần mềm",
+            englishName: "Software Project Management",
+            semester: 6,
+            credits: 3,
+            prerequisite: "SWP391",
+          },
+          {
+            code: "SEC301",
+            name: "Bảo mật ứng dụng",
+            englishName: "Application Security",
+            semester: 6,
+            credits: 3,
+            prerequisite: "ITE302",
+          },
+          {
+            code: "MLN301",
+            name: "Học máy",
+            englishName: "Machine Learning",
+            semester: 6,
+            credits: 3,
+            prerequisite: "CSD201",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "c-ia",
+    name: "An toàn thông tin",
+    englishName: "Information Assurance",
+    code: "IA",
+    credits: 142,
+    department: "Công nghệ thông tin",
+  },
+  {
+    id: "c-ai",
+    name: "Trí tuệ nhân tạo",
+    englishName: "Artificial Intelligence",
+    code: "AI",
+    credits: 145,
+    department: "Công nghệ thông tin",
+  },
+  {
+    id: "c-gd",
+    name: "Thiết kế đồ họa số",
+    englishName: "Digital Art & Design",
+    code: "GD",
+    credits: 135,
+    department: "Thiết kế",
+  },
+  {
+    id: "c-ib",
+    name: "Kinh doanh quốc tế",
+    englishName: "International Business",
+    code: "IB",
+    credits: 130,
+    department: "Kinh tế",
+  },
+  {
+    id: "c-mc",
+    name: "Truyền thông đa phương tiện",
+    englishName: "Multimedia Communications",
+    code: "MC",
+    credits: 132,
+    department: "Truyền thông",
+  },
+  {
+    id: "c-jl",
+    name: "Ngôn ngữ Nhật",
+    englishName: "Japanese Language",
+    code: "JL",
+    credits: 138,
+    department: "Ngôn ngữ học",
+  },
+  {
+    id: "c-el",
+    name: "Ngôn ngữ Anh",
+    englishName: "English Language",
+    code: "EL",
+    credits: 138,
+    department: "Ngôn ngữ học",
+  },
+  {
+    id: "c-is",
+    name: "Hệ thống thông tin",
+    englishName: "Information Systems",
+    code: "IS",
+    credits: 140,
+    department: "Công nghệ thông tin",
+  },
+  {
+    id: "c-mk",
+    name: "Quản trị Marketing",
+    englishName: "Digital Marketing",
+    code: "MK",
+    credits: 130,
+    department: "Kinh tế",
+  },
+  {
+    id: "c-st",
+    name: "Khoa học công nghệ",
+    englishName: "Science and Technology",
+    code: "ST",
+    credits: 140,
+    department: "Công nghệ thông tin",
+  },
 ];
 
 export const MOCK_SYLLABUSES: Syllabus[] = [
-    {
-        id: "syl-prf192",
-        name: "Cơ sở lập trình",
-        englishName: "Programming Fundamentals",
-        subjectCode: "PRF192",
-        credits: 3,
-        degreeLevel: "Undergraduate",
-        timeAllocation: "30h Theory, 30h Practice",
-        prerequisite: "None",
-        description: "Môn học cung cấp kiến thức nền tảng về lập trình bằng ngôn ngữ C. Sinh viên sẽ học về biến, kiểu dữ liệu, cấu trúc điều khiển, mảng, con trỏ và hàm.",
-        studentTasks: "Attend 80% classes, submit assignments on time",
-        tools: "Dev-C++, Visual Studio Code",
-        scoringScale: 10,
-        decisionNo: "456/QD-DH 01/05/2023",
-        isApproved: true,
-        note: "Core subject for SE",
-        minAvgMarkToPass: 5.0,
-        isActive: true,
-        approvedDate: "2023-05-01",
-        materials: [
-            {
-                description: "C Programming Approach",
-                author: "Paul Deitel",
-                publisher: "Pearson",
-                publishedDate: "2016",
-                edition: "8th Update",
-                isbn: "978-0133976892",
-                isMainMaterial: true,
-                isHardCopy: true,
-                isOnline: false,
-                note: "Use chapter 1-10"
-            }
+  {
+    id: "syl-prf192",
+    name: "Cơ sở lập trình",
+    englishName: "Programming Fundamentals",
+    subjectCode: "PRF192",
+    credits: 3,
+    degreeLevel: "Undergraduate",
+    timeAllocation: "30h Theory, 30h Practice",
+    prerequisite: "None",
+    description:
+      "Môn học cung cấp kiến thức nền tảng về lập trình bằng ngôn ngữ C. Sinh viên sẽ học về biến, kiểu dữ liệu, cấu trúc điều khiển, mảng, con trỏ và hàm.",
+    studentTasks: "Attend 80% classes, submit assignments on time",
+    tools: "Dev-C++, Visual Studio Code",
+    scoringScale: 10,
+    decisionNo: "456/QD-DH 01/05/2023",
+    isApproved: true,
+    note: "Core subject for SE",
+    minAvgMarkToPass: 5.0,
+    isActive: true,
+    approvedDate: "2023-05-01",
+    materials: [
+      {
+        description: "C Programming Approach",
+        author: "Paul Deitel",
+        publisher: "Pearson",
+        publishedDate: "2016",
+        edition: "8th Update",
+        isbn: "978-0133976892",
+        isMainMaterial: true,
+        isHardCopy: true,
+        isOnline: false,
+        note: "Use chapter 1-10",
+      },
+    ],
+    clos: [
+      {
+        name: "CLO 1",
+        description:
+          "Hiểu và áp dụng các cấu trúc điều khiển cơ bản trong C (if, switch, for, while).",
+      },
+      { name: "CLO 2", description: "Làm việc với mảng (1D, 2D) và chuỗi." },
+      {
+        name: "CLO 3",
+        description:
+          "Viết hàm và hiểu cách truyền tham số (pass by value, pass by reference với con trỏ).",
+      },
+    ],
+    sessions: [
+      {
+        sessionNo: 1,
+        topic: "Introduction to C Programming",
+        learningTeachingType: "Theory/Practice",
+        lo: "CLO 1",
+        itu: "I",
+        studentMaterials: "Read chapter 1-2",
+        studentTasks: "Complete intro exercise",
+      },
+      {
+        sessionNo: 2,
+        topic: "Control Structures",
+        learningTeachingType: "Theory/Practice",
+        lo: "CLO 1",
+        itu: "T",
+        studentMaterials: "Read chapter 3-4",
+        studentTasks: "Practice conditional statements",
+      },
+    ],
+    constructiveQuestions: [
+      {
+        sessionNo: 1,
+        name: "Q1. Setup Environment",
+        details: "How do you compile a C program using GCC?",
+      },
+      {
+        sessionNo: 2,
+        name: "Q2. Loop Analysis",
+        details: "What is the difference between while and do-while loops?",
+      },
+    ],
+    assessments: [
+      {
+        category: "Final",
+        type: "Practical Exam",
+        part: "PE",
+        weight: "40%",
+        completionCriteria: ">= 4.0",
+        duration: "90 min",
+        clo: "CLO1, CLO2, CLO3",
+        questionType: "Coding",
+        noQuestion: "3",
+        knowledgeAndSkill: "Algorithms and Coding",
+        gradingGuide: "Passed test cases",
+        note: "Closed book",
+      },
+      {
+        category: "Final",
+        type: "Final Exam",
+        part: "FE",
+        weight: "30%",
+        completionCriteria: ">= 4.0",
+        duration: "60 min",
+        clo: "CLO1, CLO2",
+        questionType: "Multiple Choice",
+        noQuestion: "50",
+        knowledgeAndSkill: "Theory",
+        gradingGuide: "Machine graded",
+        note: "Closed book",
+      },
+    ],
+    chapters: [
+      {
+        id: "ch-1",
+        title: "Chapter 1: Introduction to C Programming",
+        description:
+          "Basic concepts, environment setup, and the anatomy of a C program.",
+        lessons: [
+          {
+            id: "ls-1-1",
+            title: "Course Introduction & Setup",
+            type: "video",
+            url: "https://www.w3schools.com/c/c_intro.php",
+            duration: "10 min",
+          },
+          {
+            id: "ls-1-2",
+            title: "Slide: Anatomy of C Program",
+            type: "slide",
+            url: "https://www.w3schools.com/c/c_syntax.php",
+            duration: "15 min",
+          },
+          {
+            id: "ls-1-3",
+            title: "Reading: Basic syntax",
+            type: "pdf",
+            url: "https://www.tutorialspoint.com/cprogramming/cprogramming_tutorial.pdf",
+            duration: "20 min",
+          },
         ],
-        clos: [
-            { name: "CLO 1", description: "Hiểu và áp dụng các cấu trúc điều khiển cơ bản trong C (if, switch, for, while)." },
-            { name: "CLO 2", description: "Làm việc với mảng (1D, 2D) và chuỗi." },
-            { name: "CLO 3", description: "Viết hàm và hiểu cách truyền tham số (pass by value, pass by reference với con trỏ)." }
+      },
+      {
+        id: "ch-2",
+        title: "Chapter 2: Variables and Data Types",
+        description:
+          "Understanding primitive data types, variable declaration, and initialization.",
+        lessons: [
+          {
+            id: "ls-2-1",
+            title: "Data Types Overview",
+            type: "video",
+            url: "https://www.w3schools.com/c/c_data_types.php",
+            duration: "12 min",
+          },
+          {
+            id: "ls-2-2",
+            title: "Slide: Variables in C",
+            type: "slide",
+            url: "https://www.w3schools.com/c/c_variables.php",
+            duration: "18 min",
+          },
         ],
-        sessions: [
-            {
-                sessionNo: 1,
-                topic: "Introduction to C Programming",
-                learningTeachingType: "Theory/Practice",
-                lo: "CLO 1",
-                itu: "I",
-                studentMaterials: "Read chapter 1-2",
-                studentTasks: "Complete intro exercise"
-            },
-            {
-                sessionNo: 2,
-                topic: "Control Structures",
-                learningTeachingType: "Theory/Practice",
-                lo: "CLO 1",
-                itu: "T",
-                studentMaterials: "Read chapter 3-4",
-                studentTasks: "Practice conditional statements"
-            }
+      },
+      {
+        id: "ch-3",
+        title: "Chapter 3: Control Structures",
+        description:
+          "Logical operators, if/else statements, and looping structures.",
+        lessons: [
+          {
+            id: "ls-3-1",
+            title: "If/Else Statements",
+            type: "doc",
+            url: "https://www.w3schools.com/c/c_conditions.php",
+            duration: "15 min",
+          },
+          {
+            id: "ls-3-2",
+            title: "While and For Loops",
+            type: "pdf",
+            url: "https://www.w3schools.com/c/c_while_loop.php",
+            duration: "25 min",
+          },
         ],
-        constructiveQuestions: [
-            {
-                sessionNo: 1,
-                name: "Q1. Setup Environment",
-                details: "How do you compile a C program using GCC?"
-            },
-            {
-                sessionNo: 2,
-                name: "Q2. Loop Analysis",
-                details: "What is the difference between while and do-while loops?"
-            }
+      },
+    ],
+  },
+  {
+    id: "syl-pro192",
+    name: "Lập trình hướng đối tượng",
+    englishName: "Object-Oriented Programming",
+    subjectCode: "PRO192",
+    credits: 3,
+    degreeLevel: "Undergraduate",
+    timeAllocation: "30h Theory, 30h Practice",
+    prerequisite: "PRF192",
+    description:
+      "Môn học cung cấp kiến thức nền tảng về lập trình hướng đối tượng bằng ngôn ngữ Java. Sinh viên học cách thiết kế class, kế thừa, đa hình, interface và xử lý ngoại lệ.",
+    studentTasks: "Attend lectures, complete weekly practical exercises",
+    tools: "NetBeans, IntelliJ IDEA, Eclipse",
+    scoringScale: 10,
+    decisionNo: "125/QD-DH 12/08/2023",
+    isApproved: true,
+    note: "Trọng tâm kỹ năng Java",
+    minAvgMarkToPass: 5.0,
+    isActive: true,
+    approvedDate: "2023-08-12",
+    materials: [
+      {
+        description: "Introduction to Java Programming",
+        author: "Y. Daniel Liang",
+        publisher: "Pearson",
+        publishedDate: "2018",
+        edition: "11th Edition",
+        isbn: "978-0134670942",
+        isMainMaterial: true,
+        isHardCopy: true,
+        isOnline: false,
+        note: "Use chapter 9-13",
+      },
+    ],
+    clos: [
+      {
+        name: "CLO 1",
+        description:
+          "Hiểu các khái niệm cơ bản của OOP: Encapsulation, Inheritance, Polymorphism.",
+      },
+      {
+        name: "CLO 2",
+        description: "Vận dụng được Collections framework trong Java.",
+      },
+      { name: "CLO 3", description: "Xử lý ngoại lệ và luồng I/O cơ bản." },
+    ],
+    sessions: [
+      {
+        sessionNo: 1,
+        topic: "Introduction to Objects and Classes",
+        learningTeachingType: "Theory",
+        lo: "CLO 1",
+        itu: "I",
+        studentMaterials: "Read chapter 9",
+        studentTasks: "Create simple classes",
+      },
+      {
+        sessionNo: 2,
+        topic: "Inheritance and Polymorphism",
+        learningTeachingType: "Theory/Practice",
+        lo: "CLO 1",
+        itu: "T",
+        studentMaterials: "Read chapter 11",
+        studentTasks: "Implement overriding and overloading",
+      },
+    ],
+    constructiveQuestions: [
+      {
+        sessionNo: 1,
+        name: "Q1. Constructor",
+        details:
+          "What is the difference between a constructor and a standard method?",
+      },
+    ],
+    assessments: [
+      {
+        category: "Final",
+        type: "Practical Exam",
+        part: "PE",
+        weight: "40%",
+        completionCriteria: ">= 4.0",
+        duration: "90 min",
+        clo: "CLO1, CLO2, CLO3",
+        questionType: "Coding",
+        noQuestion: "3",
+        knowledgeAndSkill: "Java Coding",
+        gradingGuide: "Passed test cases",
+        note: "Allowed documentation",
+      },
+    ],
+    chapters: [
+      {
+        id: "ch-oop-1",
+        title: "Chapter 1: Objects and Classes",
+        description:
+          "Deep dive into classes, objects, and constructors in Java.",
+        lessons: [
+          {
+            id: "ls-oop-1-1",
+            title: "Video: Java Objects",
+            type: "video",
+            url: "https://www.w3schools.com/java/java_classes.asp",
+            duration: "12 min",
+          },
+          {
+            id: "ls-oop-1-2",
+            title: "Slide: Constructors",
+            type: "slide",
+            url: "https://www.w3schools.com/java/java_constructors.asp",
+            duration: "15 min",
+          },
         ],
-        assessments: [
-            {
-                category: "Final",
-                type: "Practical Exam",
-                part: "PE",
-                weight: "40%",
-                completionCriteria: ">= 4.0",
-                duration: "90 min",
-                clo: "CLO1, CLO2, CLO3",
-                questionType: "Coding",
-                noQuestion: "3",
-                knowledgeAndSkill: "Algorithms and Coding",
-                gradingGuide: "Passed test cases",
-                note: "Closed book"
-            },
-            {
-                category: "Final",
-                type: "Final Exam",
-                part: "FE",
-                weight: "30%",
-                completionCriteria: ">= 4.0",
-                duration: "60 min",
-                clo: "CLO1, CLO2",
-                questionType: "Multiple Choice",
-                noQuestion: "50",
-                knowledgeAndSkill: "Theory",
-                gradingGuide: "Machine graded",
-                note: "Closed book"
-            }
+      },
+      {
+        id: "ch-oop-2",
+        title: "Chapter 2: Inheritance & Polymorphism",
+        description: "Reusability and method overriding.",
+        lessons: [
+          {
+            id: "ls-oop-2-1",
+            title: "Reading: Inheritance in Java",
+            type: "doc",
+            url: "https://www.w3schools.com/java/java_inheritance.asp",
+            duration: "25 min",
+          },
+          {
+            id: "ls-oop-2-2",
+            title: "PDF: Polymorphism Guide",
+            type: "pdf",
+            url: "https://www.tutorialspoint.com/java/java_pdf_version.htm",
+            duration: "30 min",
+          },
         ],
-        chapters: [
-            {
-                id: "ch-1",
-                title: "Chapter 1: Introduction to C Programming",
-                description: "Basic concepts, environment setup, and the anatomy of a C program.",
-                lessons: [
-                    { id: "ls-1-1", title: "Course Introduction & Setup", type: "video", url: "https://www.w3schools.com/c/c_intro.php", duration: "10 min" },
-                    { id: "ls-1-2", title: "Slide: Anatomy of C Program", type: "slide", url: "https://www.w3schools.com/c/c_syntax.php", duration: "15 min" },
-                    { id: "ls-1-3", title: "Reading: Basic syntax", type: "pdf", url: "https://www.tutorialspoint.com/cprogramming/cprogramming_tutorial.pdf", duration: "20 min" }
-                ]
-            },
-            {
-                id: "ch-2",
-                title: "Chapter 2: Variables and Data Types",
-                description: "Understanding primitive data types, variable declaration, and initialization.",
-                lessons: [
-                    { id: "ls-2-1", title: "Data Types Overview", type: "video", url: "https://www.w3schools.com/c/c_data_types.php", duration: "12 min" },
-                    { id: "ls-2-2", title: "Slide: Variables in C", type: "slide", url: "https://www.w3schools.com/c/c_variables.php", duration: "18 min" }
-                ]
-            },
-            {
-                id: "ch-3",
-                title: "Chapter 3: Control Structures",
-                description: "Logical operators, if/else statements, and looping structures.",
-                lessons: [
-                    { id: "ls-3-1", title: "If/Else Statements", type: "doc", url: "https://www.w3schools.com/c/c_conditions.php", duration: "15 min" },
-                    { id: "ls-3-2", title: "While and For Loops", type: "pdf", url: "https://www.w3schools.com/c/c_while_loop.php", duration: "25 min" }
-                ]
-            }
-        ]
-    },
-    {
-        id: "syl-pro192",
-        name: "Lập trình hướng đối tượng",
-        englishName: "Object-Oriented Programming",
-        subjectCode: "PRO192",
-        credits: 3,
-        degreeLevel: "Undergraduate",
-        timeAllocation: "30h Theory, 30h Practice",
-        prerequisite: "PRF192",
-        description: "Môn học cung cấp kiến thức nền tảng về lập trình hướng đối tượng bằng ngôn ngữ Java. Sinh viên học cách thiết kế class, kế thừa, đa hình, interface và xử lý ngoại lệ.",
-        studentTasks: "Attend lectures, complete weekly practical exercises",
-        tools: "NetBeans, IntelliJ IDEA, Eclipse",
-        scoringScale: 10,
-        decisionNo: "125/QD-DH 12/08/2023",
-        isApproved: true,
-        note: "Trọng tâm kỹ năng Java",
-        minAvgMarkToPass: 5.0,
-        isActive: true,
-        approvedDate: "2023-08-12",
-        materials: [
-            {
-                description: "Introduction to Java Programming",
-                author: "Y. Daniel Liang",
-                publisher: "Pearson",
-                publishedDate: "2018",
-                edition: "11th Edition",
-                isbn: "978-0134670942",
-                isMainMaterial: true,
-                isHardCopy: true,
-                isOnline: false,
-                note: "Use chapter 9-13"
-            }
-        ],
-        clos: [
-            { name: "CLO 1", description: "Hiểu các khái niệm cơ bản của OOP: Encapsulation, Inheritance, Polymorphism." },
-            { name: "CLO 2", description: "Vận dụng được Collections framework trong Java." },
-            { name: "CLO 3", description: "Xử lý ngoại lệ và luồng I/O cơ bản." }
-        ],
-        sessions: [
-            {
-                sessionNo: 1,
-                topic: "Introduction to Objects and Classes",
-                learningTeachingType: "Theory",
-                lo: "CLO 1",
-                itu: "I",
-                studentMaterials: "Read chapter 9",
-                studentTasks: "Create simple classes"
-            },
-            {
-                sessionNo: 2,
-                topic: "Inheritance and Polymorphism",
-                learningTeachingType: "Theory/Practice",
-                lo: "CLO 1",
-                itu: "T",
-                studentMaterials: "Read chapter 11",
-                studentTasks: "Implement overriding and overloading"
-            }
-        ],
-        constructiveQuestions: [
-            {
-                sessionNo: 1,
-                name: "Q1. Constructor",
-                details: "What is the difference between a constructor and a standard method?"
-            }
-        ],
-        assessments: [
-            {
-                category: "Final",
-                type: "Practical Exam",
-                part: "PE",
-                weight: "40%",
-                completionCriteria: ">= 4.0",
-                duration: "90 min",
-                clo: "CLO1, CLO2, CLO3",
-                questionType: "Coding",
-                noQuestion: "3",
-                knowledgeAndSkill: "Java Coding",
-                gradingGuide: "Passed test cases",
-                note: "Allowed documentation"
-            }
-        ],
-        chapters: [
-            {
-                id: "ch-oop-1",
-                title: "Chapter 1: Objects and Classes",
-                description: "Deep dive into classes, objects, and constructors in Java.",
-                lessons: [
-                    { id: "ls-oop-1-1", title: "Video: Java Objects", type: "video", url: "https://www.w3schools.com/java/java_classes.asp", duration: "12 min" },
-                    { id: "ls-oop-1-2", title: "Slide: Constructors", type: "slide", url: "https://www.w3schools.com/java/java_constructors.asp", duration: "15 min" }
-                ]
-            },
-            {
-                id: "ch-oop-2",
-                title: "Chapter 2: Inheritance & Polymorphism",
-                description: "Reusability and method overriding.",
-                lessons: [
-                    { id: "ls-oop-2-1", title: "Reading: Inheritance in Java", type: "doc", url: "https://www.w3schools.com/java/java_inheritance.asp", duration: "25 min" },
-                    { id: "ls-oop-2-2", title: "PDF: Polymorphism Guide", type: "pdf", url: "https://www.tutorialspoint.com/java/java_pdf_version.htm", duration: "30 min" }
-                ]
-            }
-        ]
-    },
-    {
-        id: "syl-csd201",
-        name: "Cấu trúc dữ liệu và giải thuật",
-        englishName: "Data Structures and Algorithms",
-        subjectCode: "CSD201",
-        credits: 3,
-        degreeLevel: "Undergraduate",
-        timeAllocation: "30h Theory, 30h Practice",
-        prerequisite: "PRO192",
-        description: "Môn học giới thiệu các cấu trúc dữ liệu cơ bản (List, Stack, Queue, Tree, Graph) và các giải thuật tìm kiếm, sắp xếp.",
-        studentTasks: "Do assignments and implement algorithms from scratch",
-        tools: "Java, C++",
-        scoringScale: 10,
-        decisionNo: "888/QD-DH 01/01/2024",
-        isApproved: true,
-        note: "Requires strong programming fundamental",
-        minAvgMarkToPass: 5.0,
-        isActive: true,
-        approvedDate: "2024-01-01",
-        materials: [
-            {
-                description: "Data Structures and Algorithm Analysis",
-                author: "Mark Allen Weiss",
-                publisher: "Pearson",
-                publishedDate: "2011",
-                edition: "3rd Edition",
-                isbn: "978-0132847377",
-                isMainMaterial: true,
-                isHardCopy: true,
-                isOnline: false,
-                note: ""
-            }
-        ],
-        clos: [
-            { name: "CLO 1", description: "Phân tích độ phức tạp thời gian và không gian của giải thuật." },
-            { name: "CLO 2", description: "Cài đặt và áp dụng List, Stack, Queue." },
-            { name: "CLO 3", description: "Cài đặt và hiểu cơ chế hoạt động của Binary Search Tree, Graph." }
-        ],
-        sessions: [
-            {
-                sessionNo: 1,
-                topic: "Array Allocation, Linked Lists",
-                learningTeachingType: "Theory/Practice",
-                lo: "CLO 2",
-                itu: "I, T",
-                studentMaterials: "Read chapter 3",
-                studentTasks: "Implement Singly Linked List"
-            }
-        ],
-        constructiveQuestions: [],
-        assessments: [
-            {
-                category: "Final",
-                type: "Practical Exam",
-                part: "PE",
-                weight: "100%",
-                completionCriteria: ">= 4.0",
-                duration: "90 min",
-                clo: "CLO1, CLO2, CLO3",
-                questionType: "Coding",
-                noQuestion: "3",
-                knowledgeAndSkill: "Algorithms Implementation",
-                gradingGuide: "Passed automated tests",
-                note: "Paperless"
-            }
-        ]
-    }
+      },
+    ],
+  },
+  {
+    id: "syl-csd201",
+    name: "Cấu trúc dữ liệu và giải thuật",
+    englishName: "Data Structures and Algorithms",
+    subjectCode: "CSD201",
+    credits: 3,
+    degreeLevel: "Undergraduate",
+    timeAllocation: "30h Theory, 30h Practice",
+    prerequisite: "PRO192",
+    description:
+      "Môn học giới thiệu các cấu trúc dữ liệu cơ bản (List, Stack, Queue, Tree, Graph) và các giải thuật tìm kiếm, sắp xếp.",
+    studentTasks: "Do assignments and implement algorithms from scratch",
+    tools: "Java, C++",
+    scoringScale: 10,
+    decisionNo: "888/QD-DH 01/01/2024",
+    isApproved: true,
+    note: "Requires strong programming fundamental",
+    minAvgMarkToPass: 5.0,
+    isActive: true,
+    approvedDate: "2024-01-01",
+    materials: [
+      {
+        description: "Data Structures and Algorithm Analysis",
+        author: "Mark Allen Weiss",
+        publisher: "Pearson",
+        publishedDate: "2011",
+        edition: "3rd Edition",
+        isbn: "978-0132847377",
+        isMainMaterial: true,
+        isHardCopy: true,
+        isOnline: false,
+        note: "",
+      },
+    ],
+    clos: [
+      {
+        name: "CLO 1",
+        description:
+          "Phân tích độ phức tạp thời gian và không gian của giải thuật.",
+      },
+      { name: "CLO 2", description: "Cài đặt và áp dụng List, Stack, Queue." },
+      {
+        name: "CLO 3",
+        description:
+          "Cài đặt và hiểu cơ chế hoạt động của Binary Search Tree, Graph.",
+      },
+    ],
+    sessions: [
+      {
+        sessionNo: 1,
+        topic: "Array Allocation, Linked Lists",
+        learningTeachingType: "Theory/Practice",
+        lo: "CLO 2",
+        itu: "I, T",
+        studentMaterials: "Read chapter 3",
+        studentTasks: "Implement Singly Linked List",
+      },
+    ],
+    constructiveQuestions: [],
+    assessments: [
+      {
+        category: "Final",
+        type: "Practical Exam",
+        part: "PE",
+        weight: "100%",
+        completionCriteria: ">= 4.0",
+        duration: "90 min",
+        clo: "CLO1, CLO2, CLO3",
+        questionType: "Coding",
+        noQuestion: "3",
+        knowledgeAndSkill: "Algorithms Implementation",
+        gradingGuide: "Passed automated tests",
+        note: "Paperless",
+      },
+    ],
+  },
 ];
