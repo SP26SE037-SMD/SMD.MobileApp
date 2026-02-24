@@ -35,9 +35,13 @@ const MOCK_PDF_BLOCKS = [
 
     { block_id: 1015, material_id: 1, idx: 15, block_style: "heading", content_text: "3. Lợi ích của việc học Lập trình" },
     { block_id: 1016, material_id: 1, idx: 16, block_style: "paragraph", content_text: "Trong thời đại kỹ thuật số, việc học lập trình mang lại vô vàn lợi ích kể cả khi bạn không trở thành Kỹ sư phần mềm chuyên nghiệp:" },
-    { block_id: 1017, material_id: 1, idx: 17, block_style: "collection", content_text: "- Rèn luyện tư duy logic và kỹ năng giải quyết thuật toán." },
-    { block_id: 1018, material_id: 1, idx: 18, block_style: "collection", content_text: "-Tự động hoá các quy trình nhàm chán ngoài đời thực." },
-    { block_id: 1019, material_id: 1, idx: 19, block_style: "collection", content_text: "- Góp phần xây dựng cái nhìn sâu sắc về vạn vật (Internet of Things)." }
+    { block_id: 1017, material_id: 1, idx: 17, block_style: "collection", content_text: "- Rèn luyện tư duy logic và kỹ năng giải quyết vấn đề." },
+    { block_id: 1018, material_id: 1, idx: 18, block_style: "collection", content_text: "- Tự động hoá các quy trình nhàm chán ngoài đời thực." },
+    { block_id: 1019, material_id: 1, idx: 19, block_style: "collection", content_text: "- Góp phần xây dựng cái nhìn sâu sắc về vạn vật (Internet of Things)." },
+
+    { block_id: 1020, material_id: 1, idx: 20, block_style: "heading", content_text: "4. Hình ảnh minh hoạ" },
+    { block_id: 1021, material_id: 1, idx: 21, block_style: "paragraph", content_text: "Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay:  Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay:  Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay:  Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nayDưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay: Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay:  Dưới đây là logo đại diện cho ngôn ngữ lập trình C - nền tảng của nhiều ngôn ngữ hiện đại ngày nay:" },
+    { block_id: 1022, material_id: 1, idx: 22, block_style: "image", content_text: "https://cdn-media.sforum.vn/storage/app/media/anh-dep-16.jpg" }
 ];
 
 
@@ -65,19 +69,33 @@ export default function LessonViewerScreen() {
                             <head>
                                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
                                 <style>
-                                    body { font-family: 'Helvetica', sans-serif; padding: 20px; color: ${isDark ? '#F1F5F9' : '#0F172A'}; background-color: ${isDark ? '#0F172A' : '#F8FAFC'}; }
-                                    h1 { font-size: 24px; font-weight: bold; margin-top: 12px; margin-bottom: 16px; }
-                                    p { font-size: 16px; line-height: 1.5; margin-bottom: 12px; }
-                                    .collection { font-size: 16px; line-height: 1.5; margin-bottom: 4px; margin-left: 16px; }
+                                    @page { size: auto; margin: 40px 0; }
+                                    html, body { 
+                                        margin: 0; padding: 0; 
+                                        font-family: 'Helvetica', sans-serif; 
+                                        color: ${isDark ? '#F1F5F9' : '#0F172A'}; 
+                                        background-color: ${isDark ? '#0F172A' : '#F8FAFC'}; 
+                                    }
+                                    .content-wrapper { padding: 20px 32px; }
+                                    .main-title { font-size: 28px; font-weight: bold; color: #EF4444; text-align: center; margin-bottom: 32px; margin-top: 16px; text-transform: uppercase; }
+                                    h1 { font-size: 24px; font-weight: bold; margin-top: 32px; margin-bottom: 16px; page-break-after: avoid; page-break-inside: avoid; }
+                                    p { font-size: 16px; line-height: 1.6; text-align: justify; text-indent: 32px; margin-top: 16px; margin-bottom: 24px; page-break-inside: auto; }
+                                    .collection { font-size: 16px; line-height: 1.6; margin-bottom: 12px; margin-left: 24px; margin-right: 16px; text-align: justify; page-break-inside: avoid; }
+                                    .image-wrapper { text-align: center; margin: 24px 0; page-break-inside: avoid; display: block; }
+                                    img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: block; margin: 0 auto; page-break-inside: avoid; }
                                 </style>
                             </head>
                             <body>
+                                <div class="content-wrapper">
+                                    <div class="main-title">${title || 'TÀI LIỆU BÀI GIẢNG'}</div>
                                 ${MOCK_PDF_BLOCKS.sort((a, b) => a.idx - b.idx).map(block => {
                         if (block.block_style === 'heading') return `<h1>${block.content_text}</h1>`;
                         if (block.block_style === 'paragraph') return `<p>${block.content_text}</p>`;
                         if (block.block_style === 'collection') return `<div class="collection">${block.content_text}</div>`;
+                        if (block.block_style === 'image') return `<div class="image-wrapper"><img src="${block.content_text}" /></div>`;
                         return `<p>${block.content_text}</p>`;
                     }).join('')}
+                                </div>
                             </body>
                         </html>
                     `;
