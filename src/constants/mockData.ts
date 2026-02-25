@@ -162,6 +162,24 @@ export const MOCK_CURRICULUMS: Curriculum[] = [
       },
     ],
     subjects: [
+      // Semester 0 - Môn tiền đề
+      {
+        code: "ENT001",
+        name: "Tiếng Anh đầu vào",
+        englishName: "Entrance English",
+        semester: 0,
+        credits: 0,
+        prerequisite: "",
+      },
+      {
+        code: "ELEC-SE-PE",
+        name: "Thể dục tự chọn",
+        englishName: "Physical Education Elective",
+        semester: 0,
+        credits: 2,
+        isElective: true,
+        electiveGroupId: "elec-se-pe",
+      },
       // Semester 1 - No prerequisites
       {
         code: "PRF192",
@@ -326,6 +344,58 @@ export const MOCK_CURRICULUMS: Curriculum[] = [
       },
     ],
     electiveGroups: [
+      {
+        id: "elec-se-pe",
+        name: "Thể dục tự chọn",
+        englishName: "Physical Education Elective",
+        curriculumId: "c-se",
+        semester: 0,
+        credits: 2,
+        minSubjects: 1,
+        maxSubjects: 1,
+        subjects: [
+          {
+            code: "PE001",
+            name: "Bóng đá",
+            englishName: "Football",
+            semester: 0,
+            credits: 2,
+            prerequisite: "",
+          },
+          {
+            code: "PE002",
+            name: "Bóng rổ",
+            englishName: "Basketball",
+            semester: 0,
+            credits: 2,
+            prerequisite: "",
+          },
+          {
+            code: "PE003",
+            name: "Cầu lông",
+            englishName: "Badminton",
+            semester: 0,
+            credits: 2,
+            prerequisite: "",
+          },
+          {
+            code: "PE004",
+            name: "Bơi lội",
+            englishName: "Swimming",
+            semester: 0,
+            credits: 2,
+            prerequisite: "",
+          },
+          {
+            code: "PE005",
+            name: "Võ thuật",
+            englishName: "Martial Arts",
+            semester: 0,
+            credits: 2,
+            prerequisite: "",
+          },
+        ],
+      },
       {
         id: "elec-se-1",
         name: "Môn tự chọn 1",
