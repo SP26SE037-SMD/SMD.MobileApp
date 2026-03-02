@@ -1,31 +1,39 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  FlatList,
-  Modal,
-  useColorScheme,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
-import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import {
+  FlatList,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Colors for suggested subjects
-const COLORS = ["#2563EB", "#0D9488", "#7C3AED", "#EA580C", "#16A34A", "#0EA5E9"];
+const COLORS = [
+  "#2563EB",
+  "#0D9488",
+  "#7C3AED",
+  "#EA580C",
+  "#16A34A",
+  "#0EA5E9",
+];
 
 // Map mock syllabus to the format required by the UI
-const getSuggestedSubjects = (lang: string) => MOCK_SYLLABUSES.slice(0, 6).map((syl, index) => ({
-  id: syl.id,
-  code: syl.subjectCode,
-  name: lang === 'vi' ? syl.name : (syl.englishName || syl.name),
-  credits: syl.credits,
-  color: COLORS[index % COLORS.length]
-}));
+const getSuggestedSubjects = (lang: string) =>
+  MOCK_SYLLABUSES.slice(0, 6).map((syl, index) => ({
+    id: syl.id,
+    code: syl.subjectCode,
+    name: lang === "vi" ? syl.name : syl.englishName || syl.name,
+    credits: syl.credits,
+    color: COLORS[index % COLORS.length],
+  }));
 
 export default function DashboardScreen() {
   const { language } = useSettingsStore();
@@ -98,8 +106,10 @@ export default function DashboardScreen() {
     },
   ];
 
-  const bookmarkedSubjects = useWishlistStore(state => state.bookmarkedSubjects);
-  const toggleBookmark = useWishlistStore(state => state.toggleBookmark);
+  const bookmarkedSubjects = useWishlistStore(
+    (state) => state.bookmarkedSubjects,
+  );
+  const toggleBookmark = useWishlistStore((state) => state.toggleBookmark);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   return (
@@ -108,63 +118,87 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header Hero Section */}
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingHorizontal: 24,
-            paddingTop: 8,
-            paddingBottom: 20,
+            backgroundColor: isDark ? "#1E3A5F" : "#2563EB",
+            marginHorizontal: 16,
+            marginTop: 8,
+            borderRadius: 24,
+            padding: 24,
+            paddingBottom: 28,
+            overflow: "hidden",
+            position: "relative",
           }}
         >
-          {/* Greeting */}
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 26,
-                fontWeight: "700",
-                color: colors.textPrimary,
-                letterSpacing: -0.5,
-              }}
-            >
-              {language === 'vi' ? 'Chào bạn! 👋' : 'Hello! 👋'}
-            </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                color: colors.textSecondary,
-                marginTop: 4,
-                fontWeight: "400",
-              }}
-            >
-              {language === 'vi' ? 'Chúc bạn một ngày vui vẻ' : 'Have a great day'}
-            </Text>
-          </View>
+          {/* Decorative Elements */}
+          <View
+            style={{
+              position: "absolute",
+              top: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              backgroundColor: "rgba(255,255,255,0.08)",
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              bottom: -40,
+              left: -20,
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              backgroundColor: "rgba(255,255,255,0.05)",
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 80,
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              bottom: 30,
+              right: 40,
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: "rgba(255,255,255,0.25)",
+            }}
+          />
 
-          {/* Action Icons */}
-          <View style={{ flexDirection: "row", gap: 10 }}>
+          {/* Top Row: Icons */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              marginBottom: 20,
+              gap: 10,
+            }}
+          >
             <TouchableOpacity
               onPress={() => setShowNotificationsModal(true)}
               activeOpacity={0.7}
               style={{
-                width: 42,
-                height: 42,
+                width: 40,
+                height: 40,
                 borderRadius: 12,
-                backgroundColor: colors.iconBg,
-                borderWidth: 1,
-                borderColor: colors.iconBorder,
+                backgroundColor: "rgba(255,255,255,0.15)",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name="notifications-outline"
-                size={20}
-                color={colors.textPrimary}
-              />
-              {/* Notification badge */}
+              <Ionicons name="notifications-outline" size={20} color="white" />
               <View
                 style={{
                   position: "absolute",
@@ -173,7 +207,7 @@ export default function DashboardScreen() {
                   width: 8,
                   height: 8,
                   borderRadius: 4,
-                  backgroundColor: "#EF4444",
+                  backgroundColor: "#FCD34D",
                 }}
               />
             </TouchableOpacity>
@@ -182,67 +216,113 @@ export default function DashboardScreen() {
               onPress={() => router.push("/qr-scanner")}
               activeOpacity={0.7}
               style={{
-                width: 42,
-                height: 42,
+                width: 40,
+                height: 40,
                 borderRadius: 12,
-                backgroundColor: colors.iconBg,
-                borderWidth: 1,
-                borderColor: colors.iconBorder,
+                backgroundColor: "rgba(255,255,255,0.15)",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name="qr-code-outline"
-                size={20}
-                color={colors.textPrimary}
-              />
+              <Ionicons name="qr-code-outline" size={20} color="white" />
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => router.push("/settings")}
               activeOpacity={0.7}
               style={{
-                width: 42,
-                height: 42,
+                width: 40,
+                height: 40,
                 borderRadius: 12,
-                backgroundColor: colors.iconBg,
-                borderWidth: 1,
-                borderColor: colors.iconBorder,
+                backgroundColor: "rgba(255,255,255,0.15)",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name="settings-outline"
-                size={20}
-                color={colors.textPrimary}
-              />
+              <Ionicons name="settings-outline" size={20} color="white" />
             </TouchableOpacity>
+          </View>
+
+          {/* Greeting Content */}
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {/* Icon Container */}
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                backgroundColor: "rgba(255,255,255,0.2)",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 16,
+              }}
+            >
+              <MaterialIcons name="school" size={28} color="white" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: "700",
+                  color: "white",
+                  letterSpacing: -0.5,
+                  marginBottom: 4,
+                }}
+              >
+                {language === "vi" ? "Chào bạn! 👋" : "Hello! 👋"}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: "rgba(255,255,255,0.8)",
+                  fontWeight: "500",
+                }}
+              >
+                {language === "vi"
+                  ? "Sẵn sàng khám phá kiến thức mới?"
+                  : "Ready to explore new knowledge?"}
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* Suggested Subjects - Horizontal Scroll */}
-        <View style={{ marginBottom: 28 }}>
+        <View style={{ marginTop: 24, marginBottom: 28 }}>
           <View
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
               paddingHorizontal: 24,
-              marginBottom: 14,
+              marginBottom: 16,
             }}
           >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "700",
-                color: colors.textPrimary,
-                letterSpacing: -0.3,
-              }}
-            >
-              {language === 'vi' ? 'Gợi ý học kỳ này' : 'Suggested this semester'}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: colors.primaryBg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 10,
+                }}
+              >
+                <Ionicons name="sparkles" size={16} color={colors.primary} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "700",
+                  color: colors.textPrimary,
+                  letterSpacing: -0.3,
+                }}
+              >
+                {language === "vi" ? "Gợi ý cho bạn" : "Suggested for you"}
+              </Text>
+            </View>
           </View>
 
           <FlatList
@@ -253,94 +333,125 @@ export default function DashboardScreen() {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => router.push({ pathname: "/subject/[code]", params: { code: item.code } } as any)}
+                activeOpacity={0.9}
+                onPress={() =>
+                  router.push({
+                    pathname: "/subject/[code]",
+                    params: { code: item.code },
+                  } as any)
+                }
                 style={{
-                  width: 220,
+                  width: 180,
                   backgroundColor: colors.card,
-                  borderRadius: 18,
-                  padding: 18,
+                  borderRadius: 20,
                   marginHorizontal: 6,
                   borderWidth: 1,
                   borderColor: colors.cardBorder,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isDark ? 0 : 0.06,
-                  shadowRadius: 12,
-                  elevation: isDark ? 0 : 3,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: isDark ? 0 : 0.08,
+                  shadowRadius: 16,
+                  elevation: isDark ? 0 : 4,
+                  overflow: "hidden",
                 }}
               >
-                {/* Code badge */}
-                <View
-                  style={{
-                    backgroundColor: item.color + (isDark ? "20" : "12"),
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 8,
-                    alignSelf: "flex-start",
-                    marginBottom: 14,
-                  }}
-                >
-                  <Text
+                {/* Colored top stripe */}
+                <View style={{ height: 4, backgroundColor: item.color }} />
+
+                <View style={{ padding: 16 }}>
+                  {/* Header row */}
+                  <View
                     style={{
-                      fontSize: 12,
-                      fontWeight: "700",
-                      color: item.color,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 12,
                     }}
                   >
-                    {item.code}
+                    <View
+                      style={{
+                        backgroundColor: item.color + (isDark ? "20" : "12"),
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 6,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: "700",
+                          color: item.color,
+                        }}
+                      >
+                        {item.code}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => toggleBookmark(item.code)}
+                      activeOpacity={0.7}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        backgroundColor: bookmarkedSubjects.includes(item.code)
+                          ? "rgba(245,158,11,0.15)"
+                          : isDark
+                            ? "rgba(255,255,255,0.06)"
+                            : "rgba(0,0,0,0.03)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons
+                        name={
+                          bookmarkedSubjects.includes(item.code)
+                            ? "star"
+                            : "star-outline"
+                        }
+                        size={14}
+                        color={
+                          bookmarkedSubjects.includes(item.code)
+                            ? "#F59E0B"
+                            : colors.textSecondary
+                        }
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Subject Name */}
+                  <Text
+                    numberOfLines={2}
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color: colors.textPrimary,
+                      marginBottom: 10,
+                      lineHeight: 20,
+                      minHeight: 40,
+                    }}
+                  >
+                    {item.name}
                   </Text>
+
+                  {/* Credits */}
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Ionicons
+                      name="time-outline"
+                      size={12}
+                      color={colors.textSecondary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {item.credits} {language === "vi" ? "tín chỉ" : "credits"}
+                    </Text>
+                  </View>
                 </View>
-
-                {/* Subject Name */}
-                <Text
-                  numberOfLines={2}
-                  style={{
-                    fontSize: 15,
-                    fontWeight: "600",
-                    color: colors.textPrimary,
-                    marginBottom: 8,
-                    lineHeight: 21,
-                  }}
-                >
-                  {item.name}
-                </Text>
-
-                {/* Credits */}
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: colors.textSecondary,
-                    marginBottom: 16,
-                  }}
-                >
-                  {item.credits} {language === 'vi' ? 'tín chỉ' : 'credits'}
-                </Text>
-
-                {/* Wishlist Star Button */}
-                <TouchableOpacity
-                  onPress={() => toggleBookmark(item.code)}
-                  activeOpacity={0.7}
-                  style={{
-                    alignSelf: "flex-end",
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    backgroundColor: bookmarkedSubjects.includes(item.code)
-                      ? "rgba(245,158,11,0.15)"
-                      : isDark
-                        ? "rgba(255,255,255,0.06)"
-                        : "rgba(0,0,0,0.04)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons
-                    name={bookmarkedSubjects.includes(item.code) ? "star" : "star-outline"}
-                    size={20}
-                    color={bookmarkedSubjects.includes(item.code) ? "#F59E0B" : colors.textSecondary}
-                  />
-                </TouchableOpacity>
               </TouchableOpacity>
             )}
           />
@@ -357,10 +468,14 @@ export default function DashboardScreen() {
               letterSpacing: -0.3,
             }}
           >
-            {language === 'vi' ? 'Khám phá' : 'Explore'}
+            {language === "vi" ? "Khám phá" : "Explore"}
           </Text>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row", gap: 14 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ flexDirection: "row", gap: 14 }}
+          >
             {/* Tìm Curriculum Card */}
             <TouchableOpacity
               onPress={() => router.push("/search-curriculum")}
@@ -404,7 +519,7 @@ export default function DashboardScreen() {
                   marginBottom: 4,
                 }}
               >
-                {language === 'vi' ? 'Tìm Curriculum' : 'Find Curriculum'}
+                {language === "vi" ? "Tìm Curriculum" : "Find Curriculum"}
               </Text>
               <Text
                 style={{
@@ -413,7 +528,9 @@ export default function DashboardScreen() {
                   lineHeight: 18,
                 }}
               >
-                {language === 'vi' ? 'Khám phá chương trình đào tạo' : 'Explore training programs'}
+                {language === "vi"
+                  ? "Khám phá chương trình đào tạo"
+                  : "Explore training programs"}
               </Text>
             </TouchableOpacity>
 
@@ -446,11 +563,7 @@ export default function DashboardScreen() {
                   marginBottom: 14,
                 }}
               >
-                <MaterialIcons
-                  name="science"
-                  size={24}
-                  color={colors.teal}
-                />
+                <MaterialIcons name="science" size={24} color={colors.teal} />
               </View>
               <Text
                 style={{
@@ -460,7 +573,7 @@ export default function DashboardScreen() {
                   marginBottom: 4,
                 }}
               >
-                {language === 'vi' ? 'Tìm Môn Học' : 'Find Subject'}
+                {language === "vi" ? "Tìm Môn Học" : "Find Subject"}
               </Text>
               <Text
                 style={{
@@ -469,7 +582,9 @@ export default function DashboardScreen() {
                   lineHeight: 18,
                 }}
               >
-                {language === 'vi' ? 'Tra cứu thông tin môn học' : 'Lookup subject information'}
+                {language === "vi"
+                  ? "Tra cứu thông tin môn học"
+                  : "Lookup subject information"}
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -486,7 +601,7 @@ export default function DashboardScreen() {
               letterSpacing: -0.3,
             }}
           >
-            {language === 'vi' ? 'Hoạt động gần đây' : 'Recent Activity'}
+            {language === "vi" ? "Hoạt động gần đây" : "Recent Activity"}
           </Text>
 
           <View
@@ -515,11 +630,7 @@ export default function DashboardScreen() {
                 marginBottom: 14,
               }}
             >
-              <MaterialIcons
-                name="history"
-                size={28}
-                color={colors.primary}
-              />
+              <MaterialIcons name="history" size={28} color={colors.primary} />
             </View>
             <Text
               style={{
@@ -529,7 +640,9 @@ export default function DashboardScreen() {
                 marginBottom: 4,
               }}
             >
-              {language === 'vi' ? 'Chưa có hoạt động nào' : 'No recent activities'}
+              {language === "vi"
+                ? "Chưa có hoạt động nào"
+                : "No recent activities"}
             </Text>
             <Text
               style={{
@@ -539,7 +652,9 @@ export default function DashboardScreen() {
                 lineHeight: 20,
               }}
             >
-              {language === 'vi' ? 'Hãy bắt đầu tìm kiếm curriculum\nhoặc môn học yêu thích!' : 'Start exploring curriculum\nand your favorite subjects!'}
+              {language === "vi"
+                ? "Hãy bắt đầu tìm kiếm curriculum\nhoặc môn học yêu thích!"
+                : "Start exploring curriculum\nand your favorite subjects!"}
             </Text>
           </View>
         </View>
@@ -590,9 +705,11 @@ export default function DashboardScreen() {
                   color: colors.textPrimary,
                 }}
               >
-                {language === 'vi' ? 'Thông báo mới' : 'New Notifications'}
+                {language === "vi" ? "Thông báo mới" : "New Notifications"}
               </Text>
-              <TouchableOpacity onPress={() => setShowNotificationsModal(false)}>
+              <TouchableOpacity
+                onPress={() => setShowNotificationsModal(false)}
+              >
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -703,12 +820,12 @@ export default function DashboardScreen() {
                   fontSize: 14,
                 }}
               >
-                {language === 'vi' ? 'Xem tất cả' : 'View All'}
+                {language === "vi" ? "Xem tất cả" : "View All"}
               </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 }
