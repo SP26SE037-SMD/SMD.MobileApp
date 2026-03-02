@@ -1,6 +1,6 @@
 export const APP_NAME = "Syllabus Management";
 
-export const API_BASE_URL = "https://api.example.com"; // TODO: Thay bằng URL API thực tế
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.example.com";
 
 export const COLORS = {
     primary: "#6366F1",

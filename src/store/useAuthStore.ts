@@ -5,6 +5,7 @@ export interface User {
     email: string;
     fullName: string;
     studentId?: string;
+    avatar?: string;
 }
 
 interface AuthState {
@@ -14,6 +15,12 @@ interface AuthState {
 
     // Actions
     login: (email: string) => Promise<void>;
+    loginWithGoogle: (googleUser: {
+        id: string;
+        email: string;
+        name: string;
+        picture?: string;
+    }) => void;
     register: (fullName: string, email: string) => Promise<void>;
     logout: () => void;
 }
@@ -38,6 +45,21 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         set({
             user: mockUser,
+            isAuthenticated: true,
+            isLoading: false,
+        });
+    },
+
+    loginWithGoogle: (googleUser) => {
+        const user: User = {
+            id: googleUser.id,
+            email: googleUser.email,
+            fullName: googleUser.name,
+            avatar: googleUser.picture,
+        };
+
+        set({
+            user,
             isAuthenticated: true,
             isLoading: false,
         });
