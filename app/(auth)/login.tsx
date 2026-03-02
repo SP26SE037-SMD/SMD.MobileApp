@@ -1,21 +1,29 @@
-import React, { useState } from "react";
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
+    discovery,
+    fetchGoogleUserInfo,
+    getGoogleAuthConfig,
+} from "@/src/services/authService";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as AuthSession from "expo-auth-session";
+import * as Linking from "expo-linking";
+import { router } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
     useColorScheme,
-    ActivityIndicator,
-    Pressable,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
-import { useAuthStore } from "@/src/store/useAuthStore";
 
 export default function LoginScreen() {
     const { language } = useSettingsStore();
@@ -26,17 +34,112 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [emailFocused, setEmailFocused] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
 
-    const { login } = useAuthStore();
+    const { login, loginWithGoogle } = useAuthStore();
+
+    // Google Auth Request
+    const googleConfig = getGoogleAuthConfig();
+    const [request, response, promptAsync] = AuthSession.useAuthRequest(
+        googleConfig,
+        discovery
+    );
+
+    // Lắng nghe deep link thủ công nếu dùng proxy bypass (bổ sung cho useAuthRequest)
+    useEffect(() => {
+        const handleDeepLink = (event: { url: string }) => {
+            console.log("[Google Auth] Nhận được Deep Link:", event.url);
+
+            // Xóa tiền tố url để lấy params an toàn hơn
+            const urlString = event.url.replace(/#/g, "?");
+            const query = urlString.split("?")[1];
+            if (!query) return;
+
+            const params = new URLSearchParams(query);
+            const accessToken = params.get("access_token");
+            const idToken = params.get("id_token") || undefined;
+
+            if (accessToken) {
+                console.log("[Google Auth] Nhận được Access Token từ Proxy!");
+                // Nếu đăng nhập thành công, ẩn Safari/Chrome
+                if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
+                handleGoogleToken(accessToken, idToken);
+            } else if (params.get("error")) {
+                setIsGoogleLoading(false);
+                if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
+                Alert.alert("Lỗi", params.get("error") || "Đăng nhập thất bại");
+            }
+        };
+
+        const subscription = Linking.addEventListener("url", handleDeepLink);
+        return () => subscription.remove();
+    }, []);
+
+    // Handle Google Auth response (fallback cho những luồng tiêu chuẩn)
+    useEffect(() => {
+        console.log("[Google Auth] Response:", JSON.stringify(response, null, 2));
+
+        if (response?.type === "success") {
+            const { authentication, params } = response;
+            console.log("[Google Auth] Params:", JSON.stringify(params, null, 2));
+            if (authentication?.accessToken) {
+                console.log("[Google Auth] Access Token:", authentication.accessToken);
+                handleGoogleToken(authentication.accessToken);
+            } else if (params?.access_token) {
+                // Trả về ngầm qua proxy webhook parameter
+                handleGoogleToken(params.access_token);
+            }
+        } else if (response?.type === "error") {
+            console.error("[Google Auth] Error response:", response.error);
+            setIsGoogleLoading(false);
+            Alert.alert(
+                language === "vi" ? "Lỗi" : "Error",
+                language === "vi"
+                    ? "Đăng nhập Google thất bại. Vui lòng thử lại."
+                    : "Google sign-in failed. Please try again."
+            );
+        } else if (response?.type === "dismiss") {
+            console.log("[Google Auth] User dismissed the auth prompt");
+            setIsGoogleLoading(false);
+        }
+    }, [response]);
+
+    const handleGoogleToken = async (accessToken: string, idToken?: string) => {
+        try {
+            if (idToken) {
+                console.log("[Google Auth] Nhận được ID Token:", idToken);
+                // Bạn có thể lưu ID Token này hoặc gửi xuống server nếu cần
+            }
+
+            const userInfo = await fetchGoogleUserInfo(accessToken);
+            console.log("[Google Auth] User Info:", JSON.stringify(userInfo, null, 2));
+            loginWithGoogle({
+                id: userInfo.id,
+                email: userInfo.email,
+                name: userInfo.name,
+                picture: userInfo.picture,
+            });
+            // Redirection is handled by the layout guard
+        } catch (error) {
+            console.error("[Google Auth] Failed to fetch user info:", error);
+            Alert.alert(
+                language === "vi" ? "Lỗi" : "Error",
+                language === "vi"
+                    ? "Không thể lấy thông tin tài khoản Google."
+                    : "Could not fetch Google account info."
+            );
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
 
     const handleLogin = async () => {
-        if (!email || !password) return; // Simple validation
+        if (!email || !password) return;
         setIsLoading(true);
         try {
             await login(email);
-            // Redirection is handled by the layout guard
         } catch (error) {
             console.error("Login failed:", error);
         } finally {
@@ -44,8 +147,52 @@ export default function LoginScreen() {
         }
     };
 
-    const handleGoogleLogin = () => {
-        // TODO: Implement Google login
+    const handleGoogleLogin = async () => {
+        if (!request) return;
+        setIsGoogleLoading(true);
+        try {
+            // Mẹo dùng Proxy cũ: Mở thông qua /start endpoint
+            const authUrl = await request.makeAuthUrlAsync(discovery);
+
+            // ÉP BUỘC Implicit Grant Flow trên Google thay vì Code Flow, và nối thêm nonce (bắt buộc với id_token)
+            let forcedImplicitUrl = authUrl.replace("response_type=code", "response_type=id_token%20token").replace("response_type=token", "response_type=id_token%20token");
+            if (!forcedImplicitUrl.includes("nonce=")) {
+                forcedImplicitUrl += `&nonce=${Date.now()}`;
+            }
+
+            const returnUrl = Linking.createURL("oauthredirect"); // exp://.../--/oauthredirect
+
+            const proxyUrl = "https://auth.expo.io/@taquyminh2k4/syllabus-management-app";
+            const startUrl = `${proxyUrl}/start?authUrl=${encodeURIComponent(forcedImplicitUrl)}&returnUrl=${encodeURIComponent(returnUrl)}`;
+
+            console.log("[Google Auth] Mở Proxy URL:", startUrl);
+
+            const result = await WebBrowser.openAuthSessionAsync(startUrl, returnUrl);
+            console.log("[Google Auth] WebBrowser Result:", JSON.stringify(result));
+
+            if (result.type === "success" && result.url) {
+                // Đôi khi response bị kẹp qua URL hash (Implicit Grant)
+                const parsedUrl = result.url.replace(/#/g, "?");
+                const query = parsedUrl.split("?")[1];
+                if (query) {
+                    const params = new URLSearchParams(query);
+                    const accessToken = params.get("access_token");
+                    const idToken = params.get("id_token") || undefined;
+                    if (accessToken) {
+                        handleGoogleToken(accessToken, idToken);
+                    } else {
+                        console.log("[Google Auth] Không tìm thấy access_token, URL trả về:", result.url);
+                        setIsGoogleLoading(false);
+                        Alert.alert("Lỗi", "Không nhận được Access Token từ Google. Có thể Google Cloud Console của bạn chưa bật Allow Implicit Flow.");
+                    }
+                }
+            } else if (result.type !== "opened") {
+                setIsGoogleLoading(false);
+            }
+        } catch (error) {
+            console.error("Google prompt failed:", error);
+            setIsGoogleLoading(false);
+        }
     };
 
     // Colors
@@ -342,6 +489,7 @@ export default function LoginScreen() {
                         {/* Google Button */}
                         <TouchableOpacity
                             onPress={handleGoogleLogin}
+                            disabled={!request || isGoogleLoading}
                             activeOpacity={0.8}
                             style={{
                                 flexDirection: "row",
@@ -353,18 +501,28 @@ export default function LoginScreen() {
                                 borderWidth: 1,
                                 borderColor: colors.googleBorder,
                                 gap: 10,
+                                opacity: !request ? 0.6 : 1,
                             }}
                         >
-                            <GoogleIcon />
-                            <Text
-                                style={{
-                                    fontSize: 14,
-                                    fontWeight: "500",
-                                    color: colors.googleText,
-                                }}
-                            >
-                                {language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google'}
-                            </Text>
+                            {isGoogleLoading ? (
+                                <ActivityIndicator
+                                    size="small"
+                                    color={colors.googleText}
+                                />
+                            ) : (
+                                <>
+                                    <GoogleIcon />
+                                    <Text
+                                        style={{
+                                            fontSize: 14,
+                                            fontWeight: "500",
+                                            color: colors.googleText,
+                                        }}
+                                    >
+                                        {language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google'}
+                                    </Text>
+                                </>
+                            )}
                         </TouchableOpacity>
                     </View>
 
