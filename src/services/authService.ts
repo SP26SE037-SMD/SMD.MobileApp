@@ -28,7 +28,7 @@ export interface GoogleUserInfo {
  */
 export function getGoogleAuthConfig() {
     // Dùng proxy auth.expo.io để qua mặt restriction của Google trong lúc test bằng Expo Go
-    const redirectUri = AuthSession.makeRedirectUri();
+    const redirectUri = "https://auth.expo.io/@taquyminh2k4/syllabus-management-app";
     return {
         clientId: GOOGLE_CLIENT_ID,
         scopes: ["openid", "profile", "email"],

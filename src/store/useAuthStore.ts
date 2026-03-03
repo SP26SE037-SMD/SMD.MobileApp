@@ -6,6 +6,7 @@ export interface User {
     fullName: string;
     studentId?: string;
     avatar?: string;
+    roleId?: string;
     roleName?: string;
 }
 
@@ -70,6 +71,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     email: account.email,
                     fullName: account.fullName,
                     avatar: userInfo?.picture,
+                    roleId: account.roleId || account.role?.roleId || account.role?.id, // try getting role id from root or nested object
                     roleName: account.role?.roleName
                 };
 
