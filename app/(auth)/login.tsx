@@ -50,26 +50,27 @@ export default function LoginScreen() {
     // Lắng nghe deep link thủ công nếu dùng proxy bypass (bổ sung cho useAuthRequest)
     useEffect(() => {
         const handleDeepLink = (event: { url: string }) => {
-            console.log("[Google Auth] Nhận được Deep Link:", event.url);
+            if (event.url) {
 
-            // Xóa tiền tố url để lấy params an toàn hơn
-            const urlString = event.url.replace(/#/g, "?");
-            const query = urlString.split("?")[1];
-            if (!query) return;
+                // Xóa tiền tố url để lấy params an toàn hơn
+                const urlString = event.url.replace(/#/g, "?");
+                const query = urlString.split("?")[1];
+                if (!query) return;
 
-            const params = new URLSearchParams(query);
-            const accessToken = params.get("access_token");
-            const idToken = params.get("id_token") || undefined;
+                const params = new URLSearchParams(query);
+                const accessToken = params.get("access_token");
+                const idToken = params.get("id_token") || undefined;
 
-            if (accessToken) {
-                console.log("[Google Auth] Nhận được Access Token từ Proxy!");
-                // Nếu đăng nhập thành công, ẩn Safari/Chrome
-                if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
-                handleGoogleToken(accessToken, idToken);
-            } else if (params.get("error")) {
-                setIsGoogleLoading(false);
-                if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
-                Alert.alert("Lỗi", params.get("error") || "Đăng nhập thất bại");
+                if (accessToken) {
+                    // Bypass Implicit Grant (đã nhận token nhưng url dạng #access_token=...)
+                    // Nếu đăng nhập thành công, ẩn Safari/Chrome
+                    if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
+                    handleGoogleToken(accessToken, idToken);
+                } else if (params.get("error")) {
+                    setIsGoogleLoading(false);
+                    if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
+                    Alert.alert("Lỗi", params.get("error") || "Đăng nhập thất bại");
+                }
             }
         };
 
@@ -83,9 +84,7 @@ export default function LoginScreen() {
 
         if (response?.type === "success") {
             const { authentication, params } = response;
-            console.log("[Google Auth] Params:", JSON.stringify(params, null, 2));
-            if (authentication?.accessToken) {
-                console.log("[Google Auth] Access Token:", authentication.accessToken);
+            if (authentication) {
                 handleGoogleToken(authentication.accessToken);
             } else if (params?.access_token) {
                 // Trả về ngầm qua proxy webhook parameter
@@ -100,35 +99,35 @@ export default function LoginScreen() {
                     ? "Đăng nhập Google thất bại. Vui lòng thử lại."
                     : "Google sign-in failed. Please try again."
             );
-        } else if (response?.type === "dismiss") {
-            console.log("[Google Auth] User dismissed the auth prompt");
+        } else if (response?.type === 'dismiss') {
             setIsGoogleLoading(false);
         }
     }, [response]);
 
     const handleGoogleToken = async (accessToken: string, idToken?: string) => {
         try {
-            if (idToken) {
-                console.log("[Google Auth] Nhận được ID Token:", idToken);
-                // Bạn có thể lưu ID Token này hoặc gửi xuống server nếu cần
+            if (!idToken) {
+                throw new Error("Không nhận được ID Token từ Google.");
             }
 
             const userInfo = await fetchGoogleUserInfo(accessToken);
             console.log("[Google Auth] User Info:", JSON.stringify(userInfo, null, 2));
-            loginWithGoogle({
+
+            await loginWithGoogle(idToken, {
                 id: userInfo.id,
                 email: userInfo.email,
                 name: userInfo.name,
                 picture: userInfo.picture,
             });
             // Redirection is handled by the layout guard
-        } catch (error) {
-            console.error("[Google Auth] Failed to fetch user info:", error);
+        } catch (error: any) {
+            console.error("[Google Auth] Failed to login:", error);
+
+            const errorMessage = error?.response?.data?.message || error?.message || (language === "vi" ? "Đăng nhập thất bại." : "Login failed.");
+
             Alert.alert(
                 language === "vi" ? "Lỗi" : "Error",
-                language === "vi"
-                    ? "Không thể lấy thông tin tài khoản Google."
-                    : "Could not fetch Google account info."
+                errorMessage
             );
         } finally {
             setIsGoogleLoading(false);
@@ -165,10 +164,7 @@ export default function LoginScreen() {
             const proxyUrl = "https://auth.expo.io/@taquyminh2k4/syllabus-management-app";
             const startUrl = `${proxyUrl}/start?authUrl=${encodeURIComponent(forcedImplicitUrl)}&returnUrl=${encodeURIComponent(returnUrl)}`;
 
-            console.log("[Google Auth] Mở Proxy URL:", startUrl);
-
             const result = await WebBrowser.openAuthSessionAsync(startUrl, returnUrl);
-            console.log("[Google Auth] WebBrowser Result:", JSON.stringify(result));
 
             if (result.type === "success" && result.url) {
                 // Đôi khi response bị kẹp qua URL hash (Implicit Grant)
@@ -181,7 +177,6 @@ export default function LoginScreen() {
                     if (accessToken) {
                         handleGoogleToken(accessToken, idToken);
                     } else {
-                        console.log("[Google Auth] Không tìm thấy access_token, URL trả về:", result.url);
                         setIsGoogleLoading(false);
                         Alert.alert("Lỗi", "Không nhận được Access Token từ Google. Có thể Google Cloud Console của bạn chưa bật Allow Implicit Flow.");
                     }

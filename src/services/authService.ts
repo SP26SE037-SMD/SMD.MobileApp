@@ -28,8 +28,7 @@ export interface GoogleUserInfo {
  */
 export function getGoogleAuthConfig() {
     // Dùng proxy auth.expo.io để qua mặt restriction của Google trong lúc test bằng Expo Go
-    const redirectUri = "https://auth.expo.io/@taquyminh2k4/syllabus-management-app";
-    console.log("[Google Auth] CẦN COPY URL NÀY VÀO GOOGLE CONSOLE (Authorized redirect URIs):", redirectUri);
+    const redirectUri = AuthSession.makeRedirectUri();
     return {
         clientId: GOOGLE_CLIENT_ID,
         scopes: ["openid", "profile", "email"],
@@ -56,5 +55,11 @@ export async function fetchGoogleUserInfo(accessToken: string): Promise<GoogleUs
     return response.json();
 }
 
-export { AuthSession, discovery };
+// Export the API call for backend login
+export async function loginWithBackendGoogle(idToken: string) {
+    const apiClient = (await import("@/src/lib/axios")).default;
+    const response = await apiClient.post("/auth/login-google", { idToken });
+    return response.data;
+}
 
+export { AuthSession, discovery };
