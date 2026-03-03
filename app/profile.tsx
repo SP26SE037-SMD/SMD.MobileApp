@@ -1,23 +1,29 @@
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    View,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    ScrollView,
     useColorScheme,
-    KeyboardAvoidingView,
-    Platform,
+    View,
 } from "react-native";
+import ImageViewing from "react-native-image-viewing";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 
 export default function ProfileScreen() {
     const { language } = useSettingsStore();
+    const { user } = useAuthStore();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
+
+    const [isImageVisible, setIsImageVisible] = useState(false);
 
     const colors = {
         background: isDark ? "#0F172A" : "#F1F5F9",
@@ -30,13 +36,16 @@ export default function ProfileScreen() {
         inputBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
     };
 
-    const [formData, setFormData] = useState({
-        name: "Người dùng",
-        email: "user@university.edu",
-        phone: "0123456789",
-        studentId: "12345678",
-        major: "Kỹ thuật Máy tính",
-    });
+    // Helper functions
+    const getRoleDisplayName = (roleName?: string) => {
+        if (!roleName) return language === 'vi' ? "Thành viên" : "Member";
+        if (roleName === "STUDENT") return language === 'vi' ? "Sinh Viên" : "Student";
+        if (roleName === "LECTURER") return language === 'vi' ? "Giảng Viên" : "Lecturer";
+        return roleName;
+    };
+
+    const avatarUrl = user?.avatar || "https://ui-avatars.com/api/?name=" + (user?.fullName || "User");
+    const images = [{ uri: avatarUrl }];
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -81,17 +90,6 @@ export default function ProfileScreen() {
                     >
                         {language === 'vi' ? "Thông tin cá nhân" : "Personal Info"}
                     </Text>
-                    <TouchableOpacity activeOpacity={0.7}>
-                        <Text
-                            style={{
-                                fontSize: 15,
-                                fontWeight: "600",
-                                color: colors.primary,
-                            }}
-                        >
-                            {language === 'vi' ? "Lưu" : "Save"}
-                        </Text>
-                    </TouchableOpacity>
                 </View>
 
                 <ScrollView
@@ -100,43 +98,40 @@ export default function ProfileScreen() {
                 >
                     {/* Avatar Section */}
                     <View style={{ alignItems: "center", marginTop: 20, marginBottom: 30 }}>
-                        <View
-                            style={{
-                                width: 100,
-                                height: 100,
-                                borderRadius: 50,
-                                backgroundColor: colors.primaryBg,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                marginBottom: 16,
-                                borderWidth: 4,
-                                borderColor: colors.card,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: isDark ? 0.3 : 0.1,
-                                shadowRadius: 10,
-                                elevation: 5,
-                            }}
+                        <TouchableOpacity
+                            onPress={() => setIsImageVisible(true)}
+                            activeOpacity={0.8}
                         >
-                            <Ionicons name="person" size={50} color={colors.primary} />
-                            <TouchableOpacity
+                            <View
                                 style={{
-                                    position: "absolute",
-                                    bottom: 0,
-                                    right: 0,
-                                    backgroundColor: colors.primary,
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: 16,
+                                    width: 100,
+                                    height: 100,
+                                    borderRadius: 50,
+                                    backgroundColor: colors.primaryBg,
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    borderWidth: 3,
-                                    borderColor: colors.background,
+                                    marginBottom: 16,
+                                    borderWidth: 4,
+                                    borderColor: colors.card,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: isDark ? 0.3 : 0.1,
+                                    shadowRadius: 10,
+                                    elevation: 5,
+                                    overflow: 'hidden'
                                 }}
                             >
-                                <Ionicons name="camera" size={16} color="#FFF" />
-                            </TouchableOpacity>
-                        </View>
+                                {user?.avatar ? (
+                                    <Image
+                                        source={{ uri: user.avatar }}
+                                        style={{ width: '100%', height: '100%' }}
+                                        resizeMode="cover"
+                                    />
+                                ) : (
+                                    <Ionicons name="person" size={50} color={colors.primary} />
+                                )}
+                            </View>
+                        </TouchableOpacity>
                         <Text
                             style={{
                                 fontSize: 22,
@@ -144,7 +139,7 @@ export default function ProfileScreen() {
                                 color: colors.textPrimary,
                             }}
                         >
-                            {formData.name}
+                            {user?.fullName || "Chưa cập nhật"}
                         </Text>
                         <Text
                             style={{
@@ -153,7 +148,7 @@ export default function ProfileScreen() {
                                 marginTop: 4,
                             }}
                         >
-                            {language === 'vi' ? `MSSV: ${formData.studentId}` : `Student ID: ${formData.studentId}`}
+                            {getRoleDisplayName(user?.roleName)}
                         </Text>
                     </View>
 
@@ -192,8 +187,8 @@ export default function ProfileScreen() {
                                         fontSize: 15,
                                         color: colors.textPrimary,
                                     }}
-                                    value={formData.name}
-                                    onChangeText={(text) => setFormData({ ...formData, name: text })}
+                                    value={user?.fullName || ""}
+                                    editable={false}
                                     placeholderTextColor={colors.textSecondary}
                                 />
                             </View>
@@ -232,14 +227,14 @@ export default function ProfileScreen() {
                                         fontSize: 15,
                                         color: colors.textSecondary, // Secondary to indicate it's semi-readonly or tied to auth
                                     }}
-                                    value={formData.email}
+                                    value={user?.email || ""}
                                     editable={false}
                                     placeholderTextColor={colors.textSecondary}
                                 />
                             </View>
                         </View>
 
-                        {/* Phone */}
+                        {/* Role / Profession */}
                         <View>
                             <Text
                                 style={{
@@ -250,7 +245,7 @@ export default function ProfileScreen() {
                                     marginLeft: 4,
                                 }}
                             >
-                                {language === 'vi' ? "Số điện thoại" : "Phone Number"}
+                                {language === 'vi' ? "Nghề nghiệp" : "Profession"}
                             </Text>
                             <View
                                 style={{
@@ -264,56 +259,15 @@ export default function ProfileScreen() {
                                     borderColor: colors.cardBorder,
                                 }}
                             >
-                                <Ionicons name="call-outline" size={20} color={colors.textSecondary} />
+                                <Ionicons name="briefcase-outline" size={20} color={colors.textSecondary} />
                                 <TextInput
                                     style={{
                                         flex: 1,
                                         marginLeft: 12,
                                         fontSize: 15,
-                                        color: colors.textPrimary,
+                                        color: colors.textSecondary,
                                     }}
-                                    value={formData.phone}
-                                    onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                                    keyboardType="phone-pad"
-                                    placeholderTextColor={colors.textSecondary}
-                                />
-                            </View>
-                        </View>
-
-                        {/* Major */}
-                        <View>
-                            <Text
-                                style={{
-                                    fontSize: 13,
-                                    fontWeight: "600",
-                                    color: colors.textSecondary,
-                                    marginBottom: 8,
-                                    marginLeft: 4,
-                                }}
-                            >
-                                {language === 'vi' ? "Khoa/Ngành" : "Major/Department"}
-                            </Text>
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    backgroundColor: colors.inputBg,
-                                    borderRadius: 14,
-                                    paddingHorizontal: 16,
-                                    height: 52,
-                                    borderWidth: 1,
-                                    borderColor: colors.cardBorder,
-                                }}
-                            >
-                                <Ionicons name="school-outline" size={20} color={colors.textSecondary} />
-                                <TextInput
-                                    style={{
-                                        flex: 1,
-                                        marginLeft: 12,
-                                        fontSize: 15,
-                                        color: colors.textSecondary, // Treat as readonly
-                                    }}
-                                    value={formData.major}
+                                    value={getRoleDisplayName(user?.roleName)}
                                     editable={false}
                                     placeholderTextColor={colors.textSecondary}
                                 />
@@ -322,6 +276,13 @@ export default function ProfileScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <ImageViewing
+                images={images}
+                imageIndex={0}
+                visible={isImageVisible}
+                onRequestClose={() => setIsImageVisible(false)}
+            />
         </SafeAreaView>
     );
 }
