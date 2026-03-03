@@ -14,6 +14,7 @@ import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -198,11 +199,11 @@ export default function LoginScreen() {
         cardShadow: isDark ? "transparent" : "rgba(148,163,184,0.15)",
         inputBg: isDark ? "#0F172A" : "#F8FAFC",
         inputBorder: isDark ? "#334155" : "#E2E8F0",
-        inputBorderFocused: isDark ? "#3B82F6" : "#2563EB",
+        inputBorderFocused: isDark ? "#10B981" : "#059669",
         textPrimary: isDark ? "#F1F5F9" : "#1E293B",
         textSecondary: isDark ? "#94A3B8" : "#64748B",
         textMuted: isDark ? "#64748B" : "#94A3B8",
-        primary: isDark ? "#3B82F6" : "#2563EB",
+        primary: isDark ? "#10B981" : "#059669",
         iconColor: isDark ? "#64748B" : "#94A3B8",
         divider: isDark ? "#334155" : "#E2E8F0",
         googleBg: isDark ? "#1E293B" : "#FFFFFF",
@@ -230,18 +231,28 @@ export default function LoginScreen() {
                     <View style={{ alignItems: "center", marginBottom: 32 }}>
                         <View
                             style={{
-                                backgroundColor: isDark
-                                    ? "rgba(59,130,246,0.15)"
-                                    : "rgba(37,99,235,0.1)",
-                                padding: 14,
-                                borderRadius: 16,
+                                width: 96,
+                                height: 96,
+                                borderRadius: 24,
+                                backgroundColor: isDark ? "#FFFFFF" : "transparent",
                                 marginBottom: 16,
+                                shadowColor: colors.primary,
+                                shadowOffset: { width: 0, height: 8 },
+                                shadowOpacity: isDark ? 0.2 : 0.15,
+                                shadowRadius: 16,
+                                elevation: 10,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: 8,
                             }}
                         >
-                            <MaterialIcons
-                                name="school"
-                                size={36}
-                                color={colors.primary}
+                            <Image
+                                source={require("@/assets/images/logo/logo-without-name.png")}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    resizeMode: "contain"
+                                }}
                             />
                         </View>
                         <Text

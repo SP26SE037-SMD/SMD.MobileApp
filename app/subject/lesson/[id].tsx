@@ -115,7 +115,7 @@ export default function LessonViewerScreen() {
         card: isDark ? '#1E293B' : '#FFFFFF',
         textPrimary: isDark ? '#F1F5F9' : '#0F172A',
         textSecondary: isDark ? '#94A3B8' : '#64748B',
-        primary: isDark ? '#3B82F6' : '#2563EB',
+        primary: isDark ? '#10B981' : '#059669',
         divider: isDark ? '#334155' : '#E2E8F0',
     };
 

@@ -32,8 +32,8 @@ export default function WishlistTabScreen() {
     card: isDark ? "#1E293B" : "#FFFFFF",
     textPrimary: isDark ? "#F1F5F9" : "#0F172A",
     textSecondary: isDark ? "#94A3B8" : "#64748B",
-    primary: isDark ? "#3B82F6" : "#2563EB",
-    primaryBg: isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.08)",
+    primary: isDark ? "#10B981" : "#059669",
+    primaryBg: isDark ? "rgba(16,185,129,0.15)" : "rgba(5,150,105,0.08)",
     border: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
   };
 

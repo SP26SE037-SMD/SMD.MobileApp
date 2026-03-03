@@ -1,16 +1,16 @@
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import {
-    View,
-    Text,
     ScrollView,
-    useColorScheme,
+    Text,
     TouchableOpacity,
+    useColorScheme,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
-import { useAuthStore } from "@/src/store/useAuthStore";
 
 export default function AccountScreen() {
     const { language } = useSettingsStore();
@@ -24,8 +24,8 @@ export default function AccountScreen() {
         cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
         textPrimary: isDark ? "#F1F5F9" : "#1E293B",
         textSecondary: isDark ? "#94A3B8" : "#64748B",
-        primary: isDark ? "#3B82F6" : "#2563EB",
-        primaryBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(37,99,235,0.08)",
+        primary: isDark ? "#10B981" : "#059669",
+        primaryBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(5,150,105,0.08)",
         danger: "#EF4444",
         dangerBg: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.06)",
     };
@@ -59,6 +59,10 @@ export default function AccountScreen() {
 
     const handleLogout = () => {
         logout();
+        // Clear all cached data
+        import("@/src/lib/queryClient").then(({ queryClient }) => {
+            queryClient.clear();
+        });
         // Redirection handled by _layout.tsx
     };
 

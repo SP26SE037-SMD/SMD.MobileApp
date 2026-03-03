@@ -117,13 +117,13 @@ export default function NotificationsScreen() {
         cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
         textPrimary: isDark ? "#F1F5F9" : "#1E293B",
         textSecondary: isDark ? "#94A3B8" : "#64748B",
-        primary: isDark ? "#3B82F6" : "#2563EB",
-        primaryBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(37,99,235,0.08)",
+        primary: isDark ? "#10B981" : "#059669",
+        primaryBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(5,150,105,0.08)",
         changeBg: isDark ? "rgba(249,115,22,0.12)" : "rgba(249,115,22,0.08)",
         changeColor: isDark ? "#FB923C" : "#EA580C",
         taskBg: isDark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.08)",
         taskColor: isDark ? "#4ADE80" : "#16A34A",
-        unreadBg: isDark ? "rgba(59,130,246,0.06)" : "rgba(37,99,235,0.04)",
+        unreadBg: isDark ? "rgba(16,185,129,0.06)" : "rgba(5,150,105,0.04)",
         tabInactive: isDark ? "#334155" : "#E2E8F0",
     };
 

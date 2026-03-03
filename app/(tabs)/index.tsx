@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // Colors for suggested subjects
 const COLORS = [
-  "#2563EB",
+  "#059669",
   "#0D9488",
   "#7C3AED",
   "#EA580C",
@@ -46,8 +46,8 @@ export default function DashboardScreen() {
     cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
     textPrimary: isDark ? "#F1F5F9" : "#1E293B",
     textSecondary: isDark ? "#94A3B8" : "#64748B",
-    primary: isDark ? "#3B82F6" : "#2563EB",
-    primaryBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(37,99,235,0.08)",
+    primary: isDark ? "#10B981" : "#059669",
+    primaryBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(5,150,105,0.08)",
     iconBg: isDark ? "#1E293B" : "#F8FAFC",
     iconBorder: isDark ? "#334155" : "#E2E8F0",
     searchBg: isDark ? "#1E293B" : "#FFFFFF",
@@ -121,7 +121,7 @@ export default function DashboardScreen() {
         {/* Header Hero Section */}
         <View
           style={{
-            backgroundColor: isDark ? "#1E3A5F" : "#2563EB",
+            backgroundColor: isDark ? "#1E3A5F" : "#059669",
             marginHorizontal: 16,
             marginTop: 8,
             borderRadius: 24,

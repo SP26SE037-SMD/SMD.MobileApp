@@ -31,8 +31,8 @@ export default function ProfileScreen() {
         cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
         textPrimary: isDark ? "#F1F5F9" : "#1E293B",
         textSecondary: isDark ? "#94A3B8" : "#64748B",
-        primary: isDark ? "#3B82F6" : "#2563EB",
-        primaryBg: isDark ? "rgba(59,130,246,0.12)" : "rgba(37,99,235,0.08)",
+        primary: isDark ? "#10B981" : "#059669",
+        primaryBg: isDark ? "rgba(16,185,129,0.12)" : "rgba(5,150,105,0.08)",
         inputBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
     };
 

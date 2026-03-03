@@ -39,7 +39,7 @@ function getStatus(code: string, selectedCode: string | null): CourseStatus {
 function statusBorderColor(status: CourseStatus, isDark: boolean) {
     switch (status) {
         case 'completed': return '#22C55E';
-        case 'in_progress': return '#3B82F6';
+        case 'in_progress': return '#10B981';
         case 'not_started': return isDark ? '#475569' : '#CBD5E1';
         case 'locked': return '#EF4444';
     }
@@ -48,7 +48,7 @@ function statusBorderColor(status: CourseStatus, isDark: boolean) {
 function statusBgColor(status: CourseStatus, isDark: boolean) {
     switch (status) {
         case 'completed': return isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.08)';
-        case 'in_progress': return isDark ? 'rgba(59,130,246,0.15)' : 'rgba(37,99,235,0.08)';
+        case 'in_progress': return isDark ? 'rgba(16,185,129,0.15)' : 'rgba(5,150,105,0.08)';
         case 'not_started': return isDark ? '#1E293B' : '#FFFFFF';
         case 'locked': return isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.05)';
     }
@@ -177,7 +177,7 @@ export default function PrerequisiteMapScreen() {
         card: isDark ? '#1E293B' : '#FFFFFF',
         textPrimary: isDark ? '#F1F5F9' : '#0F172A',
         textSecondary: isDark ? '#94A3B8' : '#64748B',
-        primary: '#3B82F6',
+        primary: '#10B981',
         divider: isDark ? '#334155' : '#E2E8F0',
         semLabel: isDark ? '#0F172A' : '#E2E8F0',
         overlay: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.35)',
@@ -390,8 +390,8 @@ export default function PrerequisiteMapScreen() {
                     {deps.size > 0 ? (
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
                             {[...deps].map(d => (
-                                <View key={d} style={[styles.chip, { backgroundColor: '#3B82F6' + '18', borderColor: '#3B82F6' + '40' }]}>
-                                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#3B82F6' }}>{d}</Text>
+                                <View key={d} style={[styles.chip, { backgroundColor: '#10B981' + '18', borderColor: '#10B981' + '40' }]}>
+                                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#10B981' }}>{d}</Text>
                                 </View>
                             ))}
                         </View>
