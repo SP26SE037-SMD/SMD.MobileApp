@@ -55,11 +55,11 @@ export default function SignUpScreen() {
         cardBorder: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
         inputBg: isDark ? "#0F172A" : "#F8FAFC",
         inputBorder: isDark ? "#334155" : "#E2E8F0",
-        inputBorderFocused: isDark ? "#3B82F6" : "#2563EB",
+        inputBorderFocused: isDark ? "#10B981" : "#059669",
         textPrimary: isDark ? "#F1F5F9" : "#1E293B",
         textSecondary: isDark ? "#94A3B8" : "#64748B",
         textMuted: isDark ? "#64748B" : "#94A3B8",
-        primary: isDark ? "#3B82F6" : "#2563EB",
+        primary: isDark ? "#10B981" : "#059669",
         iconColor: isDark ? "#64748B" : "#94A3B8",
         divider: isDark ? "#334155" : "#E2E8F0",
         googleBg: isDark ? "#1E293B" : "#FFFFFF",
@@ -173,8 +173,8 @@ export default function SignUpScreen() {
                         <View
                             style={{
                                 backgroundColor: isDark
-                                    ? "rgba(59,130,246,0.15)"
-                                    : "rgba(37,99,235,0.1)",
+                                    ? "rgba(16,185,129,0.15)"
+                                    : "rgba(5,150,105,0.1)",
                                 padding: 14,
                                 borderRadius: 16,
                                 marginBottom: 16,

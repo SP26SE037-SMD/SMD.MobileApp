@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         width: 250,
         height: 250,
         borderWidth: 2,
-        borderColor: '#3B82F6',
+        borderColor: '#10B981',
         backgroundColor: 'transparent',
         borderRadius: 12,
     },
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     backButton: {
         marginTop: 20,
         padding: 10,
-        backgroundColor: '#3B82F6',
+        backgroundColor: '#10B981',
         borderRadius: 8,
     },
     backButtonText: {

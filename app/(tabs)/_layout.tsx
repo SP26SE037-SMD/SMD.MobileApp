@@ -12,7 +12,7 @@ export default function TabLayout() {
   const colors = {
     tabBarBg: isDark ? "#0F172A" : "#FFFFFF",
     tabBarBorder: isDark ? "#1E293B" : "#F1F5F9",
-    active: isDark ? "#3B82F6" : "#2563EB",
+    active: isDark ? "#10B981" : "#059669",
     inactive: isDark ? "#475569" : "#94A3B8",
   };
 
