@@ -6,27 +6,30 @@ export interface User {
     fullName: string;
     studentId?: string;
     avatar?: string;
+    roleName?: string;
 }
 
 interface AuthState {
     user: User | null;
+    token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
 
     // Actions
     login: (email: string) => Promise<void>;
-    loginWithGoogle: (googleUser: {
+    loginWithGoogle: (idToken: string, userInfo: {
         id: string;
         email: string;
         name: string;
         picture?: string;
-    }) => void;
+    }) => Promise<void>;
     register: (fullName: string, email: string) => Promise<void>;
     logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
+    token: null,
     isAuthenticated: false,
     isLoading: false,
 
@@ -50,19 +53,39 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
     },
 
-    loginWithGoogle: (googleUser) => {
-        const user: User = {
-            id: googleUser.id,
-            email: googleUser.email,
-            fullName: googleUser.name,
-            avatar: googleUser.picture,
-        };
+    loginWithGoogle: async (idToken, userInfo) => {
+        set({ isLoading: true });
+        try {
+            const { loginWithBackendGoogle } = await import('@/src/services/authService');
+            const res = await loginWithBackendGoogle(idToken);
 
-        set({
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-        });
+            console.log("================ Backend Response ================");
+            console.log(JSON.stringify(res, null, 2));
+            console.log("==================================================");
+
+            if (res.status === 1000 && res.data) {
+                const { token, account } = res.data;
+                const user: User = {
+                    id: account.accountId,
+                    email: account.email,
+                    fullName: account.fullName,
+                    avatar: userInfo?.picture,
+                    roleName: account.role?.roleName
+                };
+
+                set({
+                    user,
+                    token,
+                    isAuthenticated: true,
+                    isLoading: false,
+                });
+            } else {
+                throw new Error(res.message);
+            }
+        } catch (error) {
+            set({ isLoading: false });
+            throw error;
+        }
     },
 
     register: async (fullName: string, email: string) => {
@@ -87,7 +110,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     logout: () => {
         set({
             user: null,
+            token: null,
             isAuthenticated: false,
         });
     },
 }));
+
+// Đăng ký Reactotron subscribe sau khi store đã được khởi tạo
+if (__DEV__) {
+    useAuthStore.subscribe((state) => {
+        const Reactotron = require('reactotron-react-native').default;
+        Reactotron.display({
+            name: 'State [authStore]',
+            value: state,
+            preview: 'Auth State Updated'
+        });
+    });
+}

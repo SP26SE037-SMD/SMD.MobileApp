@@ -2,10 +2,14 @@ import "../global.css";
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useSegments, useRouter, useRootNavigationState } from "expo-router";
+import { Stack, useRootNavigationState, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+
+if (__DEV__) {
+  require('@/ReactotronConfig');
+}
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { queryClient } from "@/src/lib/queryClient";
