@@ -62,17 +62,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
             console.log("================ Backend Response ================");
             console.log(JSON.stringify(res, null, 2));
-            console.log("==================================================");
+            console.log("==========================================");
 
             if (res.status === 1000 && res.data) {
                 const { token, account } = res.data;
+                const accountId = account.accountId;
+
+                // Cập nhật avatar từ Google lên backend
+                if (userInfo?.picture && accountId) {
+                    try {
+                        const apiClient = (await import('@/src/lib/axios')).default;
+                        await apiClient.put(
+                            `/account-profiles/${accountId}`,
+                            { avatarUrl: userInfo.picture },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        console.log("[Google Auth] Avatar updated successfully");
+                    } catch (avatarError) {
+                        // Không block đăng nhập nếu update avatar thất bại
+                        console.warn("[Google Auth] Failed to update avatar:", avatarError);
+                    }
+                }
+
                 const user: User = {
-                    id: account.accountId,
+                    id: accountId,
                     email: account.email,
                     fullName: account.fullName,
                     avatar: userInfo?.picture,
-                    roleId: account.roleId || account.role?.roleId || account.role?.id, // try getting role id from root or nested object
-                    roleName: account.role?.roleName
+                    // Backend trả role là string (vd: "STUDENT"), không phải object
+                    roleName: typeof account.role === 'string' ? account.role : account.role?.roleName,
                 };
 
                 set({

@@ -1,5 +1,4 @@
 import { MOCK_CURRICULUMS } from "@/src/constants/mockData";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -19,7 +18,7 @@ export default function ElectiveGroupScreen() {
     id: string;
     curriculumId: string;
   }>();
-  const { language } = useSettingsStore();
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -70,9 +69,7 @@ export default function ElectiveGroupScreen() {
         <Text
           style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}
         >
-          {language === "vi"
-            ? "Không tìm thấy nhóm môn tự chọn"
-            : "Elective group not found"}
+          {"Elective group not found"}
         </Text>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -85,7 +82,7 @@ export default function ElectiveGroupScreen() {
           }}
         >
           <Text style={{ color: "white", fontWeight: "600" }}>
-            {language === "vi" ? "Quay lại" : "Go Back"}
+            {"Go Back"}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -126,9 +123,7 @@ export default function ElectiveGroupScreen() {
           }}
           numberOfLines={1}
         >
-          {language === "vi"
-            ? electiveGroup.name
-            : electiveGroup.englishName || electiveGroup.name}
+          {electiveGroup.englishName || electiveGroup.name}
         </Text>
       </View>
 
@@ -162,9 +157,7 @@ export default function ElectiveGroupScreen() {
             </View>
             <View style={styles.heroTitleContainer}>
               <Text style={[styles.title, { color: colors.textPrimary }]}>
-                {language === "vi"
-                  ? electiveGroup.name
-                  : electiveGroup.englishName || electiveGroup.name}
+                {electiveGroup.englishName || electiveGroup.name}
               </Text>
               <Text style={[styles.subtitle, { color: colors.electiveText }]}>
                 {curriculum?.name || ""}
@@ -180,7 +173,7 @@ export default function ElectiveGroupScreen() {
               ]}
             >
               <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Học kỳ" : "Semester"}
+                {"Semester"}
               </Text>
               <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {electiveGroup.semester}
@@ -193,7 +186,7 @@ export default function ElectiveGroupScreen() {
               ]}
             >
               <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Tín chỉ" : "Credits"}
+                {"Credits"}
               </Text>
               <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {electiveGroup.credits}
@@ -201,7 +194,7 @@ export default function ElectiveGroupScreen() {
             </View>
             <View style={styles.infoItem}>
               <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Số môn" : "Subjects"}
+                {"Subjects"}
               </Text>
               <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {electiveGroup.subjects.length}
@@ -224,9 +217,7 @@ export default function ElectiveGroupScreen() {
                   size={16}
                   color={colors.textSecondary}
                 />{" "}
-                {language === "vi"
-                  ? `Chọn ${electiveGroup.minSubjects} trong ${electiveGroup.subjects.length} môn học sau:`
-                  : `Choose ${electiveGroup.minSubjects} from ${electiveGroup.subjects.length} subjects below:`}
+                {`Choose ${electiveGroup.minSubjects} from ${electiveGroup.subjects.length} subjects below:`}
               </Text>
             </View>
           )}
@@ -241,7 +232,7 @@ export default function ElectiveGroupScreen() {
             style={{ marginRight: 8 }}
           />
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-            {language === "vi" ? "Danh sách môn học" : "Available Subjects"}
+            {"Available Subjects"}
           </Text>
         </View>
 
@@ -343,7 +334,7 @@ export default function ElectiveGroupScreen() {
                     style={{ marginRight: 4 }}
                   />
                   <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
-                    {sub.credits} {language === "vi" ? "tín chỉ" : "credits"}
+                    {sub.credits} {"credits"}
                   </Text>
                 </View>
               </View>
@@ -369,7 +360,7 @@ export default function ElectiveGroupScreen() {
                       flex: 1,
                     }}
                   >
-                    {language === "vi" ? "Tiên quyết:" : "Prerequisite:"}{" "}
+                    {"Prerequisite:"}{" "}
                     {sub.prerequisite}
                   </Text>
                 </View>

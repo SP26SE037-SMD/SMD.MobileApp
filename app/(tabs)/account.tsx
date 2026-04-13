@@ -1,5 +1,4 @@
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -13,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AccountScreen() {
-    const { language } = useSettingsStore();
+    
     const { user, logout } = useAuthStore();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
@@ -33,24 +32,24 @@ export default function AccountScreen() {
     const menuItems = [
         {
             icon: "person-outline" as const,
-            label: language === 'vi' ? "Thông tin cá nhân" : "Personal Info",
-            subtitle: language === 'vi' ? "Chỉnh sửa hồ sơ" : "Edit profile",
+            label: "Personal Info",
+            subtitle: "Edit profile",
             color: colors.primary,
             bg: colors.primaryBg,
             route: "/profile",
         },
         {
             icon: "notifications-outline" as const,
-            label: language === 'vi' ? "Thông báo" : "Notifications",
-            subtitle: language === 'vi' ? "Quản lý thông báo" : "Manage notifications",
+            label: "Notifications",
+            subtitle: "Manage notifications",
             color: "#F59E0B",
             bg: isDark ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.08)",
             route: "/notifications",
         },
         {
             icon: "color-palette-outline" as const,
-            label: language === 'vi' ? "Giao diện" : "Theme",
-            subtitle: language === 'vi' ? "Chế độ sáng / tối" : "Light / dark mode",
+            label: "Theme",
+            subtitle: "Light / dark mode",
             color: "#A855F7",
             bg: isDark ? "rgba(168,85,247,0.12)" : "rgba(168,85,247,0.08)",
             route: "/settings",
@@ -88,7 +87,7 @@ export default function AccountScreen() {
                             letterSpacing: -0.5,
                         }}
                     >
-                        {language === 'vi' ? "Tài khoản" : "Account"}
+                        {"Account"}
                     </Text>
                 </View>
 
@@ -130,7 +129,7 @@ export default function AccountScreen() {
                                     color: colors.textPrimary,
                                 }}
                             >
-                                {user?.fullName || (language === 'vi' ? "Người dùng" : "User")}
+                                {user?.fullName || ("User")}
                             </Text>
                             <Text
                                 style={{

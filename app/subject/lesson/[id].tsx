@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 // @ts-ignore
 import PdfReader from '@hashiprobr/expo-pdf-reader';
 import * as Print from 'expo-print';
-import { useSettingsStore } from '@/src/store/useSettingsStore';
 
 const MOCK_PDF_BLOCKS = [
     { block_id: 1001, material_id: 1, idx: 1, block_style: "heading", content_text: "1. Khái niệm cơ bản về Lập trình" },
@@ -52,7 +51,7 @@ export default function LessonViewerScreen() {
         title: string;
         type: string;
     }>();
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
 
@@ -130,15 +129,15 @@ export default function LessonViewerScreen() {
     const getTypeLabel = () => {
         switch (type) {
             case 'pdf':
-                return language === 'vi' ? 'Tài liệu PDF' : 'PDF Document';
+                return 'PDF Document';
             case 'video':
-                return language === 'vi' ? 'Video Bài giảng' : 'Video Lecture';
+                return 'Video Lecture';
             case 'slide':
-                return language === 'vi' ? 'Slide Bài trình chiếu' : 'Presentation Slide';
+                return 'Presentation Slide';
             case 'doc':
-                return language === 'vi' ? 'Tài liệu đọc' : 'Reading Document';
+                return 'Reading Document';
             default:
-                return language === 'vi' ? 'Tài liệu học' : 'Lesson Material';
+                return 'Lesson Material';
         }
     };
 
@@ -202,7 +201,7 @@ export default function LessonViewerScreen() {
                         <View style={styles.overlay}>
                             <ActivityIndicator size="large" color={colors.primary} />
                             <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>
-                                {language === 'vi' ? 'Đang tải tài liệu...' : 'Loading document...'}
+                                {'Loading document...'}
                             </Text>
                         </View>
                     )}
@@ -235,7 +234,7 @@ export default function LessonViewerScreen() {
                                     textAlign: 'center',
                                 }}
                             >
-                                {language === 'vi' ? 'Không thể tải tài liệu' : 'Could not load document'}
+                                {'Could not load document'}
                             </Text>
                             <Text
                                 style={{
@@ -246,9 +245,7 @@ export default function LessonViewerScreen() {
                                     paddingHorizontal: 30,
                                 }}
                             >
-                                {language === 'vi'
-                                    ? 'Có lỗi xảy ra khi tải tài liệu. Hãy thử mở trong trình duyệt.'
-                                    : 'Something went wrong loading this document. Try opening it in your browser.'}
+                                {'Something went wrong loading this document. Try opening it in your browser.'}
                             </Text>
                             <TouchableOpacity
                                 onPress={openInBrowser}
@@ -268,7 +265,7 @@ export default function LessonViewerScreen() {
                                     style={{ marginRight: 8 }}
                                 />
                                 <Text style={{ color: 'white', fontWeight: '700', fontSize: 15 }}>
-                                    {language === 'vi' ? 'Mở Trình Duyệt' : 'Open in Browser'}
+                                    {'Open in Browser'}
                                 </Text>
                             </TouchableOpacity>
                         </View>

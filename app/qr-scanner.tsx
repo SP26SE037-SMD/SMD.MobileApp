@@ -4,12 +4,11 @@ import { CameraView, Camera } from "expo-camera";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useSettingsStore } from '@/src/store/useSettingsStore';
 
 export default function QRScannerScreen() {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [scanned, setScanned] = useState(false);
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
 
@@ -25,7 +24,7 @@ export default function QRScannerScreen() {
     const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
         setScanned(true);
         // You could navigate to a result screen or handle the data here
-        alert(`${language === 'vi' ? 'Đã quét QR:' : 'Scanned QR:'} ${data}`);
+        alert(`${'Scanned QR:'} ${data}`);
         // Example: router.replace(`/scanned?data=${data}`);
         setTimeout(() => {
             setScanned(false);
@@ -41,7 +40,7 @@ export default function QRScannerScreen() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <Text style={{ color: colors.textPrimary }}>
-                    {language === 'vi' ? 'Đang yêu cầu quyền truy cập camera...' : 'Requesting for camera permission...'}
+                    {'Requesting for camera permission...'}
                 </Text>
             </SafeAreaView>
         );
@@ -50,10 +49,10 @@ export default function QRScannerScreen() {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <Text style={{ color: colors.textPrimary }}>
-                    {language === 'vi' ? 'Không có quyền truy cập camera' : 'No access to camera'}
+                    {'No access to camera'}
                 </Text>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Text style={styles.backButtonText}>{language === 'vi' ? 'Quay lại' : 'Go Back'}</Text>
+                    <Text style={styles.backButtonText}>{'Go Back'}</Text>
                 </TouchableOpacity>
             </SafeAreaView>
         );
@@ -65,7 +64,7 @@ export default function QRScannerScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
                     <Ionicons name="close" size={28} color="white" />
                 </TouchableOpacity>
-                <Text style={styles.title}>{language === 'vi' ? 'Quét QR' : 'Scan QR'}</Text>
+                <Text style={styles.title}>{'Scan QR'}</Text>
                 <View style={{ width: 28 }} />
             </View>
 
@@ -85,7 +84,7 @@ export default function QRScannerScreen() {
 
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                    {language === 'vi' ? 'Hướng camera vào mã QR để quét' : 'Point camera at QR code to scan'}
+                    {'Point camera at QR code to scan'}
                 </Text>
             </View>
         </SafeAreaView>

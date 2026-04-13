@@ -4,31 +4,25 @@ import {
     getGoogleAuthConfig,
 } from "@/src/services/authService";
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as AuthSession from "expo-auth-session";
 import * as Linking from "expo-linking";
-import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
     Image,
-    KeyboardAvoidingView,
-    Platform,
     ScrollView,
     Text,
-    TextInput,
     TouchableOpacity,
     useColorScheme,
-    View,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 export default function LoginScreen() {
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
 
@@ -96,10 +90,8 @@ export default function LoginScreen() {
             console.error("[Google Auth] Error response:", response.error);
             setIsGoogleLoading(false);
             Alert.alert(
-                language === "vi" ? "Lỗi" : "Error",
-                language === "vi"
-                    ? "Đăng nhập Google thất bại. Vui lòng thử lại."
-                    : "Google sign-in failed. Please try again."
+                "Error",
+                "Google sign-in failed. Please try again."
             );
         } else if (response?.type === 'dismiss') {
             setIsGoogleLoading(false);
@@ -123,12 +115,19 @@ export default function LoginScreen() {
             });
             // Redirection is handled by the layout guard
         } catch (error: any) {
-            console.error("[Google Auth] Failed to login:", error);
+            const errorStatus = error?.response?.data?.status;
+            let errorMessage: string;
 
-            const errorMessage = error?.response?.data?.message || error?.message || (language === "vi" ? "Đăng nhập thất bại." : "Login failed.");
+            if (errorStatus === 2001) {
+                console.warn("[Google Auth] Account not found:", error?.response?.data?.message);
+                errorMessage = "Your account does not have access. Please contact the administrator.";
+            } else {
+                console.error("[Google Auth] Failed to login:", error);
+                errorMessage = error?.response?.data?.message || error?.message || ("Login failed.");
+            }
 
             Alert.alert(
-                language === "vi" ? "Lỗi" : "Error",
+                "Unable to Sign In",
                 errorMessage
             );
         } finally {
@@ -136,17 +135,6 @@ export default function LoginScreen() {
         }
     };
 
-    const handleLogin = async () => {
-        if (!email || !password) return;
-        setIsLoading(true);
-        try {
-            await login(email);
-        } catch (error) {
-            console.error("Login failed:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleGoogleLogin = async () => {
         if (!request) return;
@@ -197,16 +185,9 @@ export default function LoginScreen() {
         background: isDark ? "#0F172A" : "#F1F5F9",
         card: isDark ? "#1E293B" : "#FFFFFF",
         cardBorder: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-        cardShadow: isDark ? "transparent" : "rgba(148,163,184,0.15)",
-        inputBg: isDark ? "#0F172A" : "#F8FAFC",
-        inputBorder: isDark ? "#334155" : "#E2E8F0",
-        inputBorderFocused: isDark ? "#10B981" : "#059669",
         textPrimary: isDark ? "#F1F5F9" : "#1E293B",
         textSecondary: isDark ? "#94A3B8" : "#64748B",
-        textMuted: isDark ? "#64748B" : "#94A3B8",
         primary: isDark ? "#10B981" : "#059669",
-        iconColor: isDark ? "#64748B" : "#94A3B8",
-        divider: isDark ? "#334155" : "#E2E8F0",
         googleBg: isDark ? "#1E293B" : "#FFFFFF",
         googleBorder: isDark ? "#334155" : "#E2E8F0",
         googleText: isDark ? "#E2E8F0" : "#374151",
@@ -214,359 +195,132 @@ export default function LoginScreen() {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ flex: 1 }}
+            <ScrollView
+                contentContainerStyle={{
+                    flexGrow: 1,
+                    justifyContent: "center",
+                    paddingHorizontal: 24,
+                    paddingBottom: 40,
+                }}
+                showsVerticalScrollIndicator={false}
             >
-                <ScrollView
-                    contentContainerStyle={{
-                        flexGrow: 1,
-                        justifyContent: "center",
-                        paddingHorizontal: 24,
-                        paddingBottom: 24,
-                    }}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* Header */}
-                    <View style={{ alignItems: "center", marginBottom: 32 }}>
-                        <View
-                            style={{
-                                width: 96,
-                                height: 96,
-                                borderRadius: 24,
-                                backgroundColor: isDark ? "#FFFFFF" : "transparent",
-                                marginBottom: 16,
-                                shadowColor: colors.primary,
-                                shadowOffset: { width: 0, height: 8 },
-                                shadowOpacity: isDark ? 0.2 : 0.15,
-                                shadowRadius: 16,
-                                elevation: 10,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                padding: 8,
-                            }}
-                        >
-                            <Image
-                                source={require("@/assets/images/logo/logo-without-name.png")}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    resizeMode: "contain"
-                                }}
-                            />
-                        </View>
-                        <Text
-                            style={{
-                                fontSize: 28,
-                                fontWeight: "700",
-                                color: colors.textPrimary,
-                                letterSpacing: -0.5,
-                                marginBottom: 6,
-                            }}
-                        >
-                            Syllabus Planner
-                        </Text>
-                        <Text
-                            style={{
-                                fontSize: 15,
-                                color: colors.textSecondary,
-                                fontWeight: "400",
-                            }}
-                        >
-                            {language === 'vi' ? 'Lên kế hoạch học tập thông minh hơn' : 'Plan your academic journey smarter'}
-                        </Text>
-                    </View>
-
-                    {/* Card */}
+                {/* Header */}
+                <View style={{ alignItems: "center", marginBottom: 40 }}>
                     <View
                         style={{
-                            backgroundColor: colors.card,
-                            borderRadius: 20,
-                            padding: 24,
-                            borderWidth: 1,
-                            borderColor: colors.cardBorder,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: isDark ? 0 : 0.06,
-                            shadowRadius: 24,
-                            elevation: isDark ? 0 : 8,
-                        }}
-                    >
-                        {/* Email Input */}
-                        <View style={{ marginBottom: 18 }}>
-                            <Text
-                                style={{
-                                    fontSize: 13,
-                                    fontWeight: "600",
-                                    color: isDark ? "#CBD5E1" : colors.textPrimary,
-                                    marginBottom: 8,
-                                    marginLeft: 2,
-                                }}
-                            >
-                                Email
-                            </Text>
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    backgroundColor: colors.inputBg,
-                                    borderRadius: 12,
-                                    borderWidth: 1.5,
-                                    borderColor: emailFocused
-                                        ? colors.inputBorderFocused
-                                        : colors.inputBorder,
-                                    paddingHorizontal: 14,
-                                }}
-                            >
-                                <MaterialIcons
-                                    name="mail-outline"
-                                    size={20}
-                                    color={emailFocused ? colors.primary : colors.iconColor}
-                                />
-                                <TextInput
-                                    style={{
-                                        flex: 1,
-                                        paddingVertical: 14,
-                                        paddingHorizontal: 10,
-                                        fontSize: 15,
-                                        color: colors.textPrimary,
-                                    }}
-                                    placeholder="name@university.edu"
-                                    placeholderTextColor={colors.textMuted}
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    onFocus={() => setEmailFocused(true)}
-                                    onBlur={() => setEmailFocused(false)}
-                                />
-                            </View>
-                        </View>
-
-                        {/* Password Input */}
-                        <View style={{ marginBottom: 8 }}>
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    marginBottom: 8,
-                                    marginLeft: 2,
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        fontSize: 13,
-                                        fontWeight: "600",
-                                        color: isDark ? "#CBD5E1" : colors.textPrimary,
-                                    }}
-                                >
-                                    {language === 'vi' ? 'Mật khẩu' : 'Password'}
-                                </Text>
-                                <TouchableOpacity activeOpacity={0.7}>
-                                    <Text
-                                        style={{
-                                            fontSize: 12,
-                                            fontWeight: "600",
-                                            color: colors.primary,
-                                        }}
-                                    >
-                                        {language === 'vi' ? 'Quên?' : 'Forgot?'}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    backgroundColor: colors.inputBg,
-                                    borderRadius: 12,
-                                    borderWidth: 1.5,
-                                    borderColor: passwordFocused
-                                        ? colors.inputBorderFocused
-                                        : colors.inputBorder,
-                                    paddingHorizontal: 14,
-                                }}
-                            >
-                                <MaterialIcons
-                                    name="lock-outline"
-                                    size={20}
-                                    color={passwordFocused ? colors.primary : colors.iconColor}
-                                />
-                                <TextInput
-                                    style={{
-                                        flex: 1,
-                                        paddingVertical: 14,
-                                        paddingHorizontal: 10,
-                                        fontSize: 15,
-                                        color: colors.textPrimary,
-                                    }}
-                                    placeholder="••••••••"
-                                    placeholderTextColor={colors.textMuted}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    secureTextEntry={!showPassword}
-                                    onFocus={() => setPasswordFocused(true)}
-                                    onBlur={() => setPasswordFocused(false)}
-                                />
-                                <TouchableOpacity
-                                    onPress={() => setShowPassword(!showPassword)}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons
-                                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                                        size={20}
-                                        color={colors.iconColor}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Login Button */}
-                        <TouchableOpacity
-                            onPress={handleLogin}
-                            disabled={isLoading}
-                            activeOpacity={0.85}
-                            style={{
-                                backgroundColor: colors.primary,
-                                borderRadius: 14,
-                                paddingVertical: 15,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                marginTop: 16,
-                                shadowColor: colors.primary,
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.25,
-                                shadowRadius: 12,
-                                elevation: 6,
-                            }}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="#FFFFFF" size="small" />
-                            ) : (
-                                <Text
-                                    style={{
-                                        color: "#FFFFFF",
-                                        fontSize: 16,
-                                        fontWeight: "600",
-                                    }}
-                                >
-                                    {language === 'vi' ? 'Đăng nhập' : 'Login'}
-                                </Text>
-                            )}
-                        </TouchableOpacity>
-
-                        {/* Divider */}
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                marginVertical: 24,
-                            }}
-                        >
-                            <View
-                                style={{
-                                    flex: 1,
-                                    height: 1,
-                                    backgroundColor: colors.divider,
-                                }}
-                            />
-                            <Text
-                                style={{
-                                    paddingHorizontal: 12,
-                                    fontSize: 12,
-                                    fontWeight: "500",
-                                    color: colors.textMuted,
-                                    textTransform: "uppercase",
-                                }}
-                            >
-                                {language === 'vi' ? 'Hoặc tiếp tục với' : 'Or continue with'}
-                            </Text>
-                            <View
-                                style={{
-                                    flex: 1,
-                                    height: 1,
-                                    backgroundColor: colors.divider,
-                                }}
-                            />
-                        </View>
-
-                        {/* Google Button */}
-                        <TouchableOpacity
-                            onPress={handleGoogleLogin}
-                            disabled={!request || isGoogleLoading}
-                            activeOpacity={0.8}
-                            style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: colors.googleBg,
-                                borderRadius: 12,
-                                paddingVertical: 13,
-                                borderWidth: 1,
-                                borderColor: colors.googleBorder,
-                                gap: 10,
-                                opacity: !request ? 0.6 : 1,
-                            }}
-                        >
-                            {isGoogleLoading ? (
-                                <ActivityIndicator
-                                    size="small"
-                                    color={colors.googleText}
-                                />
-                            ) : (
-                                <>
-                                    <GoogleIcon />
-                                    <Text
-                                        style={{
-                                            fontSize: 14,
-                                            fontWeight: "500",
-                                            color: colors.googleText,
-                                        }}
-                                    >
-                                        {language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google'}
-                                    </Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Bottom Text */}
-                    <View
-                        style={{
-                            marginTop: 32,
+                            width: 96,
+                            height: 96,
+                            borderRadius: 24,
+                            backgroundColor: isDark ? "#FFFFFF" : "transparent",
+                            marginBottom: 16,
+                            shadowColor: colors.primary,
+                            shadowOffset: { width: 0, height: 8 },
+                            shadowOpacity: isDark ? 0.2 : 0.15,
+                            shadowRadius: 16,
+                            elevation: 10,
                             alignItems: "center",
-                            flexDirection: "row",
                             justifyContent: "center",
+                            padding: 8,
                         }}
                     >
-                        <Text
+                        <Image
+                            source={require("@/assets/images/logo/logo-without-name.png")}
                             style={{
-                                fontSize: 14,
-                                color: colors.textSecondary,
+                                width: "100%",
+                                height: "100%",
+                                resizeMode: "contain"
                             }}
-                        >
-                            {language === 'vi' ? 'Chưa có tài khoản? ' : "Don't have an account? "}
-                        </Text>
-                        <TouchableOpacity
-                            onPress={() => router.push("/(auth)/signup")}
-                            activeOpacity={0.7}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: 14,
-                                    fontWeight: "600",
-                                    color: colors.primary,
-                                }}
-                            >
-                                {language === 'vi' ? 'Đăng ký' : 'Sign up'}
-                            </Text>
-                        </TouchableOpacity>
+                        />
                     </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
+                    <Text
+                        style={{
+                            fontSize: 28,
+                            fontWeight: "700",
+                            color: colors.textPrimary,
+                            letterSpacing: -0.5,
+                            marginBottom: 6,
+                        }}
+                    >
+                        Syllabus Planner
+                    </Text>
+                    <Text
+                        style={{
+                            fontSize: 15,
+                            color: colors.textSecondary,
+                            fontWeight: "400",
+                        }}
+                    >
+                        {'Plan your academic journey smarter'}
+                    </Text>
+                </View>
+
+                {/* Card */}
+                <View
+                    style={{
+                        backgroundColor: colors.card,
+                        borderRadius: 20,
+                        padding: 24,
+                        borderWidth: 1,
+                        borderColor: colors.cardBorder,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: isDark ? 0 : 0.06,
+                        shadowRadius: 24,
+                        elevation: isDark ? 0 : 8,
+                    }}
+                >
+                    <Text
+                        style={{
+                            fontSize: 18,
+                            fontWeight: "700",
+                            color: colors.textPrimary,
+                            textAlign: "center",
+                            marginBottom: 20,
+                        }}
+                    >
+                        {'Sign In'}
+                    </Text>
+
+                    {/* Google Button */}
+                    <TouchableOpacity
+                        onPress={handleGoogleLogin}
+                        disabled={!request || isGoogleLoading}
+                        activeOpacity={0.8}
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: colors.googleBg,
+                            borderRadius: 12,
+                            paddingVertical: 14,
+                            borderWidth: 1,
+                            borderColor: colors.googleBorder,
+                            gap: 10,
+                            opacity: !request ? 0.6 : 1,
+                        }}
+                    >
+                        {isGoogleLoading ? (
+                            <ActivityIndicator
+                                size="small"
+                                color={colors.googleText}
+                            />
+                        ) : (
+                            <>
+                                <GoogleIcon />
+                                <Text
+                                    style={{
+                                        fontSize: 15,
+                                        fontWeight: "600",
+                                        color: colors.googleText,
+                                    }}
+                                >
+                                    {'Continue with Google'}
+                                </Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }

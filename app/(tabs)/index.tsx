@@ -1,5 +1,4 @@
 import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -36,7 +35,7 @@ const getSuggestedSubjects = (lang: string) =>
   }));
 
 export default function DashboardScreen() {
-  const { language } = useSettingsStore();
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -270,7 +269,7 @@ export default function DashboardScreen() {
                   marginBottom: 4,
                 }}
               >
-                {language === "vi" ? "Chào bạn! 👋" : "Hello! 👋"}
+                {"Hello! 👋"}
               </Text>
               <Text
                 style={{
@@ -279,9 +278,7 @@ export default function DashboardScreen() {
                   fontWeight: "500",
                 }}
               >
-                {language === "vi"
-                  ? "Sẵn sàng khám phá kiến thức mới?"
-                  : "Ready to explore new knowledge?"}
+                {"Ready to explore new knowledge?"}
               </Text>
             </View>
           </View>
@@ -320,7 +317,7 @@ export default function DashboardScreen() {
                   letterSpacing: -0.3,
                 }}
               >
-                {language === "vi" ? "Gợi ý cho bạn" : "Suggested for you"}
+                {"Suggested for you"}
               </Text>
             </View>
           </View>
@@ -448,7 +445,7 @@ export default function DashboardScreen() {
                         fontWeight: "500",
                       }}
                     >
-                      {item.credits} {language === "vi" ? "tín chỉ" : "credits"}
+                      {item.credits} {"credits"}
                     </Text>
                   </View>
                 </View>
@@ -468,7 +465,7 @@ export default function DashboardScreen() {
               letterSpacing: -0.3,
             }}
           >
-            {language === "vi" ? "Khám phá" : "Explore"}
+            {"Explore"}
           </Text>
 
           <ScrollView
@@ -519,7 +516,7 @@ export default function DashboardScreen() {
                   marginBottom: 4,
                 }}
               >
-                {language === "vi" ? "Tìm Curriculum" : "Find Curriculum"}
+                {"Find Curriculum"}
               </Text>
               <Text
                 style={{
@@ -528,9 +525,7 @@ export default function DashboardScreen() {
                   lineHeight: 18,
                 }}
               >
-                {language === "vi"
-                  ? "Khám phá chương trình đào tạo"
-                  : "Explore training programs"}
+                {"Explore training programs"}
               </Text>
             </TouchableOpacity>
 
@@ -573,7 +568,7 @@ export default function DashboardScreen() {
                   marginBottom: 4,
                 }}
               >
-                {language === "vi" ? "Tìm Môn Học" : "Find Subject"}
+                {"Find Subject"}
               </Text>
               <Text
                 style={{
@@ -582,9 +577,7 @@ export default function DashboardScreen() {
                   lineHeight: 18,
                 }}
               >
-                {language === "vi"
-                  ? "Tra cứu thông tin môn học"
-                  : "Lookup subject information"}
+                {"Lookup subject information"}
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -601,7 +594,7 @@ export default function DashboardScreen() {
               letterSpacing: -0.3,
             }}
           >
-            {language === "vi" ? "Hoạt động gần đây" : "Recent Activity"}
+            {"Recent Activity"}
           </Text>
 
           <View
@@ -640,9 +633,7 @@ export default function DashboardScreen() {
                 marginBottom: 4,
               }}
             >
-              {language === "vi"
-                ? "Chưa có hoạt động nào"
-                : "No recent activities"}
+              {"No recent activities"}
             </Text>
             <Text
               style={{
@@ -652,9 +643,7 @@ export default function DashboardScreen() {
                 lineHeight: 20,
               }}
             >
-              {language === "vi"
-                ? "Hãy bắt đầu tìm kiếm curriculum\nhoặc môn học yêu thích!"
-                : "Start exploring curriculum\nand your favorite subjects!"}
+              {"Start exploring curriculum\nand your favorite subjects!"}
             </Text>
           </View>
         </View>
@@ -705,7 +694,7 @@ export default function DashboardScreen() {
                   color: colors.textPrimary,
                 }}
               >
-                {language === "vi" ? "Thông báo mới" : "New Notifications"}
+                {"New Notifications"}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowNotificationsModal(false)}
@@ -820,7 +809,7 @@ export default function DashboardScreen() {
                   fontSize: 14,
                 }}
               >
-                {language === "vi" ? "Xem tất cả" : "View All"}
+                {"View All"}
               </Text>
             </TouchableOpacity>
           </View>

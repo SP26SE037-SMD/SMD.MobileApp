@@ -10,11 +10,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { MOCK_CURRICULUMS } from "@/src/constants/mockData";
 
 export default function SearchCurriculumScreen() {
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
     const [searchQuery, setSearchQuery] = useState("");
@@ -102,7 +101,7 @@ export default function SearchCurriculumScreen() {
                             color: colors.textPrimary,
                             height: "100%",
                         }}
-                        placeholder={language === 'vi' ? "Tìm kiếm curriculum..." : "Search curriculum..."}
+                        placeholder={"Search curriculum..."}
                         placeholderTextColor={colors.textSecondary}
                         value={searchQuery}
                         onChangeText={(text) => {
@@ -145,7 +144,7 @@ export default function SearchCurriculumScreen() {
                                     color: colors.textPrimary,
                                 }}
                             >
-                                {language === 'vi' ? "Tìm kiếm gần đây" : "Recent searches"}
+                                {"Recent searches"}
                             </Text>
                             <TouchableOpacity activeOpacity={0.7}>
                                 <Text
@@ -155,7 +154,7 @@ export default function SearchCurriculumScreen() {
                                         color: colors.textSecondary,
                                     }}
                                 >
-                                    {language === 'vi' ? "Xóa tất cả" : "Clear all"}
+                                    {"Clear all"}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -205,7 +204,7 @@ export default function SearchCurriculumScreen() {
                     /* Search Results */
                     <View style={{ padding: 20 }}>
                         <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary, marginBottom: 16 }}>
-                            {language === 'vi' ? `Kết quả cho '${searchQuery}'` : `Results for '${searchQuery}'`}
+                            {`Results for '${searchQuery}'`}
                         </Text>
 
                         {searchResults.length > 0 ? (
@@ -228,14 +227,14 @@ export default function SearchCurriculumScreen() {
                                 >
                                     <View>
                                         <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
-                                            {language === 'vi' ? item.name : (item.englishName || item.name)}
+                                            {(item.englishName || item.name)}
                                         </Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                             <Text style={{ fontSize: 13, color: colors.primary, fontWeight: "500" }}>
                                                 {item.code}
                                             </Text>
                                             <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 8 }}>
-                                                • {item.department} • {item.credits} {language === 'vi' ? 'tín chỉ' : 'credits'}
+                                                • {item.department} • {item.credits} {'credits'}
                                             </Text>
                                         </View>
                                     </View>
@@ -253,7 +252,7 @@ export default function SearchCurriculumScreen() {
                                         textAlign: "center",
                                     }}
                                 >
-                                    {language === 'vi' ? "Không tìm thấy chương trình nào phù hợp." : "No matching curriculums found."}
+                                    {"No matching curriculums found."}
                                 </Text>
                             </View>
                         )}
@@ -270,7 +269,7 @@ export default function SearchCurriculumScreen() {
                                 textAlign: "center",
                             }}
                         >
-                            {language === 'vi' ? `Nhấn Tìm kiếm để tìm '${searchQuery}'...` : `Press Search to find '${searchQuery}'...`}
+                            {`Press Search to find '${searchQuery}'...`}
                         </Text>
                     </View>
                 )}

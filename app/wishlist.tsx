@@ -3,12 +3,11 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, Platform, useColorS
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { useWishlistStore } from '@/src/store/useWishlistStore';
 import { MOCK_SYLLABUSES, Syllabus } from '@/src/constants/mockData';
 
 export default function WishlistScreen() {
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
 
@@ -29,16 +28,16 @@ export default function WishlistScreen() {
         <View style={styles.emptyContainer}>
             <Ionicons name="star-outline" size={64} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 16 }} />
             <Text style={[styles.emptyText, { color: colors.textPrimary, fontWeight: '700', fontSize: 18, marginBottom: 8 }]}>
-                {language === 'vi' ? 'Danh sách trống' : 'Wishlist is empty'}
+                {'Wishlist is empty'}
             </Text>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                {language === 'vi' ? 'Hãy thả sao các môn học bạn quan tâm để lưu trữ tại đây.' : 'Star the subjects you are interested in to save them here.'}
+                {'Star the subjects you are interested in to save them here.'}
             </Text>
             <TouchableOpacity
                 style={{ marginTop: 24, paddingVertical: 12, paddingHorizontal: 24, backgroundColor: colors.primary, borderRadius: 8 }}
                 onPress={() => router.push('/(tabs)')}
             >
-                <Text style={{ color: 'white', fontWeight: '600' }}>{language === 'vi' ? "Khám phá môn học" : "Explore Subjects"}</Text>
+                <Text style={{ color: 'white', fontWeight: '600' }}>{"Explore Subjects"}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -53,11 +52,11 @@ export default function WishlistScreen() {
                 <View style={{ flex: 1, paddingRight: 16 }}>
                     <Text style={[styles.itemCode, { color: colors.primary }]}>{item.subjectCode}</Text>
                     <Text style={[styles.itemName, { color: colors.textPrimary }]} numberOfLines={2}>
-                        {language === 'vi' ? item.name : (item.englishName || item.name)}
+                        {(item.englishName || item.name)}
                     </Text>
                 </View>
                 <View style={[styles.creditsBadge, { backgroundColor: colors.primaryBg }]}>
-                    <Text style={[styles.creditsText, { color: colors.primary }]}>{item.credits} {item.credits > 1 ? (language === 'vi' ? 'TC' : 'Cr') : (language === 'vi' ? 'TC' : 'Cr')}</Text>
+                    <Text style={[styles.creditsText, { color: colors.primary }]}>{item.credits} {item.credits > 1 ? ('Cr') : ('Cr')}</Text>
                 </View>
             </View>
 
@@ -92,7 +91,7 @@ export default function WishlistScreen() {
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-                    {language === 'vi' ? 'Yêu thích' : 'Wishlist'}
+                    {'Wishlist'}
                 </Text>
                 <View style={{ width: 40 }} /> {/* Spacer */}
             </View>
@@ -100,7 +99,7 @@ export default function WishlistScreen() {
             <View style={{ flex: 1 }}>
                 {wishlistSubjects.length > 0 ? (
                     <Text style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 5, color: colors.textSecondary, fontSize: 13 }}>
-                        {language === 'vi' ? `Bạn đã lưu ${wishlistSubjects.length} môn học.` : `You have saved ${wishlistSubjects.length} subjects.`}
+                        {`You have saved ${wishlistSubjects.length} subjects.`}
                     </Text>
                 ) : null}
 

@@ -13,11 +13,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useAuthStore } from "@/src/store/useAuthStore";
 
 export default function SignUpScreen() {
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
 
@@ -200,7 +199,7 @@ export default function SignUpScreen() {
                                 fontWeight: "400",
                             }}
                         >
-                            {language === 'vi' ? 'Tạo tài khoản học tập của bạn' : 'Create your academic account'}
+                            {'Create your academic account'}
                         </Text>
                     </View>
 
@@ -220,10 +219,10 @@ export default function SignUpScreen() {
                         }}
                     >
                         {renderInput(
-                            language === 'vi' ? "Họ và tên" : "Full Name",
+                            "Full Name",
                             fullName,
                             setFullName,
-                            language === 'vi' ? "Nhập họ và tên" : "Enter your full name",
+                            "Enter your full name",
                             "person-outline",
                             "fullName"
                         )}
@@ -239,10 +238,10 @@ export default function SignUpScreen() {
                         )}
 
                         {renderInput(
-                            language === 'vi' ? "Mật khẩu" : "Password",
+                            "Password",
                             password,
                             setPassword,
-                            language === 'vi' ? "Tạo mật khẩu" : "Create a password",
+                            "Create a password",
                             "lock-outline",
                             "password",
                             {
@@ -253,10 +252,10 @@ export default function SignUpScreen() {
                         )}
 
                         {renderInput(
-                            language === 'vi' ? "Xác nhận mật khẩu" : "Confirm Password",
+                            "Confirm Password",
                             confirmPassword,
                             setConfirmPassword,
-                            language === 'vi' ? "Xác nhận lại mật khẩu" : "Confirm your password",
+                            "Confirm your password",
                             "lock-outline",
                             "confirmPassword",
                             {
@@ -296,7 +295,7 @@ export default function SignUpScreen() {
                                         fontWeight: "600",
                                     }}
                                 >
-                                    {language === 'vi' ? 'Tạo tài khoản' : 'Create Account'}
+                                    {'Create Account'}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -325,7 +324,7 @@ export default function SignUpScreen() {
                                     textTransform: "uppercase",
                                 }}
                             >
-                                {language === 'vi' ? 'Hoặc tiếp tục với' : 'Or continue with'}
+                                {'Or continue with'}
                             </Text>
                             <View
                                 style={{
@@ -360,7 +359,7 @@ export default function SignUpScreen() {
                                     color: colors.googleText,
                                 }}
                             >
-                                {language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google'}
+                                {'Continue with Google'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -375,7 +374,7 @@ export default function SignUpScreen() {
                         }}
                     >
                         <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            {language === 'vi' ? 'Đã có tài khoản? ' : 'Already have an account? '}
+                            {'Already have an account? '}
                         </Text>
                         <TouchableOpacity
                             onPress={() => router.back()}
@@ -388,7 +387,7 @@ export default function SignUpScreen() {
                                     color: colors.primary,
                                 }}
                             >
-                                {language === 'vi' ? 'Đăng nhập' : 'Login'}
+                                {'Login'}
                             </Text>
                         </TouchableOpacity>
                     </View>

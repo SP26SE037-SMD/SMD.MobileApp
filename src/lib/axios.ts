@@ -1,7 +1,9 @@
 import { useAuthStore } from "@/src/store/useAuthStore";
 import axios from "axios";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://43.207.156.116/api";
+// const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://43.207.156.116/api";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
+
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -18,6 +20,16 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log("================ Axios Request ================");
+        console.log("[Axios] METHOD:", config.method?.toUpperCase());
+        console.log("[Axios] URL:", (config.baseURL ?? "") + (config.url ?? ""));
+        if (config.params) {
+            console.log("[Axios] PARAMS:", JSON.stringify(config.params, null, 2));
+        }
+        if (config.data) {
+            console.log("[Axios] BODY:", JSON.stringify(config.data, null, 2));
+        }
+        console.log("===============================================");
         return config;
     },
     (error) => {
@@ -28,7 +40,11 @@ apiClient.interceptors.request.use(
 // Response interceptor - Xử lý lỗi chung
 apiClient.interceptors.response.use(
     (response) => {
-        console.log("[Axios] API Response Success:", response.config.url);
+        console.log("================ Axios Success ================");
+        console.log("[Axios] URL:", response.config.url);
+        console.log("[Axios] STATUS:", response.status);
+        console.log("[Axios] DATA:", JSON.stringify(response.data, null, 2));
+        console.log("===============================================");
         return response;
     },
     (error) => {

@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
-import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { MOCK_CURRICULUMS, Subject } from '@/src/constants/mockData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -75,7 +74,7 @@ function statusLabel(status: CourseStatus, lang: string) {
 // --- Main Screen ---
 export default function PrerequisiteMapScreen() {
     const { curriculumId } = useLocalSearchParams<{ curriculumId: string }>();
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
 
@@ -200,7 +199,7 @@ export default function PrerequisiteMapScreen() {
                 </TouchableOpacity>
                 <View style={{ flex: 1 }}>
                     <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-                        {language === 'vi' ? 'Sơ đồ môn tiên quyết' : 'Prerequisite Map'}
+                        {'Prerequisite Map'}
                     </Text>
                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>{curriculum?.name}</Text>
                 </View>
@@ -210,7 +209,7 @@ export default function PrerequisiteMapScreen() {
             <View style={[styles.toggleBar, { backgroundColor: colors.card, borderBottomColor: colors.divider }]}>
                 <Ionicons name="git-network-outline" size={18} color={colors.primary} style={{ marginRight: 8 }} />
                 <Text style={{ fontSize: 14, color: colors.textPrimary, flex: 1 }}>
-                    {language === 'vi' ? 'Hiện đường kết nối' : 'Show connector lines'}
+                    {'Show connector lines'}
                 </Text>
                 <Switch
                     value={showLines}
@@ -269,7 +268,7 @@ export default function PrerequisiteMapScreen() {
                                 {/* Semester label */}
                                 <View style={[styles.semLabel, { backgroundColor: isDark ? '#0F172A' : '#E2E8F0' }]}>
                                     <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary, textAlign: 'center' }}>
-                                        {language === 'vi' ? `HK ${sem}` : `S${sem}`}
+                                        {`S${sem}`}
                                     </Text>
                                 </View>
                                 {/* Course cards */}
@@ -351,8 +350,8 @@ export default function PrerequisiteMapScreen() {
                                 {selectedSubject.name}
                             </Text>
                             <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                                {selectedSubject.credits} {language === 'vi' ? 'tín chỉ' : 'credits'} •{' '}
-                                {language === 'vi' ? `Học kỳ ${selectedSubject.semester}` : `Semester ${selectedSubject.semester}`}
+                                {selectedSubject.credits} {'credits'} •{' '}
+                                {`Semester ${selectedSubject.semester}`}
                             </Text>
                         </View>
                     </View>
@@ -361,13 +360,13 @@ export default function PrerequisiteMapScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
                         <View style={[styles.statusDot, { backgroundColor: statusBorderColor(getStatus(selectedSubject.code, selectedCode), isDark) }]} />
                         <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                            {statusLabel(getStatus(selectedSubject.code, selectedCode), language)}
+                            {statusLabel(getStatus(selectedSubject.code, selectedCode))}
                         </Text>
                     </View>
 
                     {/* Prerequisites */}
                     <Text style={[styles.sheetSectionLabel, { color: colors.textSecondary }]}>
-                        {language === 'vi' ? 'Môn tiên quyết' : 'Prerequisites'}
+                        {'Prerequisites'}
                     </Text>
                     {selectedSubject.prerequisite ? (
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
@@ -379,13 +378,13 @@ export default function PrerequisiteMapScreen() {
                         </View>
                     ) : (
                         <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 12, fontStyle: 'italic' }}>
-                            {language === 'vi' ? 'Không có môn tiên quyết' : 'No prerequisites'}
+                            {'No prerequisites'}
                         </Text>
                     )}
 
                     {/* Dependents */}
                     <Text style={[styles.sheetSectionLabel, { color: colors.textSecondary }]}>
-                        {language === 'vi' ? 'Môn phụ thuộc vào môn này' : 'Dependent courses'}
+                        {'Dependent courses'}
                     </Text>
                     {deps.size > 0 ? (
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
@@ -397,7 +396,7 @@ export default function PrerequisiteMapScreen() {
                         </View>
                     ) : (
                         <Text style={{ fontSize: 13, color: colors.textSecondary, fontStyle: 'italic' }}>
-                            {language === 'vi' ? 'Không có môn phụ thuộc' : 'No dependent courses'}
+                            {'No dependent courses'}
                         </Text>
                     )}
 
@@ -406,7 +405,7 @@ export default function PrerequisiteMapScreen() {
                         onPress={closeSheet}
                     >
                         <Text style={{ color: colors.textSecondary, fontWeight: '600', fontSize: 14 }}>
-                            {language === 'vi' ? 'Đóng' : 'Close'}
+                            {'Close'}
                         </Text>
                     </TouchableOpacity>
                 </Animated.View>

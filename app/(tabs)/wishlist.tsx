@@ -1,5 +1,4 @@
 import { MOCK_SYLLABUSES, Syllabus } from "@/src/constants/mockData";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -16,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function WishlistTabScreen() {
-  const { language } = useSettingsStore();
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -76,7 +75,7 @@ export default function WishlistTabScreen() {
             marginBottom: 8,
           }}
         >
-          {language === "vi" ? "Chưa có mục yêu thích" : "No favorites yet"}
+          {"No favorites yet"}
         </Text>
         <Text
           style={{
@@ -86,9 +85,7 @@ export default function WishlistTabScreen() {
             lineHeight: 22,
           }}
         >
-          {language === "vi"
-            ? "Hãy thêm curriculum hoặc môn học\nvào wishlist để theo dõi dễ dàng hơn!"
-            : "Add curriculum or subjects\nto your wishlist to track them easily!"}
+          {"Add curriculum or subjects\nto your wishlist to track them easily!"}
         </Text>
 
         <TouchableOpacity
@@ -114,7 +111,7 @@ export default function WishlistTabScreen() {
               fontWeight: "600",
             }}
           >
-            {language === "vi" ? "Khám phá ngay" : "Explore now"}
+            {"Explore now"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -150,7 +147,7 @@ export default function WishlistTabScreen() {
             style={[styles.itemName, { color: colors.textPrimary }]}
             numberOfLines={2}
           >
-            {language === "vi" ? item.name : item.englishName || item.name}
+            {item.englishName || item.name}
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -160,12 +157,8 @@ export default function WishlistTabScreen() {
             <Text style={[styles.creditsText, { color: colors.primary }]}>
               {item.credits}{" "}
               {item.credits > 1
-                ? language === "vi"
-                  ? "Tín Chỉ"
-                  : "Credits"
-                : language === "vi"
-                  ? "Tín Chỉ"
-                  : "Credit"}
+                ? "Credits"
+                : "Credit"}
             </Text>
           </View>
         </View>
@@ -228,12 +221,10 @@ export default function WishlistTabScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-          {language === "vi" ? "Yêu thích" : "Wishlist"}
+          {"Wishlist"}
         </Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-          {language === "vi"
-            ? "Các môn học và curriculum yêu thích"
-            : "Your favorite subjects and curriculum"}
+          {"Your favorite subjects and curriculum"}
         </Text>
       </View>
 
@@ -249,9 +240,7 @@ export default function WishlistTabScreen() {
               fontWeight: "500",
             }}
           >
-            {language === "vi"
-              ? `Bạn đã lưu ${wishlistSubjects.length} môn học.`
-              : `You have saved ${wishlistSubjects.length} subjects.`}
+            {`You have saved ${wishlistSubjects.length} subjects.`}
           </Text>
         ) : null}
 

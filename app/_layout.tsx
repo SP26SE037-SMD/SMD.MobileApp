@@ -7,13 +7,13 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
-if (__DEV__) {
-  require('@/ReactotronConfig');
-}
-
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { queryClient } from "@/src/lib/queryClient";
 import { useAuthStore } from "@/src/store/useAuthStore";
+
+if (__DEV__) {
+  require('@/ReactotronConfig');
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

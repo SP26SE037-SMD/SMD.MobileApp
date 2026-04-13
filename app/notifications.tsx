@@ -9,7 +9,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 
 type NotificationType = "change" | "task";
 
@@ -106,7 +105,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 ];
 
 export default function NotificationsScreen() {
-    const { language } = useSettingsStore();
+    
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
     const [activeTab, setActiveTab] = useState<"all" | "change" | "task">("all");
@@ -133,9 +132,9 @@ export default function NotificationsScreen() {
             : MOCK_NOTIFICATIONS.filter((n) => n.type === activeTab);
 
     const tabs = [
-        { key: "all" as const, label: language === 'vi' ? "Tất cả" : "All" },
-        { key: "change" as const, label: language === 'vi' ? "Thay đổi" : "Changes" },
-        { key: "task" as const, label: language === 'vi' ? "Công việc" : "Tasks" },
+        { key: "all" as const, label: "All" },
+        { key: "change" as const, label: "Changes" },
+        { key: "task" as const, label: "Tasks" },
     ];
 
     return (
@@ -175,7 +174,7 @@ export default function NotificationsScreen() {
                         letterSpacing: -0.3,
                     }}
                 >
-                    {language === 'vi' ? "Thông báo" : "Notifications"}
+                    {"Notifications"}
                 </Text>
                 <TouchableOpacity activeOpacity={0.7}>
                     <Text
@@ -185,7 +184,7 @@ export default function NotificationsScreen() {
                             color: colors.primary,
                         }}
                     >
-                        {language === 'vi' ? "Đánh dấu đã đọc" : "Mark as read"}
+                        {"Mark as read"}
                     </Text>
                 </TouchableOpacity>
             </View>

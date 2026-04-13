@@ -1,5 +1,4 @@
 import { MOCK_CURRICULUMS } from "@/src/constants/mockData";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -18,7 +17,7 @@ type TabKey = "general" | "plos" | "subjects";
 
 export default function CurriculumDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { language } = useSettingsStore();
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -65,7 +64,7 @@ export default function CurriculumDetailsScreen() {
   const tabs = [
     {
       key: "general",
-      label: language === "vi" ? "Chung" : "General",
+      label: "General",
       icon: "information-circle-outline" as const,
     },
     {
@@ -75,7 +74,7 @@ export default function CurriculumDetailsScreen() {
     },
     {
       key: "subjects",
-      label: language === "vi" ? "Môn học" : "Subjects",
+      label: "Subjects",
       icon: "book-outline" as const,
     },
   ];
@@ -97,7 +96,7 @@ export default function CurriculumDetailsScreen() {
           style={{ marginBottom: 16 }}
         />
         <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600" }}>
-          {language === "vi" ? "Không tìm thấy chương trình" : "Curriculum not found"}
+          {"Curriculum not found"}
         </Text>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -110,7 +109,7 @@ export default function CurriculumDetailsScreen() {
           }}
         >
           <Text style={{ color: "white", fontWeight: "600" }}>
-            {language === "vi" ? "Quay lại" : "Go Back"}
+            {"Go Back"}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -144,19 +143,19 @@ export default function CurriculumDetailsScreen() {
         <View style={styles.infoGrid}>
           <View style={[styles.infoItem, { borderRightWidth: 1, borderRightColor: colors.divider }]}>
             <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              {language === "vi" ? "Mã ngành" : "Code"}
+              {"Code"}
             </Text>
             <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{curriculum.code}</Text>
           </View>
           <View style={[styles.infoItem, { borderRightWidth: 1, borderRightColor: colors.divider }]}>
             <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              {language === "vi" ? "Tín chỉ" : "Credits"}
+              {"Credits"}
             </Text>
             <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{curriculum.credits}</Text>
           </View>
           <View style={styles.infoItem}>
             <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              {language === "vi" ? "Quyết định" : "Decision No"}
+              {"Decision No"}
             </Text>
             <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={1}>
               {curriculum.decisionNo || "N/A"}
@@ -174,7 +173,7 @@ export default function CurriculumDetailsScreen() {
           ]}
         >
           <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 12 }}>
-            {language === "vi" ? "Mô tả chương trình" : "Program Description"}
+            {"Program Description"}
           </Text>
           <Text style={{ color: colors.textPrimary, lineHeight: 22, fontSize: 15 }}>
             {curriculum.description}
@@ -190,17 +189,17 @@ export default function CurriculumDetailsScreen() {
         ]}
       >
         <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 12 }}>
-          {language === "vi" ? "Thông tin khác" : "Additional Information"}
+          {"Additional Information"}
         </Text>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Khoa:" : "Department:"}
+            {"Department:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{curriculum.department}</Text>
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Số môn học:" : "Total Subjects:"}
+            {"Total Subjects:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {curriculum.subjects?.length || 0}
@@ -208,7 +207,7 @@ export default function CurriculumDetailsScreen() {
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Số học kỳ:" : "Semesters:"}
+            {"Semesters:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {Object.keys(groupedSubjects).length}
@@ -229,7 +228,7 @@ export default function CurriculumDetailsScreen() {
       >
         <Ionicons name="git-network-outline" size={22} color="white" style={{ marginRight: 10 }} />
         <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>
-          {language === "vi" ? "Xem sơ đồ môn học" : "View Curriculum Map"}
+          {"View Curriculum Map"}
         </Text>
       </TouchableOpacity>
     </View>
@@ -263,7 +262,7 @@ export default function CurriculumDetailsScreen() {
         <View style={{ padding: 20, alignItems: "center" }}>
           <Ionicons name="list-circle-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
           <Text style={{ color: colors.textSecondary, fontStyle: "italic", textAlign: "center" }}>
-            {language === "vi" ? "Chưa có chuẩn đầu ra nào." : "No PLOs available."}
+            {"No PLOs available."}
           </Text>
         </View>
       )}
@@ -280,13 +279,9 @@ export default function CurriculumDetailsScreen() {
             <View key={`sem-${semester}`} style={{ marginBottom: 24 }}>
               <View style={[styles.semesterHeader, { backgroundColor: colors.divider }]}>
                 <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 15 }}>
-                  {language === "vi"
-                    ? Number(semester) === 0
-                      ? "Học kỳ 0 (Tiền đề)"
-                      : `Học kỳ ${semester}`
-                    : Number(semester) === 0
-                      ? "Semester 0 (Prerequisite)"
-                      : `Semester ${semester}`}
+                  {Number(semester) === 0
+                                                ? "Semester 0 (Prerequisite)"
+                                                : `Semester ${semester}`}
                 </Text>
               </View>
 
@@ -358,7 +353,7 @@ export default function CurriculumDetailsScreen() {
                       {isElective && (
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
                           <Text style={{ color: colors.electiveText, fontSize: 12, fontWeight: "600", marginRight: 4 }}>
-                            {electiveGroup?.subjects.length || 0} {language === "vi" ? "môn" : "subjects"}
+                            {electiveGroup?.subjects.length || 0} {"subjects"}
                           </Text>
                           <Ionicons name="chevron-forward" size={16} color={colors.electiveText} />
                         </View>
@@ -391,7 +386,7 @@ export default function CurriculumDetailsScreen() {
                             fontSize: 13,
                           }}
                         >
-                          {sub.credits} {language === "vi" ? "tín chỉ" : "credits"}
+                          {sub.credits} {"credits"}
                         </Text>
                       </View>
                     </View>
@@ -400,7 +395,7 @@ export default function CurriculumDetailsScreen() {
                       <View style={[styles.prereqContainer, { backgroundColor: colors.alertBg }]}>
                         <Ionicons name="alert-circle-outline" size={16} color={colors.alertText} style={{ marginRight: 6 }} />
                         <Text style={{ color: colors.alertText, fontSize: 13, fontWeight: "500", flex: 1 }}>
-                          {language === "vi" ? "Tiên quyết:" : "Prerequisite:"} {sub.prerequisite}
+                          {"Prerequisite:"} {sub.prerequisite}
                         </Text>
                       </View>
                     ) : null}
@@ -413,7 +408,7 @@ export default function CurriculumDetailsScreen() {
         <View style={{ padding: 20, alignItems: "center" }}>
           <Ionicons name="book-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
           <Text style={{ color: colors.textSecondary, fontStyle: "italic", textAlign: "center" }}>
-            {language === "vi" ? "Chưa có môn học nào." : "No subjects available."}
+            {"No subjects available."}
           </Text>
         </View>
       )}
@@ -432,7 +427,7 @@ export default function CurriculumDetailsScreen() {
         >
           <Ionicons name="git-network-outline" size={22} color="white" style={{ marginRight: 10 }} />
           <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>
-            {language === "vi" ? "Xem sơ đồ môn học" : "View Curriculum Map"}
+            {"View Curriculum Map"}
           </Text>
         </TouchableOpacity>
       )}
@@ -478,12 +473,12 @@ export default function CurriculumDetailsScreen() {
             {curriculum.code}
           </Text>
           <Text style={{ fontSize: 13, color: colors.textSecondary }} numberOfLines={1}>
-            {language === "vi" ? curriculum.name : curriculum.englishName}
+            {curriculum.englishName}
           </Text>
         </View>
         <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
           <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 12 }}>
-            {curriculum.credits} {language === "vi" ? "Tín chỉ" : "Credits"}
+            {curriculum.credits} {"Credits"}
           </Text>
         </View>
       </View>
