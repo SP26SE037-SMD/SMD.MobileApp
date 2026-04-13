@@ -2,10 +2,9 @@ import { Tabs } from "expo-router";
 import React from "react";
 import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 
 export default function TabLayout() {
-  const { language } = useSettingsStore();
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -65,7 +64,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: language === 'vi' ? "Tài khoản" : "Account",
+          title: "Account",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "person-circle" : "person-circle-outline"}

@@ -1,5 +1,4 @@
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -18,7 +17,7 @@ import ImageViewing from "react-native-image-viewing";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
-    const { language } = useSettingsStore();
+    
     const { user } = useAuthStore();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
@@ -38,9 +37,9 @@ export default function ProfileScreen() {
 
     // Helper functions
     const getRoleDisplayName = (roleName?: string) => {
-        if (!roleName) return language === 'vi' ? "Thành viên" : "Member";
-        if (roleName === "STUDENT") return language === 'vi' ? "Sinh Viên" : "Student";
-        if (roleName === "LECTURER") return language === 'vi' ? "Giảng Viên" : "Lecturer";
+        if (!roleName) return "Member";
+        if (roleName === "STUDENT") return "Student";
+        if (roleName === "LECTURER") return "Lecturer";
         return roleName;
     };
 
@@ -88,7 +87,7 @@ export default function ProfileScreen() {
                             letterSpacing: -0.3,
                         }}
                     >
-                        {language === 'vi' ? "Thông tin cá nhân" : "Personal Info"}
+                        {"Personal Info"}
                     </Text>
                 </View>
 
@@ -165,7 +164,7 @@ export default function ProfileScreen() {
                                     marginLeft: 4,
                                 }}
                             >
-                                {language === 'vi' ? "Họ và tên" : "Full Name"}
+                                {"Full Name"}
                             </Text>
                             <View
                                 style={{
@@ -245,7 +244,7 @@ export default function ProfileScreen() {
                                     marginLeft: 4,
                                 }}
                             >
-                                {language === 'vi' ? "Nghề nghiệp" : "Profession"}
+                                {"Profession"}
                             </Text>
                             <View
                                 style={{

@@ -1,5 +1,4 @@
 import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
-import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import {
     Ionicons
@@ -27,7 +26,7 @@ type TabKey =
 
 export default function SubjectDetailsScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
-  const { language } = useSettingsStore();
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -86,9 +85,7 @@ export default function SubjectDetailsScreen() {
             textAlign: "center",
           }}
         >
-          {language === "vi"
-            ? `Không tìm thấy thông tin chi tiết (Syllabus) cho môn học ${code?.toUpperCase()}.`
-            : `Syllabus not found for subject ${code?.toUpperCase()}.`}
+          {`Syllabus not found for subject ${code?.toUpperCase()}.`}
         </Text>
         <Text
           style={{
@@ -112,7 +109,7 @@ export default function SubjectDetailsScreen() {
           }}
         >
           <Text style={{ color: "white", fontWeight: "600" }}>
-            {language === "vi" ? "Quay lại" : "Go Back"}
+            {"Go Back"}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -122,29 +119,29 @@ export default function SubjectDetailsScreen() {
   const tabs = [
     {
       key: "general",
-      label: language === "vi" ? "Chung" : "General",
+      label: "General",
       icon: "information-circle-outline" as const,
     },
     {
       key: "lessons",
-      label: language === "vi" ? "Bài học" : "Lessons",
+      label: "Lessons",
       icon: "book-outline" as const,
     },
     {
       key: "materials",
-      label: language === "vi" ? "Tài liệu" : "Materials",
+      label: "Materials",
       icon: "library-outline" as const,
     },
     { key: "clos", label: "CLOs", icon: "list-circle-outline" as const },
     {
       key: "sessions",
-      label: language === "vi" ? "Lịch trình" : "Sessions",
+      label: "Sessions",
       icon: "calendar-outline" as const,
     },
     { key: "questions", label: "CQ", icon: "help-circle-outline" as const },
     {
       key: "assessments",
-      label: language === "vi" ? "Đánh giá" : "Assessment",
+      label: "Assessment",
       icon: "pie-chart-outline" as const,
     },
   ];
@@ -176,11 +173,11 @@ export default function SubjectDetailsScreen() {
             marginBottom: 8,
           }}
         >
-          {language === "vi" ? "Thông tin cơ bản" : "Basic Information"}
+          {"Basic Information"}
         </Text>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Mã Syllabus:" : "Syllabus ID:"}
+            {"Syllabus ID:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {syllabus.id}
@@ -188,7 +185,7 @@ export default function SubjectDetailsScreen() {
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Bậc đào tạo:" : "Degree Level:"}
+            {"Degree Level:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {syllabus.degreeLevel}
@@ -196,7 +193,7 @@ export default function SubjectDetailsScreen() {
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Phân bổ thời gian:" : "Time Allocation:"}
+            {"Time Allocation:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {syllabus.timeAllocation}
@@ -204,7 +201,7 @@ export default function SubjectDetailsScreen() {
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Điều kiện tiên quyết:" : "Pre-Requisite:"}
+            {"Pre-Requisite:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {syllabus.prerequisite}
@@ -212,7 +209,7 @@ export default function SubjectDetailsScreen() {
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Thang điểm:" : "Scoring Scale:"}
+            {"Scoring Scale:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {syllabus.scoringScale}
@@ -220,7 +217,7 @@ export default function SubjectDetailsScreen() {
         </View>
         <View style={styles.gridRow}>
           <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-            {language === "vi" ? "Điểm tối thiểu:" : "Min. Mark to Pass:"}
+            {"Min. Mark to Pass:"}
           </Text>
           <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
             {syllabus.minAvgMarkToPass}
@@ -244,7 +241,7 @@ export default function SubjectDetailsScreen() {
             marginBottom: 8,
           }}
         >
-          {language === "vi" ? "Mô tả" : "Description"}
+          {"Description"}
         </Text>
         <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
           {syllabus.description}
@@ -267,7 +264,7 @@ export default function SubjectDetailsScreen() {
             marginBottom: 8,
           }}
         >
-          {language === "vi" ? "Nhiệm vụ sinh viên" : "Student Tasks"}
+          {"Student Tasks"}
         </Text>
         <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
           {syllabus.studentTasks}
@@ -290,7 +287,7 @@ export default function SubjectDetailsScreen() {
             marginBottom: 8,
           }}
         >
-          {language === "vi" ? "Công cụ" : "Tools"}
+          {"Tools"}
         </Text>
         <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
           {syllabus.tools}
@@ -306,22 +303,22 @@ export default function SubjectDetailsScreen() {
             marginBottom: 8,
           }}
         >
-          {language === "vi" ? "Thông tin duyệt" : "Approval Details"}
+          {"Approval Details"}
         </Text>
         <Text style={{ color: colors.textSecondary, marginBottom: 4 }}>
-          {language === "vi" ? "Số quyết định: " : "Decision No: "}
+          {"Decision No: "}
           <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
             {syllabus.decisionNo}
           </Text>
         </Text>
         <Text style={{ color: colors.textSecondary, marginBottom: 4 }}>
-          {language === "vi" ? "Ngày phê duyệt: " : "Approved Date: "}
+          {"Approved Date: "}
           <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
             {syllabus.approvedDate}
           </Text>
         </Text>
         <Text style={{ color: colors.textSecondary, marginBottom: 4 }}>
-          {language === "vi" ? "Trạng thái:" : "Status:"}
+          {"Status:"}
           <Text
             style={{
               color: syllabus.isActive ? colors.successText : colors.alertText,
@@ -329,16 +326,12 @@ export default function SubjectDetailsScreen() {
             }}
           >
             {syllabus.isActive
-              ? language === "vi"
-                ? " Hoạt động"
-                : " Active"
-              : language === "vi"
-                ? " Không hoạt động"
-                : " Inactive"}
+              ? " Active"
+              : " Inactive"}
           </Text>
         </Text>
         <Text style={{ color: colors.textSecondary }}>
-          {language === "vi" ? "Ghi chú: " : "Note: "}
+          {"Note: "}
           <Text style={{ color: colors.textPrimary }}>{syllabus.note}</Text>
         </Text>
       </View>
@@ -393,7 +386,7 @@ export default function SubjectDetailsScreen() {
                     fontWeight: "700",
                   }}
                 >
-                  {language === "vi" ? "CHÍNH" : "MAIN"}
+                  {"MAIN"}
                 </Text>
               </View>
             )}
@@ -405,7 +398,7 @@ export default function SubjectDetailsScreen() {
               fontWeight: "500",
             }}
           >
-            {language === "vi" ? "Tác giả: " : "Author: "}
+            {"Author: "}
             {m.author}
           </Text>
           <Text
@@ -415,7 +408,7 @@ export default function SubjectDetailsScreen() {
               fontSize: 13,
             }}
           >
-            {language === "vi" ? "Nhà xuất bản: " : "Publisher: "}
+            {"Publisher: "}
             {m.publisher} ({m.publishedDate})
           </Text>
           <Text
@@ -425,7 +418,7 @@ export default function SubjectDetailsScreen() {
               fontSize: 13,
             }}
           >
-            {language === "vi" ? "Ấn bản: " : "Edition: "}
+            {"Edition: "}
             {m.edition} • ISBN: {m.isbn}
           </Text>
 
@@ -441,7 +434,7 @@ export default function SubjectDetailsScreen() {
                   borderRadius: 4,
                 }}
               >
-                {language === "vi" ? "Bản cứng" : "Hard Copy"}
+                {"Hard Copy"}
               </Text>
             )}
             {m.isOnline && (
@@ -455,7 +448,7 @@ export default function SubjectDetailsScreen() {
                   borderRadius: 4,
                 }}
               >
-                {language === "vi" ? "Trực tuyến" : "Online"}
+                {"Online"}
               </Text>
             )}
           </View>
@@ -468,7 +461,7 @@ export default function SubjectDetailsScreen() {
                 fontSize: 13,
               }}
             >
-              {language === "vi" ? "Ghi chú: " : "Note: "}
+              {"Note: "}
               {m.note}
             </Text>
           ) : null}
@@ -571,7 +564,7 @@ export default function SubjectDetailsScreen() {
                 fontSize: 13,
               }}
             >
-              {language === "vi" ? "Kiểu học: " : "Learning Type: "}
+              {"Learning Type: "}
               <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
                 {s.learningTeachingType}
               </Text>
@@ -595,7 +588,7 @@ export default function SubjectDetailsScreen() {
                 fontSize: 13,
               }}
             >
-              {language === "vi" ? "LO liên kết: " : "Linked LO: "}
+              {"Linked LO: "}
               <Text style={{ color: colors.primary, fontWeight: "700" }}>
                 {s.lo}
               </Text>
@@ -616,9 +609,7 @@ export default function SubjectDetailsScreen() {
                   fontWeight: "500",
                 }}
               >
-                {language === "vi"
-                  ? "Tài liệu sinh viên:"
-                  : "Student Materials:"}
+                {"Student Materials:"}
               </Text>
               <Text
                 style={{
@@ -638,7 +629,7 @@ export default function SubjectDetailsScreen() {
                   fontWeight: "500",
                 }}
               >
-                {language === "vi" ? "Nhiệm vụ sinh viên:" : "Student Tasks:"}
+                {"Student Tasks:"}
               </Text>
               <Text style={{ color: colors.textPrimary, fontSize: 13 }}>
                 {s.studentTasks}
@@ -678,7 +669,7 @@ export default function SubjectDetailsScreen() {
               {q.name}
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-              {language === "vi" ? "Buổi " : "Session "}
+              {"Session "}
               {q.sessionNo}
             </Text>
           </View>
@@ -696,9 +687,7 @@ export default function SubjectDetailsScreen() {
             marginTop: 20,
           }}
         >
-          {language === "vi"
-            ? "Chưa có câu hỏi xây dựng."
-            : "No constructive questions available."}
+          {"No constructive questions available."}
         </Text>
       )}
     </View>
@@ -743,11 +732,11 @@ export default function SubjectDetailsScreen() {
                   marginTop: 2,
                 }}
               >
-                {language === "vi" ? "Phần: " : "Part: "}
+                {"Part: "}
                 <Text style={{ fontWeight: "600", color: colors.textPrimary }}>
                   {a.part}
                 </Text>{" "}
-                | {language === "vi" ? "Tỷ trọng: " : "Weight: "}
+                | {"Weight: "}
                 <Text style={{ fontWeight: "700", color: colors.alertText }}>
                   {a.weight}
                 </Text>
@@ -782,7 +771,7 @@ export default function SubjectDetailsScreen() {
           >
             <View style={styles.gridRow}>
               <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "CLO liên kết:" : "Linked CLO:"}
+                {"Linked CLO:"}
               </Text>
               <Text
                 style={[
@@ -795,7 +784,7 @@ export default function SubjectDetailsScreen() {
             </View>
             <View style={styles.gridRow}>
               <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Điểm hoàn thành:" : "Completion Min:"}
+                {"Completion Min:"}
               </Text>
               <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
                 {a.completionCriteria}
@@ -803,16 +792,16 @@ export default function SubjectDetailsScreen() {
             </View>
             <View style={styles.gridRow}>
               <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Định dạng:" : "Format:"}
+                {"Format:"}
               </Text>
               <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
                 {a.questionType} ({a.noQuestion}{" "}
-                {language === "vi" ? "câu" : "Qs"})
+                {"Qs"})
               </Text>
             </View>
             <View style={styles.gridRow}>
               <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Kiến thức/Kỹ năng:" : "Knowledge/Skill:"}
+                {"Knowledge/Skill:"}
               </Text>
               <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
                 {a.knowledgeAndSkill}
@@ -820,7 +809,7 @@ export default function SubjectDetailsScreen() {
             </View>
             <View style={styles.gridRow}>
               <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                {language === "vi" ? "Hướng dẫn chấm:" : "Grading Guide:"}
+                {"Grading Guide:"}
               </Text>
               <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
                 {a.gradingGuide}
@@ -835,7 +824,7 @@ export default function SubjectDetailsScreen() {
                   fontSize: 12,
                 }}
               >
-                {language === "vi" ? "Ghi chú: " : "Note: "}
+                {"Note: "}
                 {a.note}
               </Text>
             ) : null}
@@ -878,9 +867,7 @@ export default function SubjectDetailsScreen() {
               textAlign: "center",
             }}
           >
-            {language === "vi"
-              ? "Chưa có bài học nào được cập nhật cho môn này."
-              : "No lessons available for this subject yet."}
+            {"No lessons available for this subject yet."}
           </Text>
         </View>
       );
@@ -1122,9 +1109,7 @@ export default function SubjectDetailsScreen() {
             style={{ fontSize: 13, color: colors.textSecondary }}
             numberOfLines={1}
           >
-            {language === "vi"
-              ? syllabus.name
-              : syllabus.englishName || syllabus.name}
+            {syllabus.englishName || syllabus.name}
           </Text>
         </View>
         {syllabus && (
@@ -1162,12 +1147,8 @@ export default function SubjectDetailsScreen() {
           >
             {syllabus.credits}{" "}
             {syllabus.credits > 1
-              ? language === "vi"
-                ? "Tín chỉ"
-                : "Credits"
-              : language === "vi"
-                ? "Tín chỉ"
-                : "Credit"}
+              ? "Credits"
+              : "Credit"}
           </Text>
         </View>
       </View>

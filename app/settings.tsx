@@ -10,14 +10,12 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSettingsStore } from "../src/store/useSettingsStore";
 
 export default function SettingsScreen() {
-  const { theme, language, setTheme, setLanguage } = useSettingsStore();
+  const { theme, setTheme } = useSettingsStore();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const [langModalVisible, setLangModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
 
   const colors = {
@@ -38,28 +36,18 @@ export default function SettingsScreen() {
   };
 
   const getThemeLabel = () => {
-    if (theme === "light") return language === "vi" ? "Sáng" : "Light";
-    if (theme === "dark") return language === "vi" ? "Tối" : "Dark";
-    return language === "vi" ? "Tự động (Sáng/Tối)" : "System (Light/Dark)";
-  };
-
-  const getLangLabel = () => {
-    return language === "vi" ? "Tiếng Việt" : "English";
+    if (theme === "light") return "Light";
+    if (theme === "dark") return "Dark";
+    return "System (Light/Dark)";
   };
 
   const settingSections: { title: string; items: SettingItem[] }[] = [
     {
-      title: language === "vi" ? "Chung" : "General",
+      title: "General",
       items: [
         {
-          icon: "language-outline" as const,
-          label: language === "vi" ? "Ngôn ngữ" : "Language",
-          value: getLangLabel(),
-          onPress: () => setLangModalVisible(true),
-        },
-        {
           icon: "color-palette-outline" as const,
-          label: language === "vi" ? "Giao diện" : "Theme",
+          label: "Theme",
           value: getThemeLabel(),
           onPress: () => setThemeModalVisible(true),
         },
@@ -104,7 +92,7 @@ export default function SettingsScreen() {
               letterSpacing: -0.3,
             }}
           >
-            {language === "vi" ? "Cài đặt" : "Settings"}
+            {"Settings"}
           </Text>
         </View>
 
@@ -202,80 +190,6 @@ export default function SettingsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Language Modal */}
-      <Modal
-        visible={langModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setLangModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
-          activeOpacity={1}
-          onPress={() => setLangModalVisible(false)}
-        >
-          <View
-            style={{
-              backgroundColor: colors.card,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 24,
-              paddingBottom: 40,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "700",
-                color: colors.textPrimary,
-                marginBottom: 16,
-              }}
-            >
-              {language === "vi" ? "Chọn Ngôn ngữ" : "Select Language"}
-            </Text>
-
-            {(["vi", "en"] as const).map((lang) => (
-              <TouchableOpacity
-                key={lang}
-                onPress={() => {
-                  setLanguage(lang);
-                  setLangModalVisible(false);
-                }}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingVertical: 16,
-                  borderBottomWidth: lang === "vi" ? 1 : 0,
-                  borderBottomColor: colors.cardBorder,
-                }}
-              >
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 16,
-                    color: colors.textPrimary,
-                    fontWeight: language === lang ? "600" : "400",
-                  }}
-                >
-                  {lang === "vi" ? "Tiếng Việt" : "English"}
-                </Text>
-                {language === lang && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={24}
-                    color={colors.primary}
-                  />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
       {/* Theme Modal */}
       <Modal
         visible={themeModalVisible}
@@ -309,7 +223,7 @@ export default function SettingsScreen() {
                 marginBottom: 16,
               }}
             >
-              {language === "vi" ? "Chọn Giao diện" : "Select Theme"}
+              {"Select Theme"}
             </Text>
 
             {(["light", "dark", "system"] as const).map((t, idx) => (
@@ -336,16 +250,10 @@ export default function SettingsScreen() {
                   }}
                 >
                   {t === "light"
-                    ? language === "vi"
-                      ? "☀️ Sáng"
-                      : "☀️ Light"
+                    ? "☀️ Light"
                     : t === "dark"
-                      ? language === "vi"
-                        ? "🌙 Tối"
-                        : "🌙 Dark"
-                      : language === "vi"
-                        ? "⚙️ Tự động (Hệ thống)"
-                        : "⚙️ System Auto"}
+                      ? "🌙 Dark"
+                      : "⚙️ System Auto"}
                 </Text>
                 {theme === t && (
                   <Ionicons
