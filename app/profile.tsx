@@ -1,8 +1,10 @@
+import { getMe } from "@/src/services/accountService";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Image,
     KeyboardAvoidingView,
     Platform,
@@ -16,13 +18,55 @@ import {
 import ImageViewing from "react-native-image-viewing";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+interface ProfileData {
+    fullName: string;
+    email: string;
+    roleName: string;
+    phoneNumber?: string;
+    avatarUrl?: string;
+}
+
 export default function ProfileScreen() {
-    
-    const { user } = useAuthStore();
+
+    const { user, token } = useAuthStore();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
 
     const [isImageVisible, setIsImageVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [profileData, setProfileData] = useState<ProfileData | null>(null);
+
+    // Fetch full profile from API
+    useEffect(() => {
+        if (!token) return;
+        const fetchProfile = async () => {
+            setIsLoading(true);
+            try {
+                const me = await getMe(token);
+                setProfileData({
+                    fullName: me.fullName,
+                    email: me.email,
+                    roleName: typeof me.role === 'string' ? me.role : me.role?.roleName || "",
+                    phoneNumber: me.phoneNumber,
+                    avatarUrl: me.avatarUrl,
+                });
+            } catch (err) {
+                console.warn("[Profile] Failed to fetch profile, using local data:", err);
+                // Fallback to local user data
+                if (user) {
+                    setProfileData({
+                        fullName: user.fullName || "",
+                        email: user.email || "",
+                        roleName: user.roleName || "",
+                        avatarUrl: user.avatar,
+                    });
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchProfile();
+    }, [token]);
 
     const colors = {
         background: isDark ? "#0F172A" : "#F1F5F9",
@@ -43,8 +87,24 @@ export default function ProfileScreen() {
         return roleName;
     };
 
-    const avatarUrl = user?.avatar || "https://ui-avatars.com/api/?name=" + (user?.fullName || "User");
+    // Use API data if available, otherwise fallback to store
+    const displayName = profileData?.fullName || user?.fullName || "";
+    const displayEmail = profileData?.email || user?.email || "";
+    const displayRole = profileData?.roleName || user?.roleName || "";
+    const displayAvatar = profileData?.avatarUrl || user?.avatar;
+    const displayPhone = profileData?.phoneNumber || "";
+
+    const avatarUrl = displayAvatar || "https://ui-avatars.com/api/?name=" + (displayName || "User");
     const images = [{ uri: avatarUrl }];
+
+    if (isLoading) {
+        return (
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ color: colors.textSecondary, marginTop: 12 }}>Loading profile...</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -120,9 +180,9 @@ export default function ProfileScreen() {
                                     overflow: 'hidden'
                                 }}
                             >
-                                {user?.avatar ? (
+                                {displayAvatar ? (
                                     <Image
-                                        source={{ uri: user.avatar }}
+                                        source={{ uri: displayAvatar }}
                                         style={{ width: '100%', height: '100%' }}
                                         resizeMode="cover"
                                     />
@@ -138,7 +198,7 @@ export default function ProfileScreen() {
                                 color: colors.textPrimary,
                             }}
                         >
-                            {user?.fullName || "Chưa cập nhật"}
+                            {displayName || "Chưa cập nhật"}
                         </Text>
                         <Text
                             style={{
@@ -147,7 +207,7 @@ export default function ProfileScreen() {
                                 marginTop: 4,
                             }}
                         >
-                            {getRoleDisplayName(user?.roleName)}
+                            {getRoleDisplayName(displayRole)}
                         </Text>
                     </View>
 
@@ -186,7 +246,7 @@ export default function ProfileScreen() {
                                         fontSize: 15,
                                         color: colors.textPrimary,
                                     }}
-                                    value={user?.fullName || ""}
+                                    value={displayName}
                                     editable={false}
                                     placeholderTextColor={colors.textSecondary}
                                 />
@@ -224,14 +284,56 @@ export default function ProfileScreen() {
                                         flex: 1,
                                         marginLeft: 12,
                                         fontSize: 15,
-                                        color: colors.textSecondary, // Secondary to indicate it's semi-readonly or tied to auth
+                                        color: colors.textSecondary,
                                     }}
-                                    value={user?.email || ""}
+                                    value={displayEmail}
                                     editable={false}
                                     placeholderTextColor={colors.textSecondary}
                                 />
                             </View>
                         </View>
+
+                        {/* Phone Number */}
+                        {displayPhone ? (
+                            <View>
+                                <Text
+                                    style={{
+                                        fontSize: 13,
+                                        fontWeight: "600",
+                                        color: colors.textSecondary,
+                                        marginBottom: 8,
+                                        marginLeft: 4,
+                                    }}
+                                >
+                                    {"Phone Number"}
+                                </Text>
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        backgroundColor: colors.inputBg,
+                                        borderRadius: 14,
+                                        paddingHorizontal: 16,
+                                        height: 52,
+                                        borderWidth: 1,
+                                        borderColor: colors.cardBorder,
+                                    }}
+                                >
+                                    <Ionicons name="call-outline" size={20} color={colors.textSecondary} />
+                                    <TextInput
+                                        style={{
+                                            flex: 1,
+                                            marginLeft: 12,
+                                            fontSize: 15,
+                                            color: colors.textPrimary,
+                                        }}
+                                        value={displayPhone}
+                                        editable={false}
+                                        placeholderTextColor={colors.textSecondary}
+                                    />
+                                </View>
+                            </View>
+                        ) : null}
 
                         {/* Role / Profession */}
                         <View>
@@ -266,7 +368,7 @@ export default function ProfileScreen() {
                                         fontSize: 15,
                                         color: colors.textSecondary,
                                     }}
-                                    value={getRoleDisplayName(user?.roleName)}
+                                    value={getRoleDisplayName(displayRole)}
                                     editable={false}
                                     placeholderTextColor={colors.textSecondary}
                                 />

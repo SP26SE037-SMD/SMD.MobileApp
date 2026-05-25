@@ -1,39 +1,58 @@
+import { searchCurriculums } from "@/src/services/curriculumService";
+import type { Curriculum } from "@/src/types";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    View,
+    ActivityIndicator,
+    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    ScrollView,
     useColorScheme,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { MOCK_CURRICULUMS } from "@/src/constants/mockData";
 
 export default function SearchCurriculumScreen() {
-    
+
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
     const [searchQuery, setSearchQuery] = useState("");
     const [hasSearched, setHasSearched] = useState(false);
-    const [searchResults, setSearchResults] = useState<typeof MOCK_CURRICULUMS>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchResults, setSearchResults] = useState<Curriculum[]>([]);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const handleSearch = () => {
+    const handleSearch = async () => {
         if (!searchQuery.trim()) {
             setHasSearched(false);
             setSearchResults([]);
+            setErrorMessage(null);
             return;
         }
 
-        const query = searchQuery.toLowerCase();
-        const results = MOCK_CURRICULUMS.filter(
-            (c) => c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query)
-        );
-
-        setSearchResults(results);
+        setIsLoading(true);
         setHasSearched(true);
+        setErrorMessage(null);
+        try {
+            const result = await searchCurriculums({
+                search: searchQuery.trim(),
+                page: 0,
+                size: 50,
+            });
+            setSearchResults(result.content || []);
+        } catch (error: any) {
+            console.error("[SearchCurriculum] API Error:", error);
+            setSearchResults([]);
+            if (error?.response?.status === 403) {
+                setErrorMessage("Your account does not have permission to search curriculums. Please contact administrator.");
+            } else {
+                setErrorMessage(error?.response?.data?.message || error?.message || "Failed to search. Please try again.");
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleClearSearch = () => {
@@ -54,9 +73,9 @@ export default function SearchCurriculumScreen() {
     };
 
     const RECENT_SEARCHES = [
-        "Công nghệ phần mềm",
-        "Chương trình kỹ sư cầu nối",
-        "Khoa học máy tính",
+        "Software Engineering",
+        "Information Assurance",
+        "Artificial Intelligence",
     ];
 
     return (
@@ -165,13 +184,13 @@ export default function SearchCurriculumScreen() {
                                 activeOpacity={0.7}
                                 onPress={() => {
                                     setSearchQuery(search);
-                                    // Need to defer handleSearch to allow state to update first, or duplicate logic
-                                    const query = search.toLowerCase();
-                                    const results = MOCK_CURRICULUMS.filter(
-                                        (c) => c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query)
-                                    );
-                                    setSearchResults(results);
+                                    // Trigger search immediately
+                                    setIsLoading(true);
                                     setHasSearched(true);
+                                    searchCurriculums({ search, page: 0, size: 50 })
+                                        .then((result) => setSearchResults(result.content || []))
+                                        .catch(() => setSearchResults([]))
+                                        .finally(() => setIsLoading(false));
                                 }}
                                 style={{
                                     flexDirection: "row",
@@ -200,6 +219,14 @@ export default function SearchCurriculumScreen() {
                             </TouchableOpacity>
                         ))}
                     </View>
+                ) : isLoading ? (
+                    /* Loading Spinner */
+                    <View style={{ paddingTop: 40, alignItems: "center" }}>
+                        <ActivityIndicator size="large" color={colors.primary} />
+                        <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>
+                            {"Searching..."}
+                        </Text>
+                    </View>
                 ) : hasSearched ? (
                     /* Search Results */
                     <View style={{ padding: 20 }}>
@@ -207,12 +234,27 @@ export default function SearchCurriculumScreen() {
                             {`Results for '${searchQuery}'`}
                         </Text>
 
-                        {searchResults.length > 0 ? (
+                        {errorMessage ? (
+                            <View style={{ padding: 40, alignItems: "center" }}>
+                                <Ionicons name="alert-circle-outline" size={48} color="#F59E0B" />
+                                <Text
+                                    style={{
+                                        marginTop: 16,
+                                        fontSize: 15,
+                                        color: "#F59E0B",
+                                        textAlign: "center",
+                                        fontWeight: "500",
+                                    }}
+                                >
+                                    {errorMessage}
+                                </Text>
+                            </View>
+                        ) : searchResults.length > 0 ? (
                             searchResults.map((item) => (
                                 <TouchableOpacity
-                                    key={item.id}
+                                    key={item.curriculumId}
                                     activeOpacity={0.7}
-                                    onPress={() => router.push({ pathname: "/curriculum/[id]", params: { id: item.id } } as any)}
+                                    onPress={() => router.push({ pathname: "/curriculum/[id]", params: { id: item.curriculumId } } as any)}
                                     style={{
                                         backgroundColor: colors.card,
                                         borderRadius: 12,
@@ -225,17 +267,24 @@ export default function SearchCurriculumScreen() {
                                         justifyContent: 'space-between',
                                     }}
                                 >
-                                    <View>
+                                    <View style={{ flex: 1 }}>
                                         <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
-                                            {(item.englishName || item.name)}
+                                            {item.englishName || item.displayName}
                                         </Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                             <Text style={{ fontSize: 13, color: colors.primary, fontWeight: "500" }}>
-                                                {item.code}
+                                                {item.curriculumCode}
                                             </Text>
-                                            <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 8 }}>
-                                                • {item.department} • {item.credits} {'credits'}
-                                            </Text>
+                                            {item.department && (
+                                                <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 8 }}>
+                                                    • {item.department}
+                                                </Text>
+                                            )}
+                                            {item.totalCredits != null && (
+                                                <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 4 }}>
+                                                    • {item.totalCredits} {'credits'}
+                                                </Text>
+                                            )}
                                         </View>
                                     </View>
                                     <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
