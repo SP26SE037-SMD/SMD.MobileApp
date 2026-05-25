@@ -1,18 +1,18 @@
 import { searchSubjects } from "@/src/services/subjectService";
-import type { Subject } from "@/src/types";
+import { useNotificationStore } from "@/src/store/useNotificationStore";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
+import type { Subject } from "@/src/types";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -35,35 +35,13 @@ interface SuggestedSubject {
 }
 
 export default function DashboardScreen() {
-
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  // Fetch suggested subjects from API
-  const [suggestedSubjects, setSuggestedSubjects] = useState<SuggestedSubject[]>([]);
-  const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
+  const { unreadCount, notifications, markAsRead } = useNotificationStore();
 
-  useEffect(() => {
-    const fetchSuggested = async () => {
-      try {
-        const result = await searchSubjects({ page: 0, size: 6 });
-        const mapped = (result.content || []).map((sub: Subject, index: number) => ({
-          id: sub.subjectId,
-          code: sub.subjectCode,
-          name: sub.subjectName,
-          credits: sub.credits || sub.noCredit || 0,
-          color: COLORS[index % COLORS.length],
-        }));
-        setSuggestedSubjects(mapped);
-      } catch (err) {
-        console.warn("[Dashboard] Failed to fetch suggested subjects:", err);
-        setSuggestedSubjects([]);
-      } finally {
-        setIsLoadingSubjects(false);
-      }
-    };
-    fetchSuggested();
-  }, []);
+  // Fetch suggested subjects from API
+
 
   const colors = {
     background: isDark ? "#0F172A" : "#F1F5F9",
@@ -88,48 +66,7 @@ export default function DashboardScreen() {
     taskBg: isDark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.08)",
   };
 
-  const RECENT_NOTIFICATIONS = [
-    {
-      id: "1",
-      type: "change",
-      title: "Cập nhật Curriculum CNTT",
-      message: "Chương trình đào tạo CNTT 2024 đã được cập nhật lịch học mới.",
-      time: "5 phút trước",
-      read: false,
-    },
-    {
-      id: "2",
-      type: "task",
-      title: "Đăng ký môn học sắp đến hạn",
-      message: "Thời gian đăng ký môn học kỳ 2 sẽ kết thúc vào 28/02.",
-      time: "15 phút trước",
-      read: false,
-    },
-    {
-      id: "3",
-      type: "change",
-      title: "Thay đổi lịch thi",
-      message: "Lịch thi môn Trí tuệ nhân tạo chuyển sang 15/03.",
-      time: "1 giờ trước",
-      read: false,
-    },
-    {
-      id: "4",
-      type: "task",
-      title: "Nhắc nhở nộp bài tập",
-      message: "Bài tập môn Học máy cần được nộp trước 01/03.",
-      time: "2 giờ trước",
-      read: true,
-    },
-    {
-      id: "5",
-      type: "change",
-      title: "Phòng học thay đổi",
-      message: "Phát triển ứng dụng di động sang phòng A305.",
-      time: "3 giờ trước",
-      read: true,
-    },
-  ];
+
 
   const bookmarkedSubjects = useWishlistStore(
     (state) => state.bookmarkedSubjects,
@@ -224,17 +161,30 @@ export default function DashboardScreen() {
               }}
             >
               <Ionicons name="notifications-outline" size={20} color="white" />
-              <View
-                style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: "#FCD34D",
-                }}
-              />
+              {unreadCount > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 2,
+                    right: 2,
+                    backgroundColor: "#F43F5E",
+                    borderRadius: 10,
+                    minWidth: 16,
+                    height: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 4,
+                    borderWidth: 1.5,
+                    borderColor: isDark ? "#0F172A" : "#FFFFFF",
+                  }}
+                >
+                  <Text
+                    style={{ color: "white", fontSize: 9, fontWeight: "bold" }}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -312,178 +262,9 @@ export default function DashboardScreen() {
 
         {/* Suggested Subjects - Horizontal Scroll */}
         <View style={{ marginTop: 24, marginBottom: 28 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingHorizontal: 24,
-              marginBottom: 16,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  backgroundColor: colors.primaryBg,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 10,
-                }}
-              >
-                <Ionicons name="sparkles" size={16} color={colors.primary} />
-              </View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "700",
-                  color: colors.textPrimary,
-                  letterSpacing: -0.3,
-                }}
-              >
-                {"Suggested for you"}
-              </Text>
-            </View>
-          </View>
-
-          <FlatList
-            data={suggestedSubjects}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20 }}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() =>
-                  router.push({
-                    pathname: "/subject/[code]",
-                    params: { code: item.code },
-                  } as any)
-                }
-                style={{
-                  width: 180,
-                  backgroundColor: colors.card,
-                  borderRadius: 20,
-                  marginHorizontal: 6,
-                  borderWidth: 1,
-                  borderColor: colors.cardBorder,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: isDark ? 0 : 0.08,
-                  shadowRadius: 16,
-                  elevation: isDark ? 0 : 4,
-                  overflow: "hidden",
-                }}
-              >
-                {/* Colored top stripe */}
-                <View style={{ height: 4, backgroundColor: item.color }} />
-
-                <View style={{ padding: 16 }}>
-                  {/* Header row */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 12,
-                    }}
-                  >
-                    <View
-                      style={{
-                        backgroundColor: item.color + (isDark ? "20" : "12"),
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 6,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: "700",
-                          color: item.color,
-                        }}
-                      >
-                        {item.code}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => toggleBookmark(item.code)}
-                      activeOpacity={0.7}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 8,
-                        backgroundColor: bookmarkedSubjects.includes(item.code)
-                          ? "rgba(245,158,11,0.15)"
-                          : isDark
-                            ? "rgba(255,255,255,0.06)"
-                            : "rgba(0,0,0,0.03)",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Ionicons
-                        name={
-                          bookmarkedSubjects.includes(item.code)
-                            ? "star"
-                            : "star-outline"
-                        }
-                        size={14}
-                        color={
-                          bookmarkedSubjects.includes(item.code)
-                            ? "#F59E0B"
-                            : colors.textSecondary
-                        }
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Subject Name */}
-                  <Text
-                    numberOfLines={2}
-                    style={{
-                      fontSize: 14,
-                      fontWeight: "600",
-                      color: colors.textPrimary,
-                      marginBottom: 10,
-                      lineHeight: 20,
-                      minHeight: 40,
-                    }}
-                  >
-                    {item.name}
-                  </Text>
-
-                  {/* Credits */}
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Ionicons
-                      name="time-outline"
-                      size={12}
-                      color={colors.textSecondary}
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: colors.textSecondary,
-                        fontWeight: "500",
-                      }}
-                    >
-                      {item.credits} {"credits"}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-
-        {/* Quick Actions */}
-        <View style={{ paddingHorizontal: 24, marginBottom: 28 }}>
           <Text
             style={{
+              paddingHorizontal: 16,
               fontSize: 18,
               fontWeight: "700",
               color: colors.textPrimary,
@@ -497,7 +278,7 @@ export default function DashboardScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: "row", gap: 14 }}
+            contentContainerStyle={{ flexDirection: "row", gap: 14, paddingHorizontal: 16 }}
           >
             {/* Tìm Curriculum Card */}
             <TouchableOpacity
@@ -610,7 +391,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* Recent Activity */}
-        <View style={{ paddingHorizontal: 24 }}>
+        <View style={{ paddingHorizontal: 16 }}>
           <Text
             style={{
               fontSize: 18,
@@ -729,15 +510,25 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            {RECENT_NOTIFICATIONS.map((notification, index) => (
+            
+            {notifications.slice(0, 3).length === 0 ? (
+                <View style={{ paddingVertical: 40, alignItems: "center" }}>
+                   <Text style={{ color: colors.textSecondary, fontSize: 15 }}>No new notifications</Text>
+                </View>
+            ) : notifications.slice(0, 3).map((notification, index) => {
+              const isStatusType = notification.code === "BROADCAST_SYSTEM" || notification.code === "EVENT_TASK";
+              return (
               <TouchableOpacity
-                key={notification.id}
+                key={notification.notificationId}
                 activeOpacity={0.7}
+                onPress={() => {
+                   if (!notification.isRead) markAsRead(notification.notificationId);
+                }}
                 style={{
                   flexDirection: "row",
                   paddingVertical: 12,
                   borderBottomWidth:
-                    index === RECENT_NOTIFICATIONS.length - 1 ? 0 : 1,
+                    index === notifications.slice(0, 3).length - 1 ? 0 : 1,
                   borderBottomColor: colors.cardBorder,
                 }}
               >
@@ -747,9 +538,9 @@ export default function DashboardScreen() {
                     height: 36,
                     borderRadius: 10,
                     backgroundColor:
-                      notification.type === "change"
-                        ? colors.changeBg
-                        : colors.taskBg,
+                      isStatusType
+                        ? colors.taskBg
+                        : colors.changeBg,
                     alignItems: "center",
                     justifyContent: "center",
                     marginRight: 12,
@@ -758,11 +549,11 @@ export default function DashboardScreen() {
                 >
                   <MaterialIcons
                     name={
-                      notification.type === "change" ? "swap-horiz" : "task-alt"
+                      isStatusType ? "task-alt" : "notifications"
                     }
                     size={18}
                     color={
-                      notification.type === "change" ? "#EA580C" : "#16A34A"
+                      isStatusType ? "#16A34A" : "#EA580C"
                     }
                   />
                 </View>
@@ -775,16 +566,17 @@ export default function DashboardScreen() {
                     }}
                   >
                     <Text
+                      numberOfLines={1}
                       style={{
                         fontSize: 14,
-                        fontWeight: notification.read ? "500" : "600",
+                        fontWeight: notification.isRead ? "500" : "600",
                         color: colors.textPrimary,
                         flex: 1,
                       }}
                     >
-                      {notification.title}
+                      {notification.title || "Thông báo hệ thống"}
                     </Text>
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <View
                         style={{
                           width: 8,
@@ -808,11 +600,12 @@ export default function DashboardScreen() {
                     {notification.message}
                   </Text>
                   <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                    {notification.time}
+                    {notification.createdAt ? new Date(notification.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : "Vừa xong"}
                   </Text>
                 </View>
               </TouchableOpacity>
-            ))}
+            )})}
+
 
             <TouchableOpacity
               onPress={() => {

@@ -2,7 +2,7 @@ import { useAuthStore } from "@/src/store/useAuthStore";
 import axios from "axios";
 
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL || "http://43.207.156.116:8080/api";
+  process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.syllabus.io.vn/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
