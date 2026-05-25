@@ -1,6 +1,7 @@
 import { searchSubjects } from "@/src/services/subjectService";
 import type { Subject } from "@/src/types";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
+import { useNotificationStore } from "@/src/store/useNotificationStore";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -38,6 +39,8 @@ export default function DashboardScreen() {
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  const { unreadCount } = useNotificationStore();
 
   // Fetch suggested subjects from API
   const [suggestedSubjects, setSuggestedSubjects] = useState<SuggestedSubject[]>([]);
@@ -224,17 +227,28 @@ export default function DashboardScreen() {
               }}
             >
               <Ionicons name="notifications-outline" size={20} color="white" />
+              {unreadCount > 0 && (
               <View
                 style={{
                   position: "absolute",
-                  top: 8,
-                  right: 8,
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: "#FCD34D",
+                  top: 2,
+                  right: 2,
+                  backgroundColor: "#F43F5E",
+                  borderRadius: 10,
+                  minWidth: 16,
+                  height: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 4,
+                  borderWidth: 1.5,
+                  borderColor: isDark ? "#0F172A" : "#FFFFFF",
                 }}
-              />
+              >
+                  <Text style={{ color: "white", fontSize: 9, fontWeight: "bold" }}>
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                  </Text>
+              </View>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
