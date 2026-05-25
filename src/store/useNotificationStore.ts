@@ -28,7 +28,7 @@ interface NotificationState {
 }
 
 const getWsUrl = () => {
-    const httpUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "http://43.207.156.116:8080/api";
+    const httpUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.syllabus.io.vn/api";
     // Thay thế http:// hoặc https:// thành ws:// hoặc wss:// và loại bỏ /api
     const url = new URL(httpUrl);
     const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';

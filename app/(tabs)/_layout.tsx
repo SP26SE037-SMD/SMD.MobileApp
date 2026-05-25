@@ -1,25 +1,25 @@
-import { Tabs } from "expo-router";
-import React, { useEffect } from "react";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { useNotificationStore } from "@/src/store/useNotificationStore";
-import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import React, { useEffect } from "react";
+import { useColorScheme } from "react-native";
 
 export default function TabLayout() {
-  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const { user, token, isAuthenticated } = useAuthStore();
-  const { unreadCount, connect, fetchUnreadCount, disconnect } = useNotificationStore();
+  const { unreadCount, connect, fetchUnreadCount, disconnect } =
+    useNotificationStore();
 
   useEffect(() => {
-     if (isAuthenticated && user?.id && token) {
-        connect(user.id, token);
-        fetchUnreadCount();
-     } else {
-        disconnect();
-     }
+    if (isAuthenticated && user?.id && token) {
+      connect(user.id, token);
+      fetchUnreadCount();
+    } else {
+      disconnect();
+    }
   }, [isAuthenticated, user?.id, token]);
 
   const colors = {
@@ -88,7 +88,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
     </Tabs>
   );
 }

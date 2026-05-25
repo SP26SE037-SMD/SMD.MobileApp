@@ -61,7 +61,7 @@ export async function fetchGoogleUserInfo(
 // Export the API call for backend login
 export async function loginWithBackendGoogle(idToken: string) {
   const BASE_URL =
-    process.env.EXPO_PUBLIC_API_BASE_URL || "http://43.207.156.116:8080/api";
+    process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.syllabus.io.vn/api";
   const url = `${BASE_URL}/auth/login-google`;
 
   console.log("[Auth] Calling login-google...");
