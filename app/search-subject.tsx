@@ -1,7 +1,8 @@
-import apiClient from "@/src/lib/axios";
+import { searchSubjects } from "@/src/services/subjectService";
+import type { Subject } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -16,15 +17,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface Subject {
-  subjectId: string;
-  subjectCode: string;
-  subjectName: string;
-  credits?: number;
-  degreeLevel?: string;
-  status?: string;
-}
-
 export default function SearchSubjectScreen() {
   
   const colorScheme = useColorScheme();
@@ -33,8 +25,12 @@ export default function SearchSubjectScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchBy, setSearchBy] = useState<"code" | "name">("code");
   const [results, setResults] = useState<Subject[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const colors = {
     background: isDark ? "#0F172A" : "#F8FAFC",
@@ -49,49 +45,60 @@ export default function SearchSubjectScreen() {
     toggleActiveBg: isDark ? "#10B981" : "#059669",
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      setHasSearched(true);
-      return;
+  const fetchSubjects = async (currentPage: number = 0, isLoadMore = false) => {
+    if (isLoadMore) {
+        setIsFetchingMore(true);
+    } else {
+        setIsLoading(true);
     }
 
-    setIsLoading(true);
-    setHasSearched(true);
     try {
-      const response = await apiClient.get("/subjects", {
-        params: {
+      // API expects empty string instead of undefined when not filled
+      // We do not need to send searchBy if searchQuery is empty to get all
+      const response = await searchSubjects({
           search: searchQuery.trim(),
-          searchBy,
-          size: 10000,
-          page: 0,
-        },
+          searchBy: searchQuery.trim() ? searchBy : "code",
+          status: "COMPLETED",
+          page: currentPage,
+          size: 15,
       });
-      const data = response.data;
-      if (data?.status === 1000 && data?.data?.content) {
-        setResults(data.data.content);
+
+      if (response && response.content) {
+          if (isLoadMore) {
+              setResults(prev => [...prev, ...response.content]);
+          } else {
+              setResults(response.content);
+          }
+          setTotalPages(response.totalPages);
+          setPage(currentPage);
       } else {
-        setResults([]);
+          if (!isLoadMore) setResults([]);
       }
     } catch (error) {
       console.error("[SearchSubject] API Error:", error);
-      setResults([]);
+      if (!isLoadMore) setResults([]);
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
     }
   };
 
+  // Initial fetch on mount
+  useEffect(() => {
+     fetchSubjects(0);
+  }, []);
+
+  const handleSearch = () => {
+    fetchSubjects(0, false);
+  };
+
+  const handleLoadMore = () => {
+      if (!isLoading && !isFetchingMore && page < totalPages - 1) {
+          fetchSubjects(page + 1, true);
+      }
+  };
+
   const renderEmptyState = () => {
-    if (!hasSearched) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="search-outline" size={60} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 16 }} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            {searchBy === "code" ? "Enter subject code to search" : "Enter subject name to search"}
-          </Text>
-        </View>
-      );
-    }
     if (isLoading) return null;
     return (
       <View style={styles.emptyContainer}>
@@ -140,10 +147,10 @@ export default function SearchSubjectScreen() {
               <Ionicons
                 name="checkmark-circle-outline"
                 size={14}
-                color={item.status === "PUBLISHED" ? "#16A34A" : colors.textSecondary}
+                color={item.status === "COMPLETED" ? "#16A34A" : colors.textSecondary}
                 style={{ marginRight: 4 }}
               />
-              <Text style={[styles.footerText, { color: item.status === "PUBLISHED" ? "#16A34A" : colors.textSecondary }]}>
+              <Text style={[styles.footerText, { color: item.status === "COMPLETED" ? "#16A34A" : colors.textSecondary }]}>
                 {item.status}
               </Text>
             </View>
@@ -198,46 +205,56 @@ export default function SearchSubjectScreen() {
             <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
             <TextInput
               style={[styles.searchInput, { color: colors.textPrimary }]}
-              placeholder={
-                searchBy === "code" ? "Enter subject code (e.g. PRF192)" : "Enter subject name..."
-              }
+              placeholder={searchBy === "code" ? "Enter subject code (e.g. PRF192)" : "Enter subject name"}
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
               returnKeyType="search"
-              autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => { setSearchQuery(""); setResults([]); setHasSearched(false); }}>
-                <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchQuery("");
+                  fetchSubjects(0, false); // Reload all after clear
+                }}
+                style={styles.clearButton}
+              >
+                <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* Loading */}
-        {isLoading && (
-          <View style={{ paddingTop: 40, alignItems: "center" }}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>
-              {"Searching..."}
-            </Text>
-          </View>
-        )}
-
-        {/* Results */}
-        {!isLoading && (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.subjectId || item.subjectCode}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContainer}
-            ListEmptyComponent={renderEmptyState}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          />
-        )}
+        {/* Results List */}
+        <View style={{ flex: 1 }}>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Searching...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={results}
+              keyExtractor={(item) => item.subjectId}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={renderEmptyState}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                  isFetchingMore ? (
+                      <View style={{ paddingVertical: 20, alignItems: "center" }}>
+                          <ActivityIndicator size="small" color={colors.primary} />
+                      </View>
+                  ) : null
+              }
+            />
+          )}
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -248,32 +265,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     justifyContent: "space-between",
-  },
-  backButton: { padding: 5, marginLeft: -5, width: 40 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
-  searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    gap: 10,
-    ...Platform.select({
-      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8 },
-      android: { elevation: 4 },
-    }),
   },
-  toggleWrapper: { flexDirection: "row", borderRadius: 10, padding: 3 },
+  backButton: { padding: 4 },
+  headerTitle: { fontSize: 18, fontWeight: "600" },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  toggleWrapper: {
+    flexDirection: "row",
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+  },
   toggleButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 6,
   },
-  toggleText: { fontSize: 13, fontWeight: "600" },
+  toggleText: { fontSize: 14, fontWeight: "600" },
   searchInputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -283,38 +300,35 @@ const styles = StyleSheet.create({
     height: 48,
   },
   searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 16, paddingVertical: 8 },
-  listContainer: { padding: 20, flexGrow: 1 },
+  searchInput: { flex: 1, fontSize: 15, height: "100%" },
+  clearButton: { padding: 4 },
+  listContent: { padding: 20, flexGrow: 1 },
   resultCard: {
+    borderWidth: 1,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    ...Platform.select({
-      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-      android: { elevation: 2 },
-    }),
   },
-  itemCode: { fontSize: 15, fontWeight: "800", marginBottom: 4 },
-  itemName: { fontSize: 16, fontWeight: "600", lineHeight: 22 },
-  creditsBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  creditsText: { fontSize: 12, fontWeight: "700" },
+  itemCode: { fontSize: 16, fontWeight: "700", marginBottom: 4 },
+  itemName: { fontSize: 15, fontWeight: "500", lineHeight: 22, height: 44 },
+  creditsBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  creditsText: { fontSize: 12, fontWeight: "600" },
   itemFooter: {
     flexDirection: "row",
+    alignItems: "center",
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: "rgba(150,150,150,0.1)",
-    gap: 16,
   },
-  footerInfo: { flexDirection: "row", alignItems: "center" },
-  footerText: { fontSize: 13, fontWeight: "500" },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 80,
-    paddingHorizontal: 30,
-  },
-  emptyText: { fontSize: 16, textAlign: "center", fontWeight: "500" },
+  footerInfo: { flexDirection: "row", alignItems: "center", marginRight: 16 },
+  footerText: { fontSize: 12, fontWeight: "500" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: 12, fontSize: 14 },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 60 },
+  emptyText: { fontSize: 15, fontWeight: "500", textAlign: "center" },
 });
