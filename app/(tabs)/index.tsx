@@ -1,19 +1,18 @@
 import { searchSubjects } from "@/src/services/subjectService";
-import type { Subject } from "@/src/types";
-import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { useNotificationStore } from "@/src/store/useNotificationStore";
+import { useWishlistStore } from "@/src/store/useWishlistStore";
+import type { Subject } from "@/src/types";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -36,27 +35,30 @@ interface SuggestedSubject {
 }
 
 export default function DashboardScreen() {
-
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const { unreadCount } = useNotificationStore();
+  const { unreadCount, notifications, markAsRead } = useNotificationStore();
 
   // Fetch suggested subjects from API
-  const [suggestedSubjects, setSuggestedSubjects] = useState<SuggestedSubject[]>([]);
+  const [suggestedSubjects, setSuggestedSubjects] = useState<
+    SuggestedSubject[]
+  >([]);
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
 
   useEffect(() => {
     const fetchSuggested = async () => {
       try {
         const result = await searchSubjects({ page: 0, size: 6 });
-        const mapped = (result.content || []).map((sub: Subject, index: number) => ({
-          id: sub.subjectId,
-          code: sub.subjectCode,
-          name: sub.subjectName,
-          credits: sub.credits || sub.noCredit || 0,
-          color: COLORS[index % COLORS.length],
-        }));
+        const mapped = (result.content || []).map(
+          (sub: Subject, index: number) => ({
+            id: sub.subjectId,
+            code: sub.subjectCode,
+            name: sub.subjectName,
+            credits: sub.credits || sub.noCredit || 0,
+            color: COLORS[index % COLORS.length],
+          }),
+        );
         setSuggestedSubjects(mapped);
       } catch (err) {
         console.warn("[Dashboard] Failed to fetch suggested subjects:", err);
@@ -228,26 +230,28 @@ export default function DashboardScreen() {
             >
               <Ionicons name="notifications-outline" size={20} color="white" />
               {unreadCount > 0 && (
-              <View
-                style={{
-                  position: "absolute",
-                  top: 2,
-                  right: 2,
-                  backgroundColor: "#F43F5E",
-                  borderRadius: 10,
-                  minWidth: 16,
-                  height: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingHorizontal: 4,
-                  borderWidth: 1.5,
-                  borderColor: isDark ? "#0F172A" : "#FFFFFF",
-                }}
-              >
-                  <Text style={{ color: "white", fontSize: 9, fontWeight: "bold" }}>
-                      {unreadCount > 99 ? "99+" : unreadCount}
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 2,
+                    right: 2,
+                    backgroundColor: "#F43F5E",
+                    borderRadius: 10,
+                    minWidth: 16,
+                    height: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 4,
+                    borderWidth: 1.5,
+                    borderColor: isDark ? "#0F172A" : "#FFFFFF",
+                  }}
+                >
+                  <Text
+                    style={{ color: "white", fontSize: 9, fontWeight: "bold" }}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
                   </Text>
-              </View>
+                </View>
               )}
             </TouchableOpacity>
 
