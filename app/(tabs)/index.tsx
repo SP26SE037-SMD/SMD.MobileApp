@@ -1,9 +1,11 @@
-import { MOCK_SYLLABUSES } from "@/src/constants/mockData";
+import { searchSubjects } from "@/src/services/subjectService";
+import type { Subject } from "@/src/types";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Modal,
   ScrollView,
@@ -24,20 +26,44 @@ const COLORS = [
   "#0EA5E9",
 ];
 
-// Map mock syllabus to the format required by the UI
-const getSuggestedSubjects = (lang: string) =>
-  MOCK_SYLLABUSES.slice(0, 6).map((syl, index) => ({
-    id: syl.id,
-    code: syl.subjectCode,
-    name: lang === "vi" ? syl.name : syl.englishName || syl.name,
-    credits: syl.credits,
-    color: COLORS[index % COLORS.length],
-  }));
+interface SuggestedSubject {
+  id: string;
+  code: string;
+  name: string;
+  credits: number;
+  color: string;
+}
 
 export default function DashboardScreen() {
-  
+
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  // Fetch suggested subjects from API
+  const [suggestedSubjects, setSuggestedSubjects] = useState<SuggestedSubject[]>([]);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
+
+  useEffect(() => {
+    const fetchSuggested = async () => {
+      try {
+        const result = await searchSubjects({ page: 0, size: 6 });
+        const mapped = (result.content || []).map((sub: Subject, index: number) => ({
+          id: sub.subjectId,
+          code: sub.subjectCode,
+          name: sub.subjectName,
+          credits: sub.credits || sub.noCredit || 0,
+          color: COLORS[index % COLORS.length],
+        }));
+        setSuggestedSubjects(mapped);
+      } catch (err) {
+        console.warn("[Dashboard] Failed to fetch suggested subjects:", err);
+        setSuggestedSubjects([]);
+      } finally {
+        setIsLoadingSubjects(false);
+      }
+    };
+    fetchSuggested();
+  }, []);
 
   const colors = {
     background: isDark ? "#0F172A" : "#F1F5F9",
@@ -323,7 +349,7 @@ export default function DashboardScreen() {
           </View>
 
           <FlatList
-            data={getSuggestedSubjects(language)}
+            data={suggestedSubjects}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20 }}
