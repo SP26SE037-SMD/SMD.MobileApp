@@ -39,7 +39,7 @@ export default function CurriculumGraphScreen() {
   // SVG Connection states
   const [showGlobalConnections, setShowGlobalConnections] = useState(false);
   const [semLayouts, setSemLayouts] = useState<Record<number, number>>({});
-  const [cardLayouts, setCardLayouts] = useState<Record<string, { x: number, y: number, w: number, h: number }>>({});
+  const [cardLayouts, setCardLayouts] = useState<Record<string, { x: number, y: number, w: number, h: number, semNum: number }>>({});
 
   const colors = {
     background: isDark ? "#0F172A" : "#F8FAFC",
@@ -201,9 +201,10 @@ export default function CurriculumGraphScreen() {
                     ...prev,
                     [code]: {
                         x: x + 80, // Offset for semester pill container
-                        y: y + (semLayouts[semNum] || 0),
+                        y: y,
                         w: width,
-                        h: height
+                        h: height,
+                        semNum: semNum
                     }
                 }));
             }
@@ -424,11 +425,14 @@ export default function CurriculumGraphScreen() {
                           const tL = cardLayouts[e.target];
                           if (!sL || !tL) return null;
                           
+                          const sY = sL.y + (semLayouts[sL.semNum] || 0);
+                          const tY = tL.y + (semLayouts[tL.semNum] || 0);
+                          
                           // Source is typically above or left of target
                           const startX = sL.x + (sL.w / 2);
-                          const startY = sL.y + sL.h;
+                          const startY = sY + sL.h;
                           const endX = tL.x + (tL.w / 2);
-                          const endY = tL.y;
+                          const endY = tY;
                           
                           // Bezier curve points
                           const cpX1 = startX;
@@ -475,7 +479,8 @@ export default function CurriculumGraphScreen() {
                       key={`sem-${semNum}`} 
                       style={styles.semesterRow}
                       onLayout={(e) => {
-                          setSemLayouts(prev => ({ ...prev, [semNum]: e.nativeEvent.layout.y }));
+                          const y = e.nativeEvent.layout.y;
+                          setSemLayouts(prev => ({ ...prev, [semNum]: y }));
                       }}
                   >
                     {/* Semester Pill */}
