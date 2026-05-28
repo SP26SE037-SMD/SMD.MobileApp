@@ -70,8 +70,17 @@ export default function CurriculumGraphScreen() {
         let yOffset = 50;
         let maxRowWidth = 800;
 
+        const subjectToGroupMap = new Map<string, string>();
+        semesters.forEach(sem => {
+          (sem.subjects || []).forEach(sub => {
+            const gId = sub.groupId || sub.electiveGroupId;
+            if (gId) subjectToGroupMap.set(sub.subjectCode, gId);
+          });
+        });
+
         semesters.forEach((sem) => {
-          const semId = `sem-${sem.semester ?? (sem as any).semesterNo}`;
+          const semNum = sem.semester ?? (sem as any).semesterNo;
+          const semId = `sem-${semNum}`;
           const subjects = sem.subjects || [];
 
           const groupMap = new Map<string, any[]>();
@@ -87,116 +96,91 @@ export default function CurriculumGraphScreen() {
             }
           });
 
-          // Calculate Semester Box Width
-          const totalGroupsWidth = Array.from(groupMap.values()).reduce(
-            (acc, subs) => acc + Math.max(180, subs.length * 180 + 40),
-            0
-          );
-          const semWidth = Math.max(maxRowWidth, independentSubjects.length * 180 + totalGroupsWidth + 100);
-          maxRowWidth = Math.max(maxRowWidth, semWidth);
-
+          // Add Semester Pill
           newNodes.push({
             id: semId,
-            type: "group",
-            position: { x: 50, y: yOffset },
-            style: {
-              width: semWidth,
-              height: 280,
-              backgroundColor: "rgba(241, 245, 249, 0.5)",
-              border: "2px solid #cbd5e1",
-              borderRadius: 8,
-            },
-            data: { label: `Semester ${sem.semester ?? (sem as any).semesterNo}` },
+            type: "semesterNode",
+            position: { x: 20, y: yOffset + 30 },
+            data: { label: `Sem ${semNum}` },
           });
 
-          let currentX = 20;
+          let currentX = 150;
 
           // Add Independent Subjects
           independentSubjects.forEach((sub) => {
+            const prereqs = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
             newNodes.push({
               id: sub.subjectCode,
-              parentId: semId,
-              extent: "parent",
-              position: { x: currentX, y: 60 },
+              type: "customNode",
+              position: { x: currentX, y: yOffset },
               data: {
-                label: `<strong>${sub.subjectCode}</strong><br/>${sub.subjectName}<br/><span style="font-size:10px;color:#64748b">${sub.credit ?? sub.credits ?? 0} credits</span>`,
-              },
-              style: {
-                width: 150,
-                backgroundColor: "#ffffff",
-                border: "2px solid #3b82f6",
-                borderRadius: 8,
-                padding: 10,
-                textAlign: "center",
-                fontSize: 12,
+                code: sub.subjectCode,
+                name: sub.subjectName,
+                credits: sub.credit ?? sub.credits ?? 0,
+                prereqs: prereqs.length > 0 ? prereqs.join(", ") : "No prerequisites",
+                isElective: false
               },
             });
-            currentX += 180;
+            currentX += 220;
           });
 
-          // Add Groups
+          // Add Groups as SINGLE node
           groupMap.forEach((subs, gId) => {
-            const gWidth = Math.max(180, subs.length * 180 + 20);
             const groupInfo = groupDetails[gId];
+            const isElective = groupInfo ? groupInfo.type !== "COMBO" : true;
+            
+            // Assume credit from first subject in group
+            const firstSub = subs[0];
+            const credits = firstSub ? (firstSub.credit ?? firstSub.credits ?? 0) : 0;
+            
+            const allPrereqs = new Set<string>();
+            subs.forEach(s => {
+                const ps = s.prerequisiteSubjectCodes || (s.prerequisiteSubjectCode ? [s.prerequisiteSubjectCode] : []);
+                ps.forEach((p: string) => allPrereqs.add(p));
+            });
+            
             newNodes.push({
               id: `group-${gId}`,
-              parentId: semId,
-              extent: "parent",
-              position: { x: currentX, y: 50 },
-              style: {
-                width: gWidth,
-                height: 200,
-                backgroundColor: "rgba(219, 234, 254, 0.4)",
-                border: "2px dashed #8b5cf6",
-                borderRadius: 8,
-              },
+              type: "customNode",
+              position: { x: currentX, y: yOffset },
               data: {
-                label: groupInfo ? `${groupInfo.groupName} (${groupInfo.type})` : `Group ${gId.substring(0, 4)}`,
+                code: groupInfo?.groupCode || `GROUP`,
+                name: groupInfo?.groupName || "Group Subject",
+                credits: credits,
+                prereqs: allPrereqs.size > 0 ? Array.from(allPrereqs).join(", ") : "No prerequisites",
+                isElective: isElective
               },
             });
-
-            let gx = 10;
-            subs.forEach((sub) => {
-              newNodes.push({
-                id: sub.subjectCode,
-                parentId: `group-${gId}`,
-                extent: "parent",
-                position: { x: gx, y: 50 },
-                data: {
-                  label: `<strong>${sub.subjectCode}</strong><br/>${sub.subjectName}<br/><span style="font-size:10px;color:#64748b">${sub.credit ?? sub.credits ?? 0} credits</span>`,
-                },
-                style: {
-                  width: 150,
-                  backgroundColor: "#ffffff",
-                  border: "2px solid #a855f7",
-                  borderRadius: 8,
-                  padding: 10,
-                  textAlign: "center",
-                  fontSize: 12,
-                },
-              });
-              gx += 180;
-            });
-
-            currentX += gWidth + 20;
+            currentX += 220;
           });
 
           // Process Edges
           subjects.forEach((sub) => {
+            const targetGId = sub.groupId || sub.electiveGroupId;
+            const targetNodeId = targetGId ? `group-${targetGId}` : sub.subjectCode;
+
             const prereqs = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
             prereqs.forEach((prereq) => {
-              newEdges.push({
-                id: `e-${prereq}-${sub.subjectCode}`,
-                source: prereq,
-                target: sub.subjectCode,
-                animated: true,
-                style: { stroke: "#94a3b8", strokeWidth: 2 },
-                markerEnd: { type: "arrowclosed", color: "#94a3b8" },
-              });
+              const sourceGId = subjectToGroupMap.get(prereq);
+              const sourceNodeId = sourceGId ? `group-${sourceGId}` : prereq;
+              
+              const edgeId = `e-${sourceNodeId}-${targetNodeId}`;
+              
+              // avoid duplicate edges between groups
+              if (!newEdges.find(e => e.id === edgeId) && sourceNodeId !== targetNodeId) {
+                newEdges.push({
+                  id: edgeId,
+                  source: sourceNodeId,
+                  target: targetNodeId,
+                  animated: true,
+                  style: { stroke: "#94a3b8", strokeWidth: 2 },
+                  markerEnd: { type: "arrowclosed", color: "#94a3b8" },
+                });
+              }
             });
           });
 
-          yOffset += 320;
+          yOffset += 200;
         });
 
         setNodes(newNodes);
@@ -233,27 +217,92 @@ export default function CurriculumGraphScreen() {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         /* Custom Node Styles */
-        .react-flow__node-group {
+        .react-flow__node-customNode {
            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-        .react-flow__node-default {
-           box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+           border-radius: 8px;
         }
       </style>
     </head>
     <body>
       <div id="root"></div>
       <script type="text/babel">
-        const { ReactFlow, Controls, Background, MiniMap, ReactFlowProvider } = window.ReactFlow;
+        const { ReactFlow, Controls, Background, MiniMap, ReactFlowProvider, Handle, Position } = window.ReactFlow;
         const initialNodes = ${JSON.stringify(nodes)};
         const initialEdges = ${JSON.stringify(edges)};
 
+        const CustomNode = ({ data }) => {
+          const isElective = data.isElective;
+          return (
+            <div style={{
+              width: 180,
+              minHeight: 120,
+              backgroundColor: isElective ? "#f0f9ff" : "#ffffff",
+              border: isElective ? "2px solid #3b82f6" : "2px solid #22c55e",
+              borderRadius: 8,
+              padding: 12,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              position: "relative"
+            }}>
+              <Handle type="target" position={Position.Top} style={{ background: '#94a3b8' }} />
+              
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <strong style={{ fontSize: 14, color: "#0f172a" }}>{data.code}</strong>
+                  {isElective && (
+                    <span style={{ fontSize: 9, fontWeight: "bold", color: "#2563eb", backgroundColor: "#dbeafe", padding: "2px 6px", borderRadius: 4 }}>
+                      ELECTIVE
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: "#475569", marginBottom: 12, lineHeight: 1.4 }}>
+                  {data.name}
+                </div>
+              </div>
+              
+              <div>
+                <span style={{ fontSize: 11, fontWeight: "bold", color: isElective ? "#3b82f6" : "#22c55e", backgroundColor: isElective ? "#e0f2fe" : "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
+                  {data.credits} TC
+                </span>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 6 }}>
+                  {data.prereqs}
+                </div>
+              </div>
+
+              <Handle type="source" position={Position.Bottom} style={{ background: '#94a3b8' }} />
+            </div>
+          );
+        };
+
+        const SemesterNode = ({ data }) => {
+          return (
+            <div style={{
+              backgroundColor: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              borderRadius: 20,
+              padding: "6px 16px",
+              fontSize: 12,
+              fontWeight: "bold",
+              color: "#0f172a"
+            }}>
+              {data.label}
+            </div>
+          );
+        };
+
+        const nodeTypes = {
+          customNode: CustomNode,
+          semesterNode: SemesterNode
+        };
+
         function Flow() {
-          // React Flow auto handles rendering of the passed nodes and edges
           return (
             <ReactFlow 
                 nodes={initialNodes} 
                 edges={initialEdges} 
+                nodeTypes={nodeTypes}
                 fitView
                 fitViewOptions={{ padding: 0.2 }}
                 minZoom={0.1}
@@ -266,7 +315,8 @@ export default function CurriculumGraphScreen() {
                   return '#3b82f6';
                 }}
                 nodeColor={(n) => {
-                  if (n.type === 'group') return 'rgba(241, 245, 249, 0.5)';
+                  if (n.type === 'semesterNode') return '#f8fafc';
+                  if (n.data?.isElective) return '#f0f9ff';
                   return '#fff';
                 }}
               />
