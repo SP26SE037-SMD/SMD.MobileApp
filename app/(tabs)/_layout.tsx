@@ -65,14 +65,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="wishlist"
         options={{
-          title: "Wishlist",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "heart" : "heart-outline"}
-              size={22}
-              color={color}
-            />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen

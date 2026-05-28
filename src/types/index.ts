@@ -78,11 +78,15 @@ export interface SemesterSubject {
   subjectId: string;
   subjectCode: string;
   subjectName: string;
-  credits: number;
-  prerequisiteSubjectCode?: string;
+  credits?: number; // legacy
+  credit?: number; // new api
+  prerequisiteSubjectCode?: string; // legacy
+  prerequisiteSubjectCodes?: string[]; // new api
   isElective?: boolean;
-  electiveGroupId?: string;
+  electiveGroupId?: string; // legacy
+  groupId?: string; // new api
   electiveGroupName?: string;
+  status?: string;
 }
 
 export interface SemesterMappingsResponse {
@@ -325,4 +329,16 @@ export interface SessionMaterialBlockDetail {
   duration?: number;
   material: SessionMaterialItem[];
   block: SessionBlockItem[];
+}
+
+// ========================
+// Group
+// ========================
+export interface Group {
+  groupId: string;
+  groupCode: string;
+  groupName: string;
+  description: string;
+  createdAt: string;
+  type: string;
 }

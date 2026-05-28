@@ -1,15 +1,16 @@
 import {
     getCurriculumById,
+    getGroupById,
     getPLOsByCurriculum,
     getSemesterMappings,
 } from "@/src/services/curriculumService";
 import type {
     Curriculum,
+    Group,
     PLO,
     SemesterMapping,
     SemesterSubject,
 } from "@/src/types";
-import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -21,6 +22,7 @@ import {
     TouchableOpacity,
     useColorScheme,
     View,
+    Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -33,10 +35,13 @@ export default function CurriculumDetailsScreen() {
     const isDark = colorScheme === "dark";
 
     const [activeTab, setActiveTab] = useState<TabKey>("general");
+    const [selectedElectiveGroup, setSelectedElectiveGroup] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
+    const [calculatedTotalCredits, setCalculatedTotalCredits] = useState<number>(0);
     const [plos, setPlos] = useState<PLO[]>([]);
     const [semesterMappings, setSemesterMappings] = useState<SemesterMapping[]>([]);
+    const [groupDetails, setGroupDetails] = useState<Record<string, Group>>({});
     const [error, setError] = useState<string | null>(null);
 
     const colors = {
@@ -52,9 +57,9 @@ export default function CurriculumDetailsScreen() {
         alertBg: isDark ? "rgba(239, 68, 68, 0.1)" : "rgba(239, 68, 68, 0.05)",
         successText: isDark ? "#86EFAC" : "#16A34A",
         successBg: isDark ? "rgba(34, 197, 94, 0.1)" : "rgba(34, 197, 94, 0.05)",
-        electiveBg: isDark ? "rgba(168, 85, 247, 0.15)" : "rgba(147, 51, 234, 0.08)",
-        electiveText: isDark ? "#C084FC" : "#7C3AED",
-        electiveBorder: isDark ? "rgba(168, 85, 247, 0.3)" : "rgba(147, 51, 234, 0.2)",
+        electiveBg: isDark ? "rgba(37, 99, 235, 0.15)" : "#DBEAFE", // bg-blue-100 equivalent
+        electiveText: isDark ? "#60A5FA" : "#1D4ED8", // text-blue-700 equivalent
+        electiveBorder: isDark ? "rgba(37, 99, 235, 0.3)" : "#BFDBFE",
         tabInactive: isDark ? "#334155" : "#E2E8F0",
     };
 
@@ -82,7 +87,57 @@ export default function CurriculumDetailsScreen() {
                 }
 
                 if (semData.status === "fulfilled") {
-                    setSemesterMappings(semData.value.semesterMappings || []);
+                    const mappings = semData.value.semesterMappings || [];
+                    setSemesterMappings(mappings);
+
+                    // Fetch group details for elective groups
+                    const groupIds = new Set<string>();
+                    mappings.forEach((mapping) => {
+                        (mapping.subjects || []).forEach((sub) => {
+                            const gId = sub.groupId || sub.electiveGroupId;
+                            if (gId) {
+                                groupIds.add(gId);
+                            }
+                        });
+                    });
+
+                    const groupMap: Record<string, Group> = {};
+                    if (groupIds.size > 0) {
+                        const groupPromises = Array.from(groupIds).map((gId) => getGroupById(gId));
+                        const groupResults = await Promise.allSettled(groupPromises);
+                        groupResults.forEach((res) => {
+                            if (res.status === "fulfilled") {
+                                groupMap[res.value.groupId] = res.value;
+                            }
+                        });
+                        setGroupDetails(groupMap);
+                    }
+
+                    let total = 0;
+                    const processedElectives = new Set<string>();
+
+                    mappings.forEach((mapping) => {
+                        (mapping.subjects || []).forEach((sub) => {
+                            const gId = sub.groupId || sub.electiveGroupId;
+                            const credit = sub.credit ?? sub.credits ?? 0;
+                            
+                            if (gId) {
+                                const gInfo = groupMap[gId];
+                                if (gInfo && gInfo.type === "COMBO") {
+                                    total += credit;
+                                } else {
+                                    // ELECTIVE
+                                    if (!processedElectives.has(gId)) {
+                                        total += credit;
+                                        processedElectives.add(gId);
+                                    }
+                                }
+                            } else {
+                                total += credit;
+                            }
+                        });
+                    });
+                    setCalculatedTotalCredits(total);
                 }
             } catch (err) {
                 console.error("[CurriculumDetail] Error:", err);
@@ -93,9 +148,6 @@ export default function CurriculumDetailsScreen() {
         };
         fetchData();
     }, [id]);
-
-    const bookmarkedSubjects = useWishlistStore((state) => state.bookmarkedSubjects);
-    const toggleBookmark = useWishlistStore((state) => state.toggleBookmark);
 
     const tabs = [
         {
@@ -203,7 +255,7 @@ export default function CurriculumDetailsScreen() {
                         <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
                             {"Credits"}
                         </Text>
-                        <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{curriculum.totalCredits ?? "N/A"}</Text>
+                        <Text style={[styles.infoValue, { color: colors.textPrimary }]}>{curriculum.totalCredits ?? calculatedTotalCredits}</Text>
                     </View>
                     <View style={styles.infoItem}>
                         <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
@@ -315,7 +367,9 @@ export default function CurriculumDetailsScreen() {
                         ]}
                     >
                         <View style={[styles.ploBadge, { backgroundColor: colors.primaryBg }]}>
-                            <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>{plo.ploName}</Text>
+                            <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>
+                                {plo.ploName || (plo as any).name || (plo as any).ploCode || (plo as any).code || `PLO ${idx + 1}`}
+                            </Text>
                         </View>
                         <Text style={{ color: colors.textPrimary, lineHeight: 22, fontSize: 15 }}>
                             {plo.description}
@@ -338,39 +392,121 @@ export default function CurriculumDetailsScreen() {
         <View>
             {semesterMappings.length > 0 ? (
                 semesterMappings
-                    .sort((a, b) => a.semester - b.semester)
-                    .map((semMapping) => (
-                        <View key={`sem-${semMapping.semester}`} style={{ marginBottom: 24 }}>
-                            <View style={[styles.semesterHeader, { backgroundColor: colors.divider }]}>
-                                <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 15 }}>
-                                    {semMapping.semester === 0
-                                        ? "Semester 0 (Prerequisite)"
-                                        : `Semester ${semMapping.semester}`}
-                                </Text>
-                            </View>
+                    .sort((a, b) => (a.semester ?? (a as any).semesterNo ?? 0) - (b.semester ?? (b as any).semesterNo ?? 0))
+                    .map((semMapping, idx) => {
+                        const semValue = semMapping.semester ?? (semMapping as any).semesterNo ?? (semMapping as any).no;
 
-                            {(semMapping.subjects || []).map((sub: SemesterSubject, idx: number) => {
-                                const isElective = sub.isElective === true;
+                        const finalSubjects: any[] = [];
+                        const groupMap = new Map<string, any>();
 
+                            semMapping.subjects?.forEach((sub) => {
+                                const gId = sub.groupId || sub.electiveGroupId;
+                                const gInfo = gId ? groupDetails[gId] : null;
+
+                                if (gId) {
+                                    if (gInfo && gInfo.type === "COMBO") {
+                                        finalSubjects.push({ kind: "combo", ...sub });
+                                    } else {
+                                        if (!groupMap.has(gId)) {
+                                            groupMap.set(gId, {
+                                                kind: "elective",
+                                                groupId: gId,
+                                                groupCode: gInfo?.groupCode || sub.subjectCode.substring(0, 7),
+                                                groupName: gInfo?.groupName || "Elective Group",
+                                                subjects: [],
+                                            });
+                                        }
+                                        groupMap.get(gId).subjects.push(sub);
+                                    }
+                                } else {
+                                    finalSubjects.push({ kind: "subject", ...sub });
+                                }
+                            });
+
+                            groupMap.forEach((group) => {
+                                finalSubjects.push(group);
+                            });
+
+                            return (
+                                <View key={`sem-${semValue ?? 'unknown'}-${idx}`} style={{ marginBottom: 24 }}>
+                                    <View style={[styles.semesterHeader, { backgroundColor: colors.divider }]}>
+                                        <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 15 }}>
+                                            {semValue === 0
+                                                ? "Semester 0 (Prerequisite)"
+                                                : `Semester ${semValue ?? idx + 1}`}
+                                        </Text>
+                                    </View>
+
+                                    {finalSubjects.map((item, idx) => {
+                                const isElective = item.kind === "elective";
+                                const isCombo = item.kind === "combo";
+
+                                if (isElective) {
+                                    return (
+                                        <TouchableOpacity
+                                            key={`elective-${item.groupId}-${idx}`}
+                                            activeOpacity={0.7}
+                                            onPress={() => {
+                                                setSelectedElectiveGroup(item);
+                                            }}
+                                            style={[
+                                                styles.subjectCard,
+                                                {
+                                                    backgroundColor: colors.electiveBg,
+                                                    borderColor: colors.electiveBorder,
+                                                    ...styles.shadowSmall,
+                                                },
+                                            ]}
+                                        >
+                                            <View style={styles.subjectHeader}>
+                                                <View
+                                                    style={[
+                                                        styles.subjectCodeBadge,
+                                                        { backgroundColor: colors.electiveBg },
+                                                    ]}
+                                                >
+                                                    <Text style={{ fontWeight: "700", color: colors.electiveText, fontSize: 14 }}>
+                                                        {item.groupCode}
+                                                    </Text>
+                                                </View>
+                                                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                                    <View style={{ backgroundColor: colors.electiveBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginRight: 8 }}>
+                                                        <Text style={{ color: colors.electiveText, fontSize: 10, fontWeight: "700" }}>ELECTIVE</Text>
+                                                    </View>
+                                                    <Ionicons name="chevron-forward" size={16} color={colors.electiveText} />
+                                                </View>
+                                            </View>
+                                            <Text
+                                                style={{
+                                                    fontWeight: "600",
+                                                    color: colors.electiveText,
+                                                    fontSize: 16,
+                                                    marginBottom: 4,
+                                                    lineHeight: 22,
+                                                }}
+                                            >
+                                                {item.groupName}
+                                            </Text>
+                                            <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
+                                                {item.subjects.length} subjects replaced by this group
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                }
+
+                                // For Subject and Combo
                                 return (
                                     <TouchableOpacity
-                                        key={sub.subjectId || idx}
+                                        key={item.subjectId || idx}
                                         activeOpacity={0.7}
                                         onPress={() => {
-                                            if (isElective && sub.electiveGroupId) {
-                                                router.push({
-                                                    pathname: "/curriculum/elective/[id]",
-                                                    params: { id: sub.electiveGroupId, curriculumId: curriculum.curriculumId },
-                                                } as any);
-                                            } else {
-                                                router.push({ pathname: "/subject/[code]", params: { code: sub.subjectCode } } as any);
-                                            }
+                                            router.push({ pathname: "/subject/[code]", params: { code: item.subjectCode } } as any);
                                         }}
                                         style={[
                                             styles.subjectCard,
                                             {
-                                                backgroundColor: isElective ? colors.electiveBg : colors.card,
-                                                borderColor: isElective ? colors.electiveBorder : colors.cardBorder,
+                                                backgroundColor: colors.card,
+                                                borderColor: colors.cardBorder,
                                                 ...styles.shadowSmall,
                                             },
                                         ]}
@@ -379,81 +515,55 @@ export default function CurriculumDetailsScreen() {
                                             <View
                                                 style={[
                                                     styles.subjectCodeBadge,
-                                                    { backgroundColor: isElective ? colors.electiveBorder : colors.background },
+                                                    { backgroundColor: colors.background },
                                                 ]}
                                             >
-                                                {isElective ? (
-                                                    <MaterialCommunityIcons name="book-multiple-outline" size={16} color={colors.electiveText} />
-                                                ) : (
-                                                    <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 14 }}>
-                                                        {sub.subjectCode}
-                                                    </Text>
-                                                )}
+                                                <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 14 }}>
+                                                    {item.subjectCode}
+                                                </Text>
                                             </View>
-                                            {!isElective && (
-                                                <TouchableOpacity
-                                                    onPress={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleBookmark(sub.subjectCode);
-                                                    }}
-                                                    style={{
-                                                        padding: 6,
-                                                        borderRadius: 10,
-                                                        backgroundColor: bookmarkedSubjects.includes(sub.subjectCode)
-                                                            ? "rgba(245,158,11,0.15)"
-                                                            : "transparent",
-                                                    }}
-                                                >
-                                                    <Ionicons
-                                                        name={bookmarkedSubjects.includes(sub.subjectCode) ? "star" : "star-outline"}
-                                                        size={22}
-                                                        color={bookmarkedSubjects.includes(sub.subjectCode) ? "#F59E0B" : colors.textSecondary}
-                                                    />
-                                                </TouchableOpacity>
-                                            )}
-                                            {isElective && (
-                                                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                                    <Ionicons name="chevron-forward" size={16} color={colors.electiveText} />
+                                            {isCombo && (
+                                                <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                                    <Text style={{ color: colors.primary, fontSize: 10, fontWeight: "700" }}>COMBO</Text>
                                                 </View>
                                             )}
                                         </View>
-
                                         <Text
                                             style={{
                                                 fontWeight: "600",
-                                                color: isElective ? colors.electiveText : colors.textPrimary,
+                                                color: colors.textPrimary,
                                                 fontSize: 16,
                                                 marginBottom: 8,
                                                 lineHeight: 22,
                                             }}
                                         >
-                                            {sub.subjectName}
+                                            {item.subjectName}
                                         </Text>
-
                                         <View style={styles.subjectFooter}>
                                             <View style={{ flexDirection: "row", alignItems: "center" }}>
                                                 <Ionicons
                                                     name="time-outline"
                                                     size={16}
-                                                    color={isElective ? colors.electiveText : colors.textSecondary}
+                                                    color={colors.textSecondary}
                                                     style={{ marginRight: 4 }}
                                                 />
                                                 <Text
                                                     style={{
-                                                        color: isElective ? colors.electiveText : colors.textSecondary,
+                                                        color: colors.textSecondary,
                                                         fontSize: 13,
+                                                        flex: 1,
                                                     }}
+                                                    numberOfLines={1}
                                                 >
-                                                    {sub.credits} {"credits"}
+                                                    {item.credit ?? item.credits ?? 0} credits
                                                 </Text>
                                             </View>
                                         </View>
-
-                                        {!isElective && sub.prerequisiteSubjectCode ? (
+                                        {item.prerequisiteSubjectCode || (item.prerequisiteSubjectCodes && item.prerequisiteSubjectCodes.length > 0) ? (
                                             <View style={[styles.prereqContainer, { backgroundColor: colors.alertBg }]}>
                                                 <Ionicons name="alert-circle-outline" size={16} color={colors.alertText} style={{ marginRight: 6 }} />
                                                 <Text style={{ color: colors.alertText, fontSize: 13, fontWeight: "500", flex: 1 }}>
-                                                    {"Prerequisite:"} {sub.prerequisiteSubjectCode}
+                                                    Prerequisite: {item.prerequisiteSubjectCodes?.join(", ") || item.prerequisiteSubjectCode}
                                                 </Text>
                                             </View>
                                         ) : null}
@@ -461,7 +571,8 @@ export default function CurriculumDetailsScreen() {
                                 );
                             })}
                         </View>
-                    ))
+                    );
+                })
             ) : (
                 <View style={{ padding: 20, alignItems: "center" }}>
                     <Ionicons name="book-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
@@ -489,6 +600,83 @@ export default function CurriculumDetailsScreen() {
                     </Text>
                 </TouchableOpacity>
             )}
+
+            {/* Elective Group Modal */}
+            <Modal
+                visible={!!selectedElectiveGroup}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setSelectedElectiveGroup(null)}
+            >
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+                    <View style={{ 
+                        backgroundColor: colors.background, 
+                        borderTopLeftRadius: 24, 
+                        borderTopRightRadius: 24,
+                        padding: 20,
+                        maxHeight: "80%",
+                    }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                            <View>
+                                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+                                    <View style={{ backgroundColor: colors.electiveBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginRight: 8 }}>
+                                        <Text style={{ color: colors.electiveText, fontSize: 10, fontWeight: "700" }}>ELECTIVE</Text>
+                                    </View>
+                                    <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>{selectedElectiveGroup?.groupCode}</Text>
+                                </View>
+                                <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary }}>
+                                    {selectedElectiveGroup?.groupName}
+                                </Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setSelectedElectiveGroup(null)} style={{ padding: 4 }}>
+                                <Ionicons name="close" size={24} color={colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+                        
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {(selectedElectiveGroup?.subjects || []).map((sub: any, idx: number) => (
+                                <TouchableOpacity
+                                    key={sub.subjectId || idx}
+                                    activeOpacity={0.7}
+                                    onPress={() => {
+                                        setSelectedElectiveGroup(null);
+                                        router.push({ pathname: "/subject/[code]", params: { code: sub.subjectCode } } as any);
+                                    }}
+                                    style={[
+                                        styles.subjectCard,
+                                        {
+                                            backgroundColor: colors.card,
+                                            borderColor: colors.cardBorder,
+                                            ...styles.shadowSmall,
+                                            marginBottom: 12
+                                        },
+                                    ]}
+                                >
+                                    <View style={styles.subjectHeader}>
+                                        <View style={[styles.subjectCodeBadge, { backgroundColor: colors.background }]}>
+                                            <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 14 }}>
+                                                {sub.subjectCode}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <Text style={{ fontWeight: "600", color: colors.textPrimary, fontSize: 16, marginBottom: 8 }}>
+                                        {sub.subjectName}
+                                    </Text>
+                                    <View style={styles.subjectFooter}>
+                                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                            <Ionicons name="time-outline" size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                                            <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                                                {sub.credit ?? sub.credits ?? 0} credits
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                            <View style={{ height: 20 }} />
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 
@@ -536,7 +724,7 @@ export default function CurriculumDetailsScreen() {
                 </View>
                 <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
                     <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 12 }}>
-                        {curriculum.totalCredits ?? "?"} {"Credits"}
+                        {curriculum.totalCredits ?? calculatedTotalCredits} {"Credits"}
                     </Text>
                 </View>
             </View>

@@ -1,674 +1,324 @@
-import { MOCK_CURRICULUMS, Subject } from "@/src/constants/mockData";
-import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
-import {
-    Animated,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
+import { useLocalSearchParams, router } from "expo-router";
+import { WebView } from "react-native-webview";
+import { Ionicons } from "@expo/vector-icons";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = 120;
-const CARD_HEIGHT = 90;
-const CARD_MARGIN = 10;
-const SEM_LABEL_WIDTH = 72;
-const ROW_HEIGHT = CARD_HEIGHT + 40;
+import {
+  getCurriculumById,
+  getSemesterMappings,
+  getGroupById,
+} from "@/src/services/curriculumService";
+import type { Curriculum, Group, SemesterMapping } from "@/src/types";
 
-// --- Status color system ---
-type CourseStatus = "completed" | "in_progress" | "not_started" | "locked";
-
-function getStatus(code: string, selectedCode: string | null): CourseStatus {
-  // Mock statuses for demo
-  const completed = [
-    "PRF192",
-    "MAE101",
-    "CEA201",
-    "ENW492",
-    "PRO192",
-    "MAD101",
-  ];
-  const inProgress = ["CSD201", "DBI202", "OSG202", "SSG104"];
-  if (completed.includes(code)) return "completed";
-  if (inProgress.includes(code)) return "in_progress";
-  return "not_started";
-}
-
-function statusBorderColor(status: CourseStatus, isDark: boolean) {
-  switch (status) {
-    case "completed":
-      return "#22C55E";
-    case "in_progress":
-      return "#10B981";
-    case "not_started":
-      return isDark ? "#475569" : "#CBD5E1";
-    case "locked":
-      return "#EF4444";
-  }
-}
-
-function statusBgColor(status: CourseStatus, isDark: boolean) {
-  switch (status) {
-    case "completed":
-      return isDark ? "rgba(34,197,94,0.15)" : "rgba(34,197,94,0.08)";
-    case "in_progress":
-      return isDark ? "rgba(16,185,129,0.15)" : "rgba(5,150,105,0.08)";
-    case "not_started":
-      return isDark ? "#1E293B" : "#FFFFFF";
-    case "locked":
-      return isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.05)";
-  }
-}
-
-function statusLabel(status: CourseStatus, lang: string = "en") {
-  if (lang === "vi") {
-    switch (status) {
-      case "completed":
-        return "Đã hoàn thành";
-      case "in_progress":
-        return "Đang học";
-      case "not_started":
-        return "Chưa học";
-      case "locked":
-        return "Bị khóa";
-    }
-  } else {
-    switch (status) {
-      case "completed":
-        return "Completed";
-      case "in_progress":
-        return "In Progress";
-      case "not_started":
-        return "Not Started";
-      case "locked":
-        return "Locked";
-    }
-  }
-}
-
-// --- Main Screen ---
-export default function PrerequisiteMapScreen() {
-  const { curriculumId } = useLocalSearchParams<{ curriculumId: string }>();
-
+export default function CurriculumGraphScreen() {
+  const { curriculumId: id } = useLocalSearchParams<{ curriculumId: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const curriculum = MOCK_CURRICULUMS.find((c) => c.id === curriculumId);
-  const subjects: Subject[] = curriculum?.subjects ?? [];
-
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
-  const [showLines, setShowLines] = useState(true);
-  const bottomSheetAnim = useRef(new Animated.Value(0)).current;
-  const isSheetOpen = useRef(false);
-
-  // Group by semester
-  const grouped = React.useMemo(() => {
-    const map: Record<number, Subject[]> = {};
-    for (const s of subjects) {
-      if (!map[s.semester]) map[s.semester] = [];
-      map[s.semester].push(s);
-    }
-    return Object.entries(map).sort(([a], [b]) => Number(a) - Number(b));
-  }, [subjects]);
-
-  // Pre-compute card centre positions from layout constants.
-  // Each row is: paddingLeft(8) + semLabel(72) + colIdx*(CARD_WIDTH+CARD_MARGIN) + CARD_MARGIN/2 + CARD_WIDTH/2
-  // Each row y: rowIdx * ROW_HEIGHT + paddingVertical(20) + CARD_HEIGHT/2
-  // We keep top-of-card (y) and bottom-of-card (y + CARD_HEIGHT).
-  const cardPositions = React.useMemo(() => {
-    const pos: Record<string, { x: number; y: number }> = {};
-    grouped.forEach(([, semSubjects], rowIdx) => {
-      semSubjects.forEach((sub, colIdx) => {
-        const x =
-          8 +
-          SEM_LABEL_WIDTH +
-          colIdx * (CARD_WIDTH + CARD_MARGIN) +
-          CARD_MARGIN / 2;
-        const y = rowIdx * ROW_HEIGHT + 20; // top of card
-        pos[sub.code] = { x, y };
-      });
-    });
-    return pos;
-  }, [grouped]);
-
-  const openSheet = useCallback(
-    (code: string) => {
-      setSelectedCode(code);
-      isSheetOpen.current = true;
-      Animated.spring(bottomSheetAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 65,
-        friction: 11,
-      }).start();
-    },
-    [bottomSheetAnim],
-  );
-
-  const closeSheet = useCallback(() => {
-    Animated.timing(bottomSheetAnim, {
-      toValue: 0,
-      duration: 220,
-      useNativeDriver: true,
-    }).start(() => {
-      setSelectedCode(null);
-      isSheetOpen.current = false;
-    });
-  }, [bottomSheetAnim]);
-
-  // Bottom sheet slide-up transform
-  const sheetTranslateY = bottomSheetAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [420, 0],
-  });
-
-  // Prerequisite chain helpers
-  function getAllPrerequisites(
-    code: string,
-    acc: Set<string> = new Set(),
-  ): Set<string> {
-    const sub = subjects.find((s) => s.code === code);
-    if (!sub || !sub.prerequisite) return acc;
-    const prereq = sub.prerequisite;
-    if (!acc.has(prereq)) {
-      acc.add(prereq);
-      getAllPrerequisites(prereq, acc);
-    }
-    return acc;
-  }
-
-  function getAllDependents(code: string): Set<string> {
-    const deps = new Set<string>();
-    const queue = [code];
-    while (queue.length) {
-      const cur = queue.shift()!;
-      for (const s of subjects) {
-        if (s.prerequisite === cur && !deps.has(s.code)) {
-          deps.add(s.code);
-          queue.push(s.code);
-        }
-      }
-    }
-    return deps;
-  }
-
-  const prereqs = selectedCode
-    ? getAllPrerequisites(selectedCode)
-    : new Set<string>();
-  const deps = selectedCode
-    ? getAllDependents(selectedCode)
-    : new Set<string>();
-  const highlighted = selectedCode
-    ? new Set([selectedCode, ...prereqs, ...deps])
-    : null;
-
-  // Build SVG path connectors
-  function buildConnectors() {
-    const connectors: { from: string; to: string }[] = [];
-    for (const s of subjects) {
-      if (s.prerequisite) connectors.push({ from: s.prerequisite, to: s.code });
-    }
-    return connectors;
-  }
+  const [isLoading, setIsLoading] = useState(true);
+  const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
+  const [nodes, setNodes] = useState<any[]>([]);
+  const [edges, setEdges] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const colors = {
-    background: isDark ? "#0F172A" : "#F1F5F9",
+    background: isDark ? "#0F172A" : "#F8FAFC",
     card: isDark ? "#1E293B" : "#FFFFFF",
+    cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
     textPrimary: isDark ? "#F1F5F9" : "#0F172A",
     textSecondary: isDark ? "#94A3B8" : "#64748B",
-    primary: "#10B981",
-    divider: isDark ? "#334155" : "#E2E8F0",
-    semLabel: isDark ? "#0F172A" : "#E2E8F0",
-    overlay: isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.35)",
-    sheetBg: isDark ? "#1E293B" : "#FFFFFF",
   };
 
-  const selectedSubject = subjects.find((s) => s.code === selectedCode);
+  useEffect(() => {
+    if (!id) return;
 
-  // Canvas total width = semester label + max cols * (card + margin)
-  const maxCols = Math.max(...grouped.map(([, subs]) => subs.length));
-  const canvasWidth = Math.max(
-    SCREEN_WIDTH,
-    SEM_LABEL_WIDTH + maxCols * (CARD_WIDTH + CARD_MARGIN) + 20,
-  );
-  const canvasHeight = grouped.length * ROW_HEIGHT + 20;
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const curr = await getCurriculumById(id);
+        setCurriculum(curr);
+
+        const semResponse = await getSemesterMappings(id);
+        const semesters = semResponse?.semesterMappings || [];
+
+        // Collect all group IDs to fetch
+        const groupIds = new Set<string>();
+        semesters.forEach((sem) => {
+          (sem.subjects || []).forEach((sub) => {
+            const gId = sub.groupId || sub.electiveGroupId;
+            if (gId) groupIds.add(gId);
+          });
+        });
+
+        const groupDetails: Record<string, Group> = {};
+        if (groupIds.size > 0) {
+          const groupPromises = Array.from(groupIds).map((gId) => getGroupById(gId));
+          const groupResults = await Promise.allSettled(groupPromises);
+          groupResults.forEach((res) => {
+            if (res.status === "fulfilled" && res.value) {
+              groupDetails[res.value.groupId] = res.value;
+            }
+          });
+        }
+
+        // Build Nodes and Edges
+        const newNodes: any[] = [];
+        const newEdges: any[] = [];
+        let yOffset = 50;
+        let maxRowWidth = 800;
+
+        semesters.forEach((sem) => {
+          const semId = `sem-${sem.semester ?? (sem as any).semesterNo}`;
+          const subjects = sem.subjects || [];
+
+          const groupMap = new Map<string, any[]>();
+          const independentSubjects: any[] = [];
+
+          subjects.forEach((sub) => {
+            const gId = sub.groupId || sub.electiveGroupId;
+            if (gId) {
+              if (!groupMap.has(gId)) groupMap.set(gId, []);
+              groupMap.get(gId)?.push(sub);
+            } else {
+              independentSubjects.push(sub);
+            }
+          });
+
+          // Calculate Semester Box Width
+          const totalGroupsWidth = Array.from(groupMap.values()).reduce(
+            (acc, subs) => acc + Math.max(180, subs.length * 180 + 40),
+            0
+          );
+          const semWidth = Math.max(maxRowWidth, independentSubjects.length * 180 + totalGroupsWidth + 100);
+          maxRowWidth = Math.max(maxRowWidth, semWidth);
+
+          newNodes.push({
+            id: semId,
+            type: "group",
+            position: { x: 50, y: yOffset },
+            style: {
+              width: semWidth,
+              height: 280,
+              backgroundColor: "rgba(241, 245, 249, 0.5)",
+              border: "2px solid #cbd5e1",
+              borderRadius: 8,
+            },
+            data: { label: `Semester ${sem.semester ?? (sem as any).semesterNo}` },
+          });
+
+          let currentX = 20;
+
+          // Add Independent Subjects
+          independentSubjects.forEach((sub) => {
+            newNodes.push({
+              id: sub.subjectCode,
+              parentId: semId,
+              extent: "parent",
+              position: { x: currentX, y: 60 },
+              data: {
+                label: `<strong>${sub.subjectCode}</strong><br/>${sub.subjectName}<br/><span style="font-size:10px;color:#64748b">${sub.credit ?? sub.credits ?? 0} credits</span>`,
+              },
+              style: {
+                width: 150,
+                backgroundColor: "#ffffff",
+                border: "2px solid #3b82f6",
+                borderRadius: 8,
+                padding: 10,
+                textAlign: "center",
+                fontSize: 12,
+              },
+            });
+            currentX += 180;
+          });
+
+          // Add Groups
+          groupMap.forEach((subs, gId) => {
+            const gWidth = Math.max(180, subs.length * 180 + 20);
+            const groupInfo = groupDetails[gId];
+            newNodes.push({
+              id: `group-${gId}`,
+              parentId: semId,
+              extent: "parent",
+              position: { x: currentX, y: 50 },
+              style: {
+                width: gWidth,
+                height: 200,
+                backgroundColor: "rgba(219, 234, 254, 0.4)",
+                border: "2px dashed #8b5cf6",
+                borderRadius: 8,
+              },
+              data: {
+                label: groupInfo ? `${groupInfo.groupName} (${groupInfo.type})` : `Group ${gId.substring(0, 4)}`,
+              },
+            });
+
+            let gx = 10;
+            subs.forEach((sub) => {
+              newNodes.push({
+                id: sub.subjectCode,
+                parentId: `group-${gId}`,
+                extent: "parent",
+                position: { x: gx, y: 50 },
+                data: {
+                  label: `<strong>${sub.subjectCode}</strong><br/>${sub.subjectName}<br/><span style="font-size:10px;color:#64748b">${sub.credit ?? sub.credits ?? 0} credits</span>`,
+                },
+                style: {
+                  width: 150,
+                  backgroundColor: "#ffffff",
+                  border: "2px solid #a855f7",
+                  borderRadius: 8,
+                  padding: 10,
+                  textAlign: "center",
+                  fontSize: 12,
+                },
+              });
+              gx += 180;
+            });
+
+            currentX += gWidth + 20;
+          });
+
+          // Process Edges
+          subjects.forEach((sub) => {
+            const prereqs = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
+            prereqs.forEach((prereq) => {
+              newEdges.push({
+                id: `e-${prereq}-${sub.subjectCode}`,
+                source: prereq,
+                target: sub.subjectCode,
+                animated: true,
+                style: { stroke: "#94a3b8", strokeWidth: 2 },
+                markerEnd: { type: "arrowclosed", color: "#94a3b8" },
+              });
+            });
+          });
+
+          yOffset += 320;
+        });
+
+        setNodes(newNodes);
+        setEdges(newEdges);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load graph data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <title>React Flow</title>
+      <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+      <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+      <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+      <link rel="stylesheet" href="https://unpkg.com/reactflow@11.11.4/dist/style.css" />
+      <script src="https://unpkg.com/reactflow@11.11.4/dist/umd/index.js"></script>
+      <style>
+        body, html, #root {
+          margin: 0;
+          padding: 0;
+          width: 100vw;
+          height: 100vh;
+          overflow: hidden;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        /* Custom Node Styles */
+        .react-flow__node-group {
+           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .react-flow__node-default {
+           box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+      </style>
+    </head>
+    <body>
+      <div id="root"></div>
+      <script type="text/babel">
+        const { ReactFlow, Controls, Background, MiniMap, ReactFlowProvider } = window.ReactFlow;
+        const initialNodes = ${JSON.stringify(nodes)};
+        const initialEdges = ${JSON.stringify(edges)};
+
+        function Flow() {
+          // React Flow auto handles rendering of the passed nodes and edges
+          return (
+            <ReactFlow 
+                nodes={initialNodes} 
+                edges={initialEdges} 
+                fitView
+                fitViewOptions={{ padding: 0.2 }}
+                minZoom={0.1}
+            >
+              <Background color="#cbd5e1" gap={20} />
+              <Controls />
+              <MiniMap 
+                nodeStrokeColor={(n) => {
+                  if (n.type === 'group') return '#cbd5e1';
+                  return '#3b82f6';
+                }}
+                nodeColor={(n) => {
+                  if (n.type === 'group') return 'rgba(241, 245, 249, 0.5)';
+                  return '#fff';
+                }}
+              />
+            </ReactFlow>
+          );
+        }
+
+        const App = () => (
+          <ReactFlowProvider>
+            <Flow />
+          </ReactFlowProvider>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+      </script>
+    </body>
+    </html>
+  `;
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
-    >
-      {/* Header */}
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: colors.card, borderBottomColor: colors.divider },
-        ]}
-      >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={[styles.headerTitle, { color: colors.textPrimary }]}
-            numberOfLines={1}
-          >
-            {"Prerequisite Map"}
-          </Text>
-          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-            {curriculum?.name}
-          </Text>
-        </View>
-      </View>
-
-      {/* Toggle bar */}
-      <View
-        style={[
-          styles.toggleBar,
-          { backgroundColor: colors.card, borderBottomColor: colors.divider },
-        ]}
-      >
-        <Ionicons
-          name="git-network-outline"
-          size={18}
-          color={colors.primary}
-          style={{ marginRight: 8 }}
-        />
-        <Text style={{ fontSize: 14, color: colors.textPrimary, flex: 1 }}>
-          {"Show connector lines"}
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+          {curriculum ? `${curriculum.curriculumCode} Graph` : "Loading Graph..."}
         </Text>
-        <Switch
-          value={showLines}
-          onValueChange={setShowLines}
-          trackColor={{ false: colors.divider, true: colors.primary + "80" }}
-          thumbColor={showLines ? colors.primary : colors.textSecondary}
-        />
       </View>
 
-      {/* Scrollable canvas */}
-      <ScrollView
-        horizontal={false}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ width: canvasWidth, position: "relative" }}>
-            {/* SVG connector layer */}
-            {showLines && (
-              <Svg
-                width={canvasWidth}
-                height={canvasHeight}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              >
-                {buildConnectors().map(({ from, to }) => {
-                  const fromPos = cardPositions[from];
-                  const toPos = cardPositions[to];
-                  if (!fromPos || !toPos) return null;
-                  const isHighlighted =
-                    highlighted && highlighted.has(from) && highlighted.has(to);
-                  const opacity = highlighted
-                    ? isHighlighted
-                      ? 1
-                      : 0.08
-                    : 0.35;
-                  const stroke = isHighlighted
-                    ? colors.primary
-                    : isDark
-                      ? "#94A3B8"
-                      : "#94A3B8";
-                  const x1 = fromPos.x + CARD_WIDTH / 2;
-                  const y1 = fromPos.y + CARD_HEIGHT;
-                  const x2 = toPos.x + CARD_WIDTH / 2;
-                  const y2 = toPos.y;
-                  const cy = (y1 + y2) / 2;
-                  return (
-                    <Path
-                      key={`${from}-${to}`}
-                      d={`M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`}
-                      stroke={stroke}
-                      strokeWidth={isHighlighted ? 2.5 : 1.5}
-                      strokeDasharray={isHighlighted ? undefined : "4 3"}
-                      fill="none"
-                      opacity={opacity}
-                    />
-                  );
-                })}
-              </Svg>
-            )}
-
-            {/* Semester rows */}
-            {grouped.map(([sem, semSubjects], rowIdx) => (
-              <View key={sem} style={[styles.semRow, { height: ROW_HEIGHT }]}>
-                {/* Semester label */}
-                <View
-                  style={[
-                    styles.semLabel,
-                    { backgroundColor: isDark ? "#0F172A" : "#E2E8F0" },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: "700",
-                      color: colors.primary,
-                      textAlign: "center",
-                    }}
-                  >
-                    {`S${sem}`}
-                  </Text>
-                </View>
-                {/* Course cards */}
-                <View style={styles.cardsRow}>
-                  {semSubjects.map((sub, colIdx) => {
-                    const status = getStatus(sub.code, selectedCode);
-                    const isSelected = sub.code === selectedCode;
-                    const isRelated = highlighted
-                      ? highlighted.has(sub.code)
-                      : true;
-                    const opacity = highlighted ? (isRelated ? 1 : 0.25) : 1;
-                    return (
-                      <TouchableOpacity
-                        key={sub.code}
-                        activeOpacity={0.8}
-                        onPress={() =>
-                          isSelected ? closeSheet() : openSheet(sub.code)
-                        }
-                        onLayout={undefined}
-                        style={[
-                          styles.courseCard,
-                          {
-                            backgroundColor: statusBgColor(status, isDark),
-                            borderColor: isSelected
-                              ? colors.primary
-                              : statusBorderColor(status, isDark),
-                            borderWidth: isSelected ? 2.5 : 1.5,
-                            opacity,
-                            transform: [{ scale: isSelected ? 1.04 : 1 }],
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.cardCode,
-                            { color: colors.textPrimary },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {sub.code}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.cardName,
-                            { color: colors.textSecondary },
-                          ]}
-                          numberOfLines={2}
-                        >
-                          {sub.name}
-                        </Text>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginTop: 4,
-                          }}
-                        >
-                          <View
-                            style={[
-                              styles.creditBadge,
-                              {
-                                backgroundColor:
-                                  statusBorderColor(status, isDark) + "25",
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 10,
-                                fontWeight: "700",
-                                color: statusBorderColor(status, isDark),
-                              }}
-                            >
-                              {sub.credits} TC
-                            </Text>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      </ScrollView>
-
-      {/* Tap-away overlay */}
-      {selectedCode && (
-        <TouchableOpacity
-          style={[
-            StyleSheet.absoluteFillObject,
-            { backgroundColor: "transparent" },
-          ]}
-          activeOpacity={1}
-          onPress={closeSheet}
-        />
-      )}
-
-      {/* Bottom Sheet */}
-      {selectedCode && selectedSubject && (
-        <Animated.View
-          style={[
-            styles.bottomSheet,
-            {
-              backgroundColor: colors.sheetBg,
-              transform: [{ translateY: sheetTranslateY }],
-            },
-          ]}
-        >
-          {/* Handle */}
-          <View
-            style={[styles.sheetHandle, { backgroundColor: colors.divider }]}
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#059669" />
+          <Text style={{ marginTop: 12, color: colors.textSecondary }}>Building graph...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.center}>
+          <Text style={{ color: "#EF4444" }}>{error}</Text>
+        </View>
+      ) : (
+        <View style={{ flex: 1 }}>
+          <WebView
+            originWhitelist={["*"]}
+            source={{ html: htmlContent }}
+            style={{ flex: 1, backgroundColor: "transparent" }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            scrollEnabled={false} // Disable RN scroll to allow web zoom/pan
+            bounces={false}
           />
-
-          {/* Course info */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "flex-start",
-              marginBottom: 16,
-            }}
-          >
-            <View
-              style={[
-                styles.sheetCodeBadge,
-                { backgroundColor: colors.primary + "20" },
-              ]}
-            >
-              <Text
-                style={{
-                  fontWeight: "800",
-                  fontSize: 15,
-                  color: colors.primary,
-                }}
-              >
-                {selectedSubject.code}
-              </Text>
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: "700",
-                  color: colors.textPrimary,
-                  lineHeight: 22,
-                }}
-              >
-                {selectedSubject.name}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                  marginTop: 2,
-                }}
-              >
-                {selectedSubject.credits} {"credits"} •{" "}
-                {`Semester ${selectedSubject.semester}`}
-              </Text>
-            </View>
-          </View>
-
-          {/* Status badge */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <View
-              style={[
-                styles.statusDot,
-                {
-                  backgroundColor: statusBorderColor(
-                    getStatus(selectedSubject.code, selectedCode),
-                    isDark,
-                  ),
-                },
-              ]}
-            />
-            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-              {statusLabel(getStatus(selectedSubject.code, selectedCode))}
-            </Text>
-          </View>
-
-          {/* Prerequisites */}
-          <Text
-            style={[styles.sheetSectionLabel, { color: colors.textSecondary }]}
-          >
-            {"Prerequisites"}
-          </Text>
-          {selectedSubject.prerequisite ? (
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                marginBottom: 12,
-              }}
-            >
-              {selectedSubject.prerequisite
-                .split(",")
-                .map((p) => p.trim())
-                .filter(Boolean)
-                .map((p) => (
-                  <View
-                    key={p}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: "#EF4444" + "18",
-                        borderColor: "#EF4444" + "40",
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: "600",
-                        color: "#EF4444",
-                      }}
-                    >
-                      {p}
-                    </Text>
-                  </View>
-                ))}
-            </View>
-          ) : (
-            <Text
-              style={{
-                fontSize: 13,
-                color: colors.textSecondary,
-                marginBottom: 12,
-                fontStyle: "italic",
-              }}
-            >
-              {"No prerequisites"}
-            </Text>
-          )}
-
-          {/* Dependents */}
-          <Text
-            style={[styles.sheetSectionLabel, { color: colors.textSecondary }]}
-          >
-            {"Dependent courses"}
-          </Text>
-          {deps.size > 0 ? (
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                marginBottom: 12,
-              }}
-            >
-              {[...deps].map((d) => (
-                <View
-                  key={d}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: "#10B981" + "18",
-                      borderColor: "#10B981" + "40",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: "#10B981",
-                    }}
-                  >
-                    {d}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text
-              style={{
-                fontSize: 13,
-                color: colors.textSecondary,
-                fontStyle: "italic",
-              }}
-            >
-              {"No dependent courses"}
-            </Text>
-          )}
-
-          <TouchableOpacity
-            style={[styles.closeBtn, { borderColor: colors.divider }]}
-            onPress={closeSheet}
-          >
-            <Text
-              style={{
-                color: colors.textSecondary,
-                fontWeight: "600",
-                fontSize: 14,
-              }}
-            >
-              {"Close"}
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -678,110 +328,23 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-  },
-  backBtn: { padding: 8, marginRight: 12, marginLeft: -8, borderRadius: 20 },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
-  toggleBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  semRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingLeft: 8,
-  },
-  semLabel: {
-    width: SEM_LABEL_WIDTH,
-    height: 48,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 0,
-  },
-  cardsRow: {
-    flexDirection: "row",
-    paddingLeft: 0,
-  },
-  courseCard: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: 14,
-    padding: 10,
-    marginHorizontal: CARD_MARGIN / 2,
-    justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  cardCode: { fontSize: 13, fontWeight: "800", letterSpacing: 0.3 },
-  cardName: { fontSize: 10, lineHeight: 14, flex: 1 },
-  creditBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  sheetCodeBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  sheetSectionLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 8,
-  },
-  chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginRight: 8,
-    marginBottom: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  closeBtn: {
-    marginTop: 16,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.05)",
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    flex: 1,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
   },
 });
