@@ -239,8 +239,8 @@ export default function CurriculumDetailsScreen() {
                         <MaterialCommunityIcons name="book-education-outline" size={32} color={colors.primary} />
                     </View>
                     <View style={styles.heroTitleContainer}>
-                        <Text style={[styles.title, { color: colors.textPrimary }]}>{curriculum.displayName}</Text>
-                        <Text style={[styles.subtitle, { color: colors.primary }]}>{curriculum.englishName || curriculum.curriculumCode}</Text>
+                        <Text style={[styles.title, { color: colors.textPrimary }]}>{curriculum.curriculumCode}</Text>
+                        <Text style={[styles.subtitle, { color: colors.primary }]}>{curriculum.curriculumName || curriculum.curriculumCode}</Text>
                     </View>
                 </View>
 
@@ -719,7 +719,7 @@ export default function CurriculumDetailsScreen() {
                         {curriculum.curriculumCode}
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.textSecondary }} numberOfLines={1}>
-                        {curriculum.englishName || curriculum.displayName}
+                        {curriculum.curriculumName || curriculum.curriculumCode}
                     </Text>
                 </View>
                 <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
