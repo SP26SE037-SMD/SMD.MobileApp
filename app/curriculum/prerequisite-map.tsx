@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, StyleSheet, ScrollView } from "react-native";
+import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, StyleSheet, ScrollView, Modal, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,7 +9,8 @@ import {
   getSemesterMappings,
   getGroupById,
 } from "@/src/services/curriculumService";
-import type { Curriculum, Group, SemesterMapping } from "@/src/types";
+import { getSubjectById } from "@/src/services/subjectService";
+import type { Curriculum, Group, SemesterMapping, Subject } from "@/src/types";
 
 export default function CurriculumGraphScreen() {
   const { curriculumId: id } = useLocalSearchParams<{ curriculumId: string }>();
@@ -22,6 +23,13 @@ export default function CurriculumGraphScreen() {
   const [groupDetails, setGroupDetails] = useState<Record<string, Group>>({});
   const [error, setError] = useState<string | null>(null);
 
+  // Modal states
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalData, setModalData] = useState<Subject | null>(null);
+  const [isModalLoading, setIsModalLoading] = useState(false);
+  const [showConnections, setShowConnections] = useState(false);
+
   const colors = {
     background: isDark ? "#0F172A" : "#F8FAFC",
     card: isDark ? "#1E293B" : "#FFFFFF",
@@ -32,9 +40,6 @@ export default function CurriculumGraphScreen() {
     primaryBg: isDark ? "rgba(16,185,129,0.15)" : "rgba(5,150,105,0.08)",
     divider: isDark ? "#334155" : "#E2E8F0",
     alertText: isDark ? "#FCA5A5" : "#EF4444",
-    alertBg: isDark ? "rgba(239, 68, 68, 0.1)" : "rgba(239, 68, 68, 0.05)",
-    successText: isDark ? "#86EFAC" : "#16A34A",
-    successBg: isDark ? "rgba(34, 197, 94, 0.1)" : "rgba(34, 197, 94, 0.05)",
     electiveBg: isDark ? "rgba(168, 85, 247, 0.15)" : "rgba(219, 234, 254, 0.8)",
     electiveText: isDark ? "#C084FC" : "#2563eb",
     electiveBorder: isDark ? "#8b5cf6" : "#3b82f6",
@@ -90,13 +95,40 @@ export default function CurriculumGraphScreen() {
     fetchData();
   }, [id]);
 
+  const openSubjectModal = async (subjectId: string) => {
+    setSelectedSubjectId(subjectId);
+    setShowConnections(false);
+    setIsModalVisible(true);
+    setIsModalLoading(true);
+    try {
+        const fullSubject = await getSubjectById(subjectId);
+        setModalData(fullSubject);
+    } catch (error) {
+        console.error("Error fetching subject details:", error);
+    } finally {
+        setIsModalLoading(false);
+    }
+  };
+
+  const getUnlocks = (subjectCode: string) => {
+    const unlocks: string[] = [];
+    semesters.forEach(sem => {
+      (sem.subjects || []).forEach(s => {
+        const prereqs = s.prerequisiteSubjectCodes || (s.prerequisiteSubjectCode ? [s.prerequisiteSubjectCode] : []);
+        if (prereqs.includes(subjectCode)) {
+          unlocks.push(s.subjectCode);
+        }
+      });
+    });
+    return [...new Set(unlocks)];
+  };
+
   const renderSubjectCard = (sub: any, isGroup: boolean, groupInfo?: Group) => {
     const isElective = isGroup && groupInfo?.type !== "COMBO";
     const code = isGroup ? (groupInfo?.groupCode || "GROUP") : sub.subjectCode;
     const name = isGroup ? (groupInfo?.groupName || "Group Subject") : sub.subjectName;
     const credits = sub.credit ?? sub.credits ?? 0;
     
-    // Prereqs
     let prereqsText = "No prerequisites";
     if (!isGroup) {
       const p = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
@@ -108,8 +140,8 @@ export default function CurriculumGraphScreen() {
         key={code}
         activeOpacity={0.8}
         onPress={() => {
-            if (!isGroup) {
-                router.push({ pathname: "/subject/[code]", params: { code: sub.subjectCode } } as any);
+            if (!isGroup && sub.subjectId) {
+                openSubjectModal(sub.subjectId);
             }
         }}
         style={[
@@ -151,6 +183,139 @@ export default function CurriculumGraphScreen() {
           </Text>
         </View>
       </TouchableOpacity>
+    );
+  };
+
+  const renderSubjectModal = () => {
+    return (
+      <Modal visible={isModalVisible} transparent animationType="slide" onRequestClose={() => setIsModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setIsModalVisible(false)} />
+          
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Subject Detail</Text>
+              <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {isModalLoading ? (
+              <View style={[styles.center, { paddingVertical: 40 }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ marginTop: 12, color: colors.textSecondary }}>Loading subject details...</Text>
+              </View>
+            ) : modalData ? (
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+                <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.divider }]}>
+                    <Text style={{ fontSize: 14, color: colors.primary, fontWeight: "700", marginBottom: 4 }}>
+                        {modalData.subjectCode}
+                    </Text>
+                    <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>
+                        {modalData.subjectName}
+                    </Text>
+
+                    <View style={styles.infoRow}>
+                        <View style={styles.infoItem}>
+                            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Credits</Text>
+                            <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>{modalData.credits ?? 0}</Text>
+                        </View>
+                        <View style={styles.infoItem}>
+                            <Text style={{ fontSize: 12, color: colors.textSecondary }}>Time Allocation</Text>
+                            <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>{modalData.timeAllocation ?? "N/A"}</Text>
+                        </View>
+                    </View>
+                    
+                    {modalData.description && (
+                        <View style={{ marginTop: 16 }}>
+                            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, marginBottom: 6 }}>Description</Text>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 22 }}>
+                                {modalData.description}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+
+                {showConnections ? (
+                    <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.divider, marginTop: 16 }]}>
+                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 12 }}>Connections</Text>
+                        
+                        <View style={{ marginBottom: 16 }}>
+                            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, marginBottom: 8 }}>Requires (Prerequisites)</Text>
+                            {(() => {
+                                const semSub = semesters.flatMap(s => s.subjects || []).find(s => s.subjectCode === modalData.subjectCode);
+                                const prereqs = semSub?.prerequisiteSubjectCodes || (semSub?.prerequisiteSubjectCode ? [semSub.prerequisiteSubjectCode] : []);
+                                if (prereqs.length > 0) {
+                                    return (
+                                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                            {prereqs.map((p: string) => (
+                                                <View key={p} style={[styles.pill, { backgroundColor: colors.primaryBg }]}>
+                                                    <Text style={{ color: colors.primary, fontWeight: "600" }}>{p}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    );
+                                }
+                                return <Text style={{ fontSize: 14, color: colors.textSecondary }}>None</Text>;
+                            })()}
+                        </View>
+
+                        <View>
+                            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, marginBottom: 8 }}>Unlocks (Required By)</Text>
+                            {(() => {
+                                const unlocks = getUnlocks(modalData.subjectCode);
+                                if (unlocks.length > 0) {
+                                    return (
+                                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                            {unlocks.map((p: string) => (
+                                                <View key={p} style={[styles.pill, { backgroundColor: "rgba(139, 92, 246, 0.15)" }]}>
+                                                    <Text style={{ color: "#8b5cf6", fontWeight: "600" }}>{p}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    );
+                                }
+                                return <Text style={{ fontSize: 14, color: colors.textSecondary }}>None</Text>;
+                            })()}
+                        </View>
+                    </View>
+                ) : null}
+
+              </ScrollView>
+            ) : (
+              <View style={styles.center}>
+                <Text style={{ color: colors.alertText }}>Failed to load subject</Text>
+              </View>
+            )}
+
+            {/* Modal Bottom Actions */}
+            {modalData && (
+                <View style={[styles.modalActions, { borderTopColor: colors.divider }]}>
+                    <TouchableOpacity 
+                        style={[styles.actionBtn, { backgroundColor: colors.primaryBg, flex: 1, marginRight: 8 }]}
+                        onPress={() => setShowConnections(!showConnections)}
+                    >
+                        <Ionicons name="git-network-outline" size={18} color={colors.primary} />
+                        <Text style={{ color: colors.primary, fontWeight: "600", marginLeft: 6 }}>
+                            {showConnections ? "Hide Connections" : "View Connections"}
+                        </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={[styles.actionBtn, { backgroundColor: colors.primary, flex: 1, marginLeft: 8 }]}
+                        onPress={() => {
+                            setIsModalVisible(false);
+                            router.push({ pathname: "/subject/[code]", params: { code: modalData.subjectCode } } as any);
+                        }}
+                    >
+                        <Ionicons name="open-outline" size={18} color="#fff" />
+                        <Text style={{ color: "#fff", fontWeight: "600", marginLeft: 6 }}>View Detail</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     );
   };
 
@@ -229,6 +394,8 @@ export default function CurriculumGraphScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {renderSubjectModal()}
     </SafeAreaView>
   );
 }
@@ -299,5 +466,71 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
     alignSelf: "flex-start",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    paddingBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  modalCard: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
+  },
+  infoItem: {
+    flex: 1,
+  },
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    padding: 16,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+  },
+  actionBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderRadius: 12,
   },
 });
