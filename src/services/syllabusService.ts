@@ -195,3 +195,23 @@ export async function getPublishedSyllabusBySubject(
   }
   throw new Error(data.message || "Failed to fetch published syllabus");
 }
+
+/**
+ * Lấy danh sách blocks theo Material (Phân trang)
+ * GET /api/blocks/material/{materialId}
+ */
+export async function getMaterialBlocksByMaterialId(
+  materialId: string,
+  page: number = 1,
+  size: number = 20,
+): Promise<PaginatedData<MaterialBlock>> {
+  const response = await apiClient.get(`/blocks/material/${materialId}`, {
+    params: { page, size },
+  });
+  
+  const responseData = response.data;
+  if ((responseData.status === 1000 || responseData.status === 0) && responseData.data) {
+    return responseData.data;
+  }
+  throw new Error(responseData.message || "Failed to fetch material blocks");
+}
