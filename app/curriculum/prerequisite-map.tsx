@@ -47,12 +47,12 @@ export default function CurriculumGraphScreen() {
     cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
     textPrimary: isDark ? "#F1F5F9" : "#0F172A",
     textSecondary: isDark ? "#94A3B8" : "#64748B",
-    primary: isDark ? "#10B981" : "#059669",
-    primaryBg: isDark ? "rgba(16,185,129,0.15)" : "rgba(5,150,105,0.08)",
+    primary: isDark ? "#10B981" : "#0F766E",
+    primaryBg: isDark ? "rgba(16,185,129,0.15)" : "rgba(20, 184, 166, 0.1)",
     divider: isDark ? "#334155" : "#E2E8F0",
     alertText: isDark ? "#FCA5A5" : "#EF4444",
-    electiveBg: isDark ? "rgba(168, 85, 247, 0.15)" : "rgba(219, 234, 254, 0.8)",
-    electiveText: isDark ? "#C084FC" : "#2563eb",
+    electiveBg: isDark ? "rgba(168, 85, 247, 0.15)" : "#EEF2FF",
+    electiveText: isDark ? "#C084FC" : "#4338CA",
     electiveBorder: isDark ? "#8b5cf6" : "#3b82f6",
     subjectBorder: isDark ? "#22c55e" : "#22c55e",
     subjectBg: isDark ? "#1E293B" : "#ffffff",
@@ -116,6 +116,14 @@ export default function CurriculumGraphScreen() {
         setModalData(fullSubject);
     } catch (error) {
         console.error("Error fetching subject details:", error);
+        // Fallback to basic subject info from semesters if API fails (e.g. 403 Forbidden)
+        for (const sem of semesters) {
+            const found = (sem.subjects || []).find(s => s.subjectId === subjectId);
+            if (found) {
+                setModalData(found as Subject);
+                break;
+            }
+        }
     } finally {
         setIsModalLoading(false);
     }
@@ -214,7 +222,7 @@ export default function CurriculumGraphScreen() {
           {
             backgroundColor: isElective ? colors.electiveBg : colors.subjectBg,
             borderColor: isElective ? colors.electiveBorder : colors.subjectBorder,
-            shadowColor: isDark ? "#000" : "#000",
+            shadowColor: isDark ? "#000" : "#64748b",
           },
         ]}
       >
@@ -238,14 +246,16 @@ export default function CurriculumGraphScreen() {
         <View style={{ marginTop: 'auto', paddingTop: 6 }}>
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
             <View style={[styles.creditBadge, { backgroundColor: isElective ? "rgba(37, 99, 235, 0.1)" : "rgba(34, 197, 94, 0.1)" }]}>
-              <Text style={{ fontSize: 11, fontWeight: "700", color: isElective ? colors.electiveBorder : colors.subjectBorder }}>
+              <Text style={{ fontSize: 11, fontWeight: "700", color: isElective ? colors.electiveText : colors.primary }}>
                 {credits} Credits
               </Text>
             </View>
           </View>
-          <Text style={{ fontSize: 10, color: colors.textSecondary }} numberOfLines={1}>
-            {isElective && allGroupSubs ? `${allGroupSubs.length} subjects` : prereqsText}
-          </Text>
+          {isElective && allGroupSubs ? (
+            <Text style={{ fontSize: 10, color: colors.textSecondary }} numberOfLines={1}>
+              {allGroupSubs.length} subjects
+            </Text>
+          ) : null}
         </View>
       </TouchableOpacity>
     );
@@ -486,8 +496,8 @@ export default function CurriculumGraphScreen() {
                   >
                     {/* Semester Pill */}
                     <View style={styles.semesterPillContainer}>
-                      <View style={[styles.semesterPill, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-                        <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>
+                      <View style={[styles.semesterPill, { backgroundColor: colors.primary }]}>
+                        <Text style={{ fontWeight: "800", color: "#ffffff", fontSize: 13 }}>
                           Sem {semNum}
                         </Text>
                       </View>
@@ -558,27 +568,27 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   semesterPill: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: 0,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   subjectCard: {
-    width: 135, // Slightly smaller width to fit 2 per row nicely on small phones
-    height: 135,
+    width: 145, 
+    height: 140,
     borderWidth: 2,
-    borderRadius: 12,
-    padding: 10,
-    marginRight: 10,
-    marginBottom: 10, // Margin bottom for wrapping
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    borderRadius: 16,
+    padding: 14,
+    marginRight: 16,
+    marginBottom: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 2,
   },
   electiveBadge: {
