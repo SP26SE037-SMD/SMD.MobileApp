@@ -338,16 +338,19 @@ export default function CurriculumDetailsScreen() {
         <View>
             {semesterMappings.length > 0 ? (
                 semesterMappings
-                    .sort((a, b) => a.semester - b.semester)
-                    .map((semMapping) => (
-                        <View key={`sem-${semMapping.semester}`} style={{ marginBottom: 24 }}>
-                            <View style={[styles.semesterHeader, { backgroundColor: colors.divider }]}>
-                                <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 15 }}>
-                                    {semMapping.semester === 0
-                                        ? "Semester 0 (Prerequisite)"
-                                        : `Semester ${semMapping.semester}`}
-                                </Text>
-                            </View>
+                    .sort((a, b) => (a.semester ?? 0) - (b.semester ?? 0))
+                    .map((semMapping, idx) => {
+                        const semValue = semMapping.semester ?? (semMapping as any).no;
+                        
+                        return (
+                            <View key={`sem-${semValue ?? 'unknown'}-${idx}`} style={{ marginBottom: 24 }}>
+                                <View style={[styles.semesterHeader, { backgroundColor: colors.divider }]}>
+                                    <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: 15 }}>
+                                        {semValue === 0
+                                            ? "Semester 0 (Prerequisite)"
+                                            : `Semester ${semValue ?? idx + 1}`}
+                                    </Text>
+                                </View>
 
                             {(semMapping.subjects || []).map((sub: SemesterSubject, idx: number) => {
                                 const isElective = sub.isElective === true;
@@ -461,7 +464,8 @@ export default function CurriculumDetailsScreen() {
                                 );
                             })}
                         </View>
-                    ))
+                    );
+                })
             ) : (
                 <View style={{ padding: 20, alignItems: "center" }}>
                     <Ionicons name="book-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
