@@ -96,12 +96,29 @@ export default function MaterialDetailScreen() {
         const isHeading2 = item.blockType === "Heading 2" || item.blockType === "H2";
         const isHeading1 = item.blockType === "Heading 1" || item.blockType === "H1";
         
+        let textAlign: "auto" | "left" | "right" | "center" | "justify" = "left";
+        if (item.blockStyle) {
+            if (item.blockStyle.startsWith("{")) {
+                try {
+                    const styleObj = JSON.parse(item.blockStyle);
+                    if (styleObj.align && ["left", "right", "center", "justify"].includes(styleObj.align)) {
+                        textAlign = styleObj.align as any;
+                    }
+                } catch (e) {
+                    // Ignore parse error
+                }
+            } else if (["left", "right", "center", "justify"].includes(item.blockStyle)) {
+                textAlign = item.blockStyle as any;
+            }
+        }
+
         const tagsStyles = {
             body: {
                 color: colors.textPrimary,
                 fontSize: isHeading1 ? 24 : isHeading2 ? 20 : 16,
                 fontWeight: (isHeading1 || isHeading2 ? "bold" : "normal") as "bold" | "normal",
                 fontStyle: (item.blockStyle === "italic" ? "italic" : "normal") as "italic" | "normal",
+                textAlign: textAlign,
             },
             a: {
                 color: colors.primary,
