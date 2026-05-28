@@ -315,7 +315,9 @@ export default function CurriculumDetailsScreen() {
                         ]}
                     >
                         <View style={[styles.ploBadge, { backgroundColor: colors.primaryBg }]}>
-                            <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>{plo.ploName}</Text>
+                            <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>
+                                {plo.ploName || (plo as any).name || (plo as any).ploCode || (plo as any).code || `PLO ${idx + 1}`}
+                            </Text>
                         </View>
                         <Text style={{ color: colors.textPrimary, lineHeight: 22, fontSize: 15 }}>
                             {plo.description}
