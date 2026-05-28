@@ -9,7 +9,8 @@ import {
     TouchableOpacity,
     Modal,
     SafeAreaView,
-    useWindowDimensions
+    useWindowDimensions,
+    ViewToken
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,6 +30,7 @@ export default function MaterialDetailScreen() {
     const [page, setPage] = useState(1); // API seems to be 1-indexed based on our recent changes
     const [hasMore, setHasMore] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [lastVisibleIndex, setLastVisibleIndex] = useState(0);
 
     const [showToc, setShowToc] = useState(false);
 
@@ -55,7 +57,7 @@ export default function MaterialDetailScreen() {
             const data = await getMaterialBlocksByMaterialId(id as string, 1, 20);
             setBlocks(data.content || []);
             setPage(1);
-            setHasMore((data.content || []).length === 20 && data.page < data.totalPages);
+            setHasMore((data.page + 1) < data.totalPages);
         } catch (err) {
             console.error("[MaterialDetail] Failed to fetch initial blocks:", err);
             setError("Failed to load material blocks.");
@@ -73,9 +75,13 @@ export default function MaterialDetailScreen() {
             const data = await getMaterialBlocksByMaterialId(id as string, nextPage, 20);
             
             const newBlocks = data.content || [];
-            setBlocks(prev => [...prev, ...newBlocks]);
+            setBlocks(prev => {
+                const existingIds = new Set(prev.map(b => b.blockId));
+                const uniqueNewBlocks = newBlocks.filter(b => !existingIds.has(b.blockId));
+                return [...prev, ...uniqueNewBlocks];
+            });
             setPage(nextPage);
-            setHasMore(newBlocks.length === 20 && data.page < data.totalPages);
+            setHasMore((data.page + 1) < data.totalPages);
         } catch (err) {
             console.error("[MaterialDetail] Failed to fetch more blocks:", err);
         } finally {
@@ -91,6 +97,23 @@ export default function MaterialDetailScreen() {
             }
         }, 300);
     };
+
+    const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: Array<ViewToken> }) => {
+        if (viewableItems.length > 0) {
+            const lastItem = viewableItems[viewableItems.length - 1];
+            if (lastItem.index !== null) {
+                setLastVisibleIndex(lastItem.index);
+            }
+        }
+    }).current;
+
+    const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 10 }).current;
+
+    useEffect(() => {
+        if (blocks.length > 0 && lastVisibleIndex >= blocks.length - 5) {
+            fetchMoreBlocks();
+        }
+    }, [lastVisibleIndex, blocks.length]);
 
     const renderBlock = ({ item, index }: { item: MaterialBlock, index: number }) => {
         const isHeading2 = item.blockType === "Heading 2" || item.blockType === "H2";
@@ -179,8 +202,8 @@ export default function MaterialDetailScreen() {
                     keyExtractor={(item, index) => item.blockId || index.toString()}
                     renderItem={renderBlock}
                     contentContainerStyle={{ padding: 20 }}
-                    onEndReached={fetchMoreBlocks}
-                    onEndReachedThreshold={0.5}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    viewabilityConfig={viewabilityConfig}
                     onScrollToIndexFailed={(info) => {
                         const wait = new Promise(resolve => setTimeout(resolve, 500));
                         wait.then(() => {
