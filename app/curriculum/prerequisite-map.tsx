@@ -417,7 +417,8 @@ export default function CurriculumGraphScreen() {
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: 20 }}>
-          <View style={{ position: "relative" }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={{ position: "relative", paddingRight: 20, paddingLeft: 16 }}>
               {showGlobalConnections && (
                   <Svg style={StyleSheet.absoluteFill}>
                       {edges.map(e => {
@@ -492,8 +493,7 @@ export default function CurriculumGraphScreen() {
                       </View>
                     </View>
 
-                    {/* Wrapping Subjects */}
-                    <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', paddingRight: 16 }}>
+                    <View style={{ flexDirection: 'row', paddingRight: 16 }}>
                       {independentSubjects.map((sub) => renderSubjectCard(sub, false, undefined, semNum, undefined))}
                       
                       {Array.from(groupMap.entries()).map(([gId, subs]) => {
@@ -505,7 +505,8 @@ export default function CurriculumGraphScreen() {
                   </View>
                 );
               })}
-          </View>
+            </View>
+          </ScrollView>
           <View style={{ height: 60 }} />
         </ScrollView>
       )}
