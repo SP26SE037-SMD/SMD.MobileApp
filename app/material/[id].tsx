@@ -93,8 +93,8 @@ export default function MaterialDetailScreen() {
     };
 
     const renderBlock = ({ item, index }: { item: MaterialBlock, index: number }) => {
-        const isHeading2 = item.blockType === "Heading 2";
-        const isHeading1 = item.blockType === "Heading 1";
+        const isHeading2 = item.blockType === "Heading 2" || item.blockType === "H2";
+        const isHeading1 = item.blockType === "Heading 1" || item.blockType === "H1";
         
         const tagsStyles = {
             body: {
@@ -130,7 +130,7 @@ export default function MaterialDetailScreen() {
 
     const heading2Blocks = blocks
         .map((b, index) => ({ ...b, index }))
-        .filter(b => b.blockType === "Heading 2");
+        .filter(b => b.blockType === "Heading 2" || b.blockType === "H2");
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
