@@ -17,6 +17,7 @@ interface AuthState {
     token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    loginTimestamp?: number;
 
     // Actions
     login: (email: string) => Promise<void>;
@@ -37,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             isAuthenticated: false,
             isLoading: false,
+            loginTimestamp: undefined,
 
             login: async (email: string) => {
                 set({ isLoading: true });
@@ -102,6 +104,7 @@ export const useAuthStore = create<AuthState>()(
                             token,
                             isAuthenticated: true,
                             isLoading: false,
+                            loginTimestamp: Date.now(),
                         });
                     } else {
                         throw new Error(res.message);
@@ -136,6 +139,7 @@ export const useAuthStore = create<AuthState>()(
                     user: null,
                     token: null,
                     isAuthenticated: false,
+                    loginTimestamp: undefined,
                 });
             },
         }),
@@ -150,7 +154,8 @@ export const useAuthStore = create<AuthState>()(
             partialize: (state) => ({ 
                 user: state.user, 
                 token: state.token, 
-                isAuthenticated: state.isAuthenticated 
+                isAuthenticated: state.isAuthenticated,
+                loginTimestamp: state.loginTimestamp
             }),
         }
     )
