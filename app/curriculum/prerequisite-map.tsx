@@ -235,11 +235,11 @@ export default function CurriculumGraphScreen() {
           </Text>
         </View>
 
-        <View style={{ marginTop: 'auto' }}>
+        <View style={{ marginTop: 'auto', paddingTop: 6 }}>
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
             <View style={[styles.creditBadge, { backgroundColor: isElective ? "rgba(37, 99, 235, 0.1)" : "rgba(34, 197, 94, 0.1)" }]}>
               <Text style={{ fontSize: 11, fontWeight: "700", color: isElective ? colors.electiveBorder : colors.subjectBorder }}>
-                {credits} TC
+                {credits} Credits
               </Text>
             </View>
           </View>
@@ -569,8 +569,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   subjectCard: {
-    width: 130, // Slightly smaller width to fit 2 per row nicely on small phones
-    height: 120,
+    width: 135, // Slightly smaller width to fit 2 per row nicely on small phones
+    height: 135,
     borderWidth: 2,
     borderRadius: 12,
     padding: 10,
