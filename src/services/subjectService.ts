@@ -9,6 +9,8 @@ import type {
     Session,
     Subject,
     Syllabus,
+    Clo,
+    SubjectSource,
 } from "@/src/types";
 
 /**
@@ -86,66 +88,42 @@ export async function getDependents(
 }
 
 /**
- * Chi tiết Syllabus
- * GET /api/syllabus/{id}
+ * Lấy danh sách Chuẩn đầu ra môn học (CLOs)
+ * GET /api/clos/subject/{subjectId}
  */
-export async function getSyllabusById(id: string): Promise<Syllabus> {
-    const response = await apiClient.get(`/syllabus/${id}`);
-    const data: ApiResponse<Syllabus> = response.data;
-    if (data.status === 1000 && data.data) {
-        return data.data;
+export async function getClosBySubject(subjectId: string): Promise<Clo[]> {
+    const response = await apiClient.get(`/clos/subject/${subjectId}?page=0&size=30`);
+    const data: ApiResponse<PaginatedData<Clo>> = response.data;
+    if (data.status === 1000 && data.data && data.data.content) {
+        return data.data.content;
     }
-    throw new Error(data.message || "Failed to fetch syllabus");
+    throw new Error(data.message || "Failed to fetch CLOs");
 }
 
 /**
- * Danh sách buổi học của Syllabus
- * GET /api/sessions/syllabus/{id}
+ * Lấy danh sách tài liệu tham khảo môn học (Sources)
+ * GET /api/sources/subject/{subjectId}
  */
-export async function getSessionsBySyllabus(
-    syllabusId: string,
-): Promise<Session[]> {
-    const response = await apiClient.get(`/sessions/syllabus/${syllabusId}`);
-    const data: ApiResponse<Session[]> = response.data;
+export async function getSourcesBySubjectId(subjectId: string): Promise<SubjectSource[]> {
+    const response = await apiClient.get(`/sources/subject/${subjectId}`);
+    const data: ApiResponse<SubjectSource[]> = response.data;
     if (data.status === 1000 && data.data) {
         return data.data;
     }
-    throw new Error(data.message || "Failed to fetch sessions");
+    throw new Error(data.message || "Failed to fetch sources");
 }
 
 /**
- * Danh sách bài đánh giá của Syllabus
- * GET /api/assessments/syllabus/{id}
+ * Lấy danh sách ánh xạ CLO - PLO
+ * GET /api/subjects/{subjectId}/clo-plo-mappings
  */
-export async function getAssessmentsBySyllabus(
-    syllabusId: string,
-): Promise<Assessment[]> {
+export async function getCloPloMappings(subjectId: string): Promise<any[]> {
     const response = await apiClient.get(
-        `/assessments/syllabus/${syllabusId}`,
+        `/subjects/${subjectId}/clo-plo-mappings`,
     );
-    const data: ApiResponse<Assessment[]> = response.data;
+    const data: ApiResponse<any[]> = response.data;
     if (data.status === 1000 && data.data) {
         return data.data;
     }
-    throw new Error(data.message || "Failed to fetch assessments");
-}
-
-/**
- * Tài liệu học tập của Syllabus
- * GET /api/materials/syllabus/{id}
- */
-export async function getMaterialsBySyllabus(
-    syllabusId: string,
-): Promise<Material[]> {
-    const response = await apiClient.get(
-        `/materials/syllabus/${syllabusId}`,
-        {
-            params: { status: "PUBLISHED" },
-        },
-    );
-    const data: ApiResponse<Material[]> = response.data;
-    if (data.status === 1000 && data.data) {
-        return data.data;
-    }
-    throw new Error(data.message || "Failed to fetch materials");
+    throw new Error(data.message || "Failed to fetch CLO-PLO mappings");
 }
