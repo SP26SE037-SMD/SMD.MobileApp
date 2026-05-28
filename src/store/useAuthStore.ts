@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 export interface User {
     id: string;
@@ -140,8 +140,12 @@ export const useAuthStore = create<AuthState>()(
             },
         }),
         {
-            name: "auth-storage", // Tên key trong AsyncStorage
-            storage: createJSONStorage(() => AsyncStorage),
+            name: "auth-storage", // Tên key trong SecureStore
+            storage: createJSONStorage(() => ({
+                getItem: async (name: string) => await SecureStore.getItemAsync(name),
+                setItem: async (name: string, value: string) => await SecureStore.setItemAsync(name, value),
+                removeItem: async (name: string) => await SecureStore.deleteItemAsync(name),
+            })),
             // Không lưu lại isLoading state để tránh bug khi load app
             partialize: (state) => ({ 
                 user: state.user, 
