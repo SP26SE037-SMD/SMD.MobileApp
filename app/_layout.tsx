@@ -4,7 +4,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRootNavigationState, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -21,10 +21,18 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
   const rootNavigationState = useRootNavigationState();
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    // Ensure the root layout is fully mounted before trying to navigate.
-    if (!rootNavigationState?.key) return;
+    // Wait for Zustand to rehydrate from AsyncStorage
+    const unsubHydrate = useAuthStore.persist.onFinishHydration(() => setIsHydrated(true));
+    setIsHydrated(useAuthStore.persist.hasHydrated());
+    return () => unsubHydrate();
+  }, []);
+
+  useEffect(() => {
+    // Ensure the root layout is fully mounted and Zustand has hydrated
+    if (!rootNavigationState?.key || !isHydrated) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
@@ -39,7 +47,7 @@ export default function RootLayout() {
         router.replace("/(tabs)");
       }, 0);
     }
-  }, [isAuthenticated, segments, rootNavigationState?.key, router]);
+  }, [isAuthenticated, segments, rootNavigationState?.key, router, isHydrated]);
 
   return (
     <QueryClientProvider client={queryClient}>
