@@ -109,10 +109,54 @@ export interface Subject {
   subjectName: string;
   credits?: number;
   degreeLevel?: string;
+  timeAllocation?: string;
   description?: string;
+  studentTasks?: string;
+  scoringScale?: number;
+  decisionNo?: string;
+  tool?: string;
+  minToPass?: number;
+  minBloomLevel?: number;
+  theoryPeriods?: number;
+  practicalPeriods?: number;
+  selfStudyPeriods?: number;
+  approvedDate?: string;
   status?: string;
+  preRequisite?: string[];
+  createdAt?: string;
+  department?: {
+    departmentId: string;
+    departmentCode: string;
+    departmentName: string;
+    description: string;
+    createdAt: string;
+  };
   noCredit?: number;
   isActive?: boolean;
+}
+
+// ========================
+// Source & CLO
+// ========================
+export interface SubjectSource {
+  sourceId: string;
+  sourceName: string;
+  type: string;
+  author?: string;
+  publisher?: string;
+  publishedYear?: number;
+  isbn?: string;
+  url?: string;
+}
+
+export interface Clo {
+  cloId: string;
+  cloCode: string;
+  cloName: string;
+  description?: string;
+  bloomLevel: string;
+  status: string;
+  createdAt: string;
 }
 
 // ========================
@@ -163,14 +207,22 @@ export interface Syllabus {
 // ========================
 export interface Session {
   sessionId: string;
+  syllabusId?: string;
   sessionNumber: number;
   sessionTitle: string;
+  content?: string;
+  teachingMethods?: string;
+  duration?: number;
+  sessionTopic?: string;
+  sessionType?: string;
+  createdAt?: string;
+  
+  // legacy/optional fields
   learningTeachingType?: string;
   lo?: string;
   itu?: string;
   studentMaterials?: string;
   studentTasks?: string;
-  syllabusId?: string;
 }
 
 // ========================
@@ -213,4 +265,53 @@ export interface Material {
   uploadedAt?: string;
   status?: string;
   syllabusId?: string;
+}
+
+export interface SyllabusCompareData {
+  removed_concepts: any[];
+  added_concepts: any[];
+  modified_concepts?: any;
+  risk_assessment?: string;
+  risk_reason?: string;
+}
+
+export interface MaterialBlock {
+  blockId: string;
+  idx: number;
+  blockStyle: string;
+  blockType: string;
+  contentText: string;
+}
+
+export interface CloSessionMapping {
+  id: string;
+  cloId: string;
+  cloCode: string;
+  cloName: string;
+  sessionId: string;
+  sessionNumber: number;
+  sessionTitle: string;
+  sessionStatus?: string;
+  syllabusId: string;
+}
+
+export interface SessionMaterialItem {
+  materialId: string;
+  materialName: string;
+}
+
+export interface SessionBlockItem {
+  blockId: string;
+  content: string;
+  idx: number;
+}
+
+export interface SessionMaterialBlockDetail {
+  session: string;
+  sessionNumber: number;
+  sessionTitle: string;
+  teachingMethods?: string;
+  duration?: number;
+  material: SessionMaterialItem[];
+  block: SessionBlockItem[];
 }

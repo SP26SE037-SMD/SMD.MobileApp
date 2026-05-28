@@ -1,16 +1,19 @@
+import { searchSubjects, getClosBySubject, getSourcesBySubjectId } from "@/src/services/subjectService";
 import {
     getAssessmentsBySyllabus,
     getMaterialsBySyllabus,
     getSessionsBySyllabus,
-    searchSubjects,
     getSyllabusById,
-} from "@/src/services/subjectService";
+    getPublishedSyllabusBySubject,
+} from "@/src/services/syllabusService";
 import type {
     Assessment,
     Material,
     Session,
     Subject,
     Syllabus,
+    Clo,
+    SubjectSource,
 } from "@/src/types";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import {
@@ -33,7 +36,9 @@ type TabKey =
     | "general"
     | "materials"
     | "sessions"
-    | "assessments";
+    | "assessments"
+    | "clos"
+    | "sources";
 
 export default function SubjectDetailsScreen() {
     const { code } = useLocalSearchParams<{ code: string }>();
@@ -51,6 +56,8 @@ export default function SubjectDetailsScreen() {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [assessments, setAssessments] = useState<Assessment[]>([]);
     const [materials, setMaterials] = useState<Material[]>([]);
+    const [clos, setClos] = useState<Clo[]>([]);
+    const [sources, setSources] = useState<SubjectSource[]>([]);
 
     const isBookmarked = useWishlistStore((state) =>
         code ? state.isBookmarked(code) : false,
@@ -84,6 +91,7 @@ export default function SubjectDetailsScreen() {
                 const subjectsResult = await searchSubjects({
                     search: code,
                     searchBy: "code",
+                    status: "COMPLETED",
                     page: 0,
                     size: 5,
                 });
@@ -100,17 +108,29 @@ export default function SubjectDetailsScreen() {
                 setSubject(foundSubject);
 
                 // Step 2: Get syllabus for this subject
-                // Try fetching syllabus using subjectId
+                // Try fetching published syllabus using subjectId
                 try {
-                    const syllabusData = await getSyllabusById(foundSubject.subjectId);
-                    setSyllabus(syllabusData);
+                    const publishedList = await getPublishedSyllabusBySubject(foundSubject.subjectId);
+                    const selectedSyllabusId = publishedList[0]?.syllabusId;
+                    
+                    if (!selectedSyllabusId) {
+                        throw new Error("No published syllabus found for this subject.");
+                    }
+
+                    // Avoid calling getSyllabusById because it returns 500 error on backend.
+                    // Instead, keep the basic syllabus info and use syllabusId for fetching other resources.
+                    const syllabusData = publishedList[0];
+                    setSyllabus(syllabusData as any);
 
                     // Step 3: Fetch sessions, assessments, materials in parallel
-                    const syllabusId = syllabusData.syllabusId;
-                    const [sessionsRes, assessmentsRes, materialsRes] = await Promise.allSettled([
+                    const syllabusId = selectedSyllabusId;
+                    const subjectIdForApis = foundSubject.subjectId;
+                    const [sessionsRes, assessmentsRes, materialsRes, closRes, sourcesRes] = await Promise.allSettled([
                         getSessionsBySyllabus(syllabusId),
                         getAssessmentsBySyllabus(syllabusId),
                         getMaterialsBySyllabus(syllabusId),
+                        getClosBySubject(subjectIdForApis),
+                        getSourcesBySubjectId(subjectIdForApis),
                     ]);
 
                     if (sessionsRes.status === "fulfilled") {
@@ -121,6 +141,12 @@ export default function SubjectDetailsScreen() {
                     }
                     if (materialsRes.status === "fulfilled") {
                         setMaterials(materialsRes.value || []);
+                    }
+                    if (closRes.status === "fulfilled") {
+                        setClos(closRes.value || []);
+                    }
+                    if (sourcesRes.status === "fulfilled") {
+                        setSources(sourcesRes.value || []);
                     }
                 } catch (syllabusErr) {
                     console.warn("[SubjectDetail] Syllabus not found, showing subject info only:", syllabusErr);
@@ -201,6 +227,16 @@ export default function SubjectDetailsScreen() {
             icon: "information-circle-outline" as const,
         },
         {
+            key: "sources",
+            label: "Sources",
+            icon: "book-outline" as const,
+        },
+        {
+            key: "clos",
+            label: "CLOs",
+            icon: "list-outline" as const,
+        },
+        {
             key: "materials",
             label: "Materials",
             icon: "library-outline" as const,
@@ -223,240 +259,118 @@ export default function SubjectDetailsScreen() {
 
     // Tab: General Info
     const renderGeneralTab = () => (
-        <View
-            style={[
-                styles.card,
-                {
-                    backgroundColor: colors.card,
-                    borderColor: colors.cardBorder,
-                    ...styles.shadow,
-                },
-            ]}
-        >
-            <View
-                style={{
-                    marginBottom: 16,
-                    paddingBottom: 16,
-                    borderBottomWidth: 1,
-                    borderBottomColor: colors.divider,
-                }}
-            >
-                <Text
-                    style={{
-                        fontSize: 18,
-                        fontWeight: "700",
-                        color: colors.textPrimary,
-                        marginBottom: 8,
-                    }}
-                >
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadow }]}>
+            <View style={{ marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>
                     {"Basic Information"}
                 </Text>
                 <View style={styles.gridRow}>
-                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                        {"Subject Code:"}
-                    </Text>
-                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                        {displayCode}
-                    </Text>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Subject Name"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{displayName}</Text>
                 </View>
-                {syllabus && (
-                    <>
-                        <View style={styles.gridRow}>
-                            <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                {"Syllabus Code:"}
-                            </Text>
-                            <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                                {syllabus.syllabusCode}
-                            </Text>
-                        </View>
-                        {syllabus.degreeLevel && (
-                            <View style={styles.gridRow}>
-                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                    {"Degree Level:"}
-                                </Text>
-                                <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                                    {syllabus.degreeLevel}
-                                </Text>
-                            </View>
-                        )}
-                        {syllabus.timeAllocation && (
-                            <View style={styles.gridRow}>
-                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                    {"Time Allocation:"}
-                                </Text>
-                                <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                                    {syllabus.timeAllocation}
-                                </Text>
-                            </View>
-                        )}
-                        {syllabus.prerequisite && (
-                            <View style={styles.gridRow}>
-                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                    {"Pre-Requisite:"}
-                                </Text>
-                                <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                                    {syllabus.prerequisite}
-                                </Text>
-                            </View>
-                        )}
-                        {syllabus.scoringScale != null && (
-                            <View style={styles.gridRow}>
-                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                    {"Scoring Scale:"}
-                                </Text>
-                                <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                                    {syllabus.scoringScale}
-                                </Text>
-                            </View>
-                        )}
-                        {syllabus.minAvgMarkToPass != null && (
-                            <View style={styles.gridRow}>
-                                <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                    {"Min. Mark to Pass:"}
-                                </Text>
-                                <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                                    {syllabus.minAvgMarkToPass}
-                                </Text>
-                            </View>
-                        )}
-                    </>
-                )}
                 <View style={styles.gridRow}>
-                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                        {"Credits:"}
-                    </Text>
-                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>
-                        {credits}
-                    </Text>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Credits"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{credits}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Time Allocation"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{syllabus?.timeAllocation || subject?.timeAllocation || "N/A"}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Scoring Scale"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{syllabus?.scoringScale ?? subject?.scoringScale ?? "N/A"}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Min to Pass"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{syllabus?.minAvgMarkToPass ?? subject?.minToPass ?? "N/A"}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Pre-Requisite"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{syllabus?.prerequisite || (subject?.preRequisite && subject.preRequisite.length > 0 ? subject.preRequisite.join(", ") : "No pre-requisites")}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>{"Degree Level"}</Text>
+                    <Text style={[styles.gridValue, { color: colors.textPrimary }]}>{syllabus?.degreeLevel || subject.degreeLevel || "N/A"}</Text>
                 </View>
             </View>
 
             {/* Description */}
-            {(syllabus?.description || subject.description) && (
-                <View
-                    style={{
-                        marginBottom: 16,
-                        paddingBottom: 16,
-                        borderBottomWidth: 1,
-                        borderBottomColor: colors.divider,
-                    }}
-                >
-                    <Text
-                        style={{
-                            fontSize: 16,
-                            fontWeight: "700",
-                            color: colors.textPrimary,
-                            marginBottom: 8,
-                        }}
-                    >
-                        {"Description"}
-                    </Text>
-                    <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
-                        {syllabus?.description || subject.description}
-                    </Text>
-                </View>
-            )}
+            <View style={{ marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>{"Description"}</Text>
+                <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>{syllabus?.description || subject.description || "N/A"}</Text>
+            </View>
 
             {/* Student Tasks */}
-            {syllabus?.studentTasks && (
-                <View
-                    style={{
-                        marginBottom: 16,
-                        paddingBottom: 16,
-                        borderBottomWidth: 1,
-                        borderBottomColor: colors.divider,
-                    }}
-                >
-                    <Text
-                        style={{
-                            fontSize: 16,
-                            fontWeight: "700",
-                            color: colors.textPrimary,
-                            marginBottom: 8,
-                        }}
-                    >
-                        {"Student Tasks"}
-                    </Text>
-                    <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
-                        {syllabus.studentTasks}
-                    </Text>
-                </View>
-            )}
+            <View style={{ marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>{"Student Tasks"}</Text>
+                <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>{syllabus?.studentTasks || subject?.studentTasks || "N/A"}</Text>
+            </View>
 
             {/* Tools */}
-            {syllabus?.tools && (
-                <View
-                    style={{
-                        marginBottom: 16,
-                        paddingBottom: 16,
-                        borderBottomWidth: 1,
-                        borderBottomColor: colors.divider,
-                    }}
-                >
-                    <Text
-                        style={{
-                            fontSize: 16,
-                            fontWeight: "700",
-                            color: colors.textPrimary,
-                            marginBottom: 8,
-                        }}
-                    >
-                        {"Tools"}
-                    </Text>
-                    <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
-                        {syllabus.tools}
-                    </Text>
+            <View style={{ marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}>
+                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>{"Tools"}</Text>
+                <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>{syllabus?.tools || subject?.tool || "N/A"}</Text>
+            </View>
+
+            {/* Decision No */}
+            <View>
+                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>{"Decision No"}</Text>
+                <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
+                    {syllabus?.decisionNo || subject?.decisionNo || "N/A"} {(syllabus?.approvedDate || subject?.approvedDate) ? `(Approved: ${syllabus?.approvedDate || subject?.approvedDate})` : "(Approved: N/A)"}
+                </Text>
+            </View>
+        </View>
+    );
+
+    // Tab: CLOs
+    const renderClosTab = () => (
+        <View>
+            {clos.length > 0 ? (
+                clos.map((c, idx) => (
+                    <View key={c.cloId || idx} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadowSmall }]}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                            <Text style={{ fontSize: 16, fontWeight: "700", color: colors.primary, flex: 1, marginRight: 8 }}>{c.cloName}</Text>
+                            <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
+                                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700" }}>{c.bloomLevel || "N/A"}</Text>
+                            </View>
+                        </View>
+                        <Text style={{ color: colors.textSecondary, marginBottom: 8, fontWeight: "600" }}>Code: {c.cloCode}</Text>
+                        {c.description && <Text style={{ color: colors.textPrimary, lineHeight: 20 }}>{c.description}</Text>}
+                    </View>
+                ))
+            ) : (
+                <View style={{ padding: 20, alignItems: "center" }}>
+                    <Ionicons name="list-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
+                    <Text style={{ color: colors.textSecondary, fontStyle: "italic", textAlign: "center" }}>{"No CLOs available."}</Text>
                 </View>
             )}
+        </View>
+    );
 
-            {/* Approval Details */}
-            {syllabus && (
-                <View>
-                    <Text
-                        style={{
-                            fontSize: 16,
-                            fontWeight: "700",
-                            color: colors.textPrimary,
-                            marginBottom: 8,
-                        }}
-                    >
-                        {"Approval Details"}
-                    </Text>
-                    {syllabus.decisionNo && (
-                        <Text style={{ color: colors.textSecondary, marginBottom: 4 }}>
-                            {"Decision No: "}
-                            <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
-                                {syllabus.decisionNo}
-                            </Text>
-                        </Text>
-                    )}
-                    {syllabus.approvedDate && (
-                        <Text style={{ color: colors.textSecondary, marginBottom: 4 }}>
-                            {"Approved Date: "}
-                            <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
-                                {syllabus.approvedDate}
-                            </Text>
-                        </Text>
-                    )}
-                    <Text style={{ color: colors.textSecondary, marginBottom: 4 }}>
-                        {"Status:"}
-                        <Text
-                            style={{
-                                color: (syllabus.isActive || syllabus.status === "PUBLISHED") ? colors.successText : colors.alertText,
-                                fontWeight: "700",
-                            }}
-                        >
-                            {(syllabus.isActive || syllabus.status === "PUBLISHED")
-                                ? " Active"
-                                : " Inactive"}
-                        </Text>
-                    </Text>
-                    {syllabus.note && (
-                        <Text style={{ color: colors.textSecondary }}>
-                            {"Note: "}
-                            <Text style={{ color: colors.textPrimary }}>{syllabus.note}</Text>
-                        </Text>
-                    )}
+    // Tab: Sources
+    const renderSourcesTab = () => (
+        <View>
+            {sources.length > 0 ? (
+                sources.map((s, idx) => (
+                    <View key={s.sourceId || idx} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadowSmall }]}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                            <Text style={{ fontSize: 16, fontWeight: "700", color: colors.primary, flex: 1, marginRight: 8 }}>{s.sourceName}</Text>
+                            {s.type && (
+                                <View style={{ backgroundColor: colors.divider, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
+                                    <Text style={{ color: colors.textPrimary, fontSize: 12 }}>{s.type}</Text>
+                                </View>
+                            )}
+                        </View>
+                        {s.author && <Text style={{ color: colors.textPrimary, marginBottom: 4 }}>Author: <Text style={{ fontWeight: "500" }}>{s.author}</Text></Text>}
+                        {s.publisher && <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>Publisher: {s.publisher}{s.publishedYear ? ` (${s.publishedYear})` : ""}</Text>}
+                        {s.isbn && <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>ISBN: {s.isbn}</Text>}
+                        {s.url && <Text style={{ color: colors.primary, fontSize: 13, textDecorationLine: 'underline' }}>{s.url}</Text>}
+                    </View>
+                ))
+            ) : (
+                <View style={{ padding: 20, alignItems: "center" }}>
+                    <Ionicons name="book-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
+                    <Text style={{ color: colors.textSecondary, fontStyle: "italic", textAlign: "center" }}>{"No sources available."}</Text>
                 </View>
             )}
         </View>
@@ -633,29 +547,92 @@ export default function SubjectDetailsScreen() {
                                     borderRadius: 8,
                                 }}
                             >
-                                {s.learningTeachingType && (
+                                {s.sessionTopic && (
                                     <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
-                                        {"Learning Type: "}
+                                        {"Topic: "}
                                         <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
-                                            {s.learningTeachingType}
+                                            {s.sessionTopic}
                                         </Text>
                                     </Text>
                                 )}
-                                {s.itu && (
+                                {s.sessionType && (
                                     <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
-                                        ITU:{" "}
+                                        {"Type: "}
                                         <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
-                                            {s.itu}
+                                            {s.sessionType}
                                         </Text>
                                     </Text>
                                 )}
-                                {s.lo && (
+                                {s.teachingMethods && (
+                                    <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
+                                        {"Methods: "}
+                                        <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
+                                            {s.teachingMethods}
+                                        </Text>
+                                    </Text>
+                                )}
+                                {s.duration != null && (
                                     <Text style={{ color: colors.textSecondary, marginBottom: 12, fontSize: 13 }}>
-                                        {"Linked LO: "}
+                                        {"Duration: "}
                                         <Text style={{ color: colors.primary, fontWeight: "700" }}>
-                                            {s.lo}
+                                            {s.duration}
                                         </Text>
                                     </Text>
+                                )}
+
+                                {s.content && (
+                                    <View
+                                        style={{
+                                            borderTopWidth: 1,
+                                            borderTopColor: colors.divider,
+                                            paddingTop: 8,
+                                            marginBottom: 8
+                                        }}
+                                    >
+                                        <Text style={{ color: colors.textSecondary, marginBottom: 2, fontSize: 13, fontWeight: "500" }}>
+                                            {"Content:"}
+                                        </Text>
+                                        <Text style={{ color: colors.textPrimary, fontSize: 14 }}>
+                                            {s.content}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {/* Legacy fields fallback just in case */}
+                                {(s.learningTeachingType || s.lo || s.itu) && (
+                                    <View
+                                        style={{
+                                            borderTopWidth: 1,
+                                            borderTopColor: colors.divider,
+                                            paddingTop: 8,
+                                            marginBottom: 8
+                                        }}
+                                    >
+                                        {s.learningTeachingType && (
+                                            <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
+                                                {"Learning Type: "}
+                                                <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
+                                                    {s.learningTeachingType}
+                                                </Text>
+                                            </Text>
+                                        )}
+                                        {s.itu && (
+                                            <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
+                                                ITU:{" "}
+                                                <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
+                                                    {s.itu}
+                                                </Text>
+                                            </Text>
+                                        )}
+                                        {s.lo && (
+                                            <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
+                                                {"Linked LO: "}
+                                                <Text style={{ color: colors.primary, fontWeight: "700" }}>
+                                                    {s.lo}
+                                                </Text>
+                                            </Text>
+                                        )}
+                                    </View>
                                 )}
 
                                 {(s.studentMaterials || s.studentTasks) && (
@@ -846,6 +823,10 @@ export default function SubjectDetailsScreen() {
                 return renderSessionsTab();
             case "assessments":
                 return renderAssessmentsTab();
+            case "clos":
+                return renderClosTab();
+            case "sources":
+                return renderSourcesTab();
             default:
                 return null;
         }
