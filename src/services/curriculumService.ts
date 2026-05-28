@@ -87,3 +87,19 @@ export async function getSemesterMappings(
   }
   throw new Error(data.message || "Failed to fetch semester mappings");
 }
+
+/**
+ * Lấy chi tiết group
+ * GET /api/group/{id}
+ */
+export async function getGroupById(id: string): Promise<import("@/src/types").Group> {
+  const response = await apiClient.get(`/group/${id}`);
+  const data: ApiResponse<import("@/src/types").Group> = response.data;
+  if (data.status === 0 || data.status === 1000) {
+    // Handling status 0 as seen in the API response screenshot
+    if (data.data) {
+        return data.data;
+    }
+  }
+  throw new Error(data.message || "Failed to fetch group detail");
+}

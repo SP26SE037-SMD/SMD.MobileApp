@@ -65,11 +65,6 @@ export default function SubjectDetailsScreen() {
     const [cloSessionMappings, setCloSessionMappings] = useState<CloSessionMapping[]>([]);
     const [cloAssessmentMappings, setCloAssessmentMappings] = useState<CloAssessmentMapping[]>([]);
 
-    const isBookmarked = useWishlistStore((state) =>
-        code ? state.isBookmarked(code) : false,
-    );
-    const toggleBookmark = useWishlistStore((state) => state.toggleBookmark);
-
     const colors = {
         background: isDark ? "#0F172A" : "#F8FAFC",
         card: isDark ? "#1E293B" : "#FFFFFF",
@@ -918,26 +913,6 @@ export default function SubjectDetailsScreen() {
                         {displayName}
                     </Text>
                 </View>
-                <TouchableOpacity
-                    onPress={() => toggleBookmark(displayCode)}
-                    activeOpacity={0.7}
-                    style={{
-                        marginRight: 10,
-                        padding: 6,
-                        borderRadius: 12,
-                        backgroundColor: isBookmarked
-                            ? "rgba(245,158,11,0.15)"
-                            : isDark
-                                ? "rgba(255,255,255,0.06)"
-                                : "rgba(0,0,0,0.04)",
-                    }}
-                >
-                    <Ionicons
-                        name={isBookmarked ? "star" : "star-outline"}
-                        size={20}
-                        color={isBookmarked ? "#F59E0B" : colors.textSecondary}
-                    />
-                </TouchableOpacity>
                 <View
                     style={{
                         backgroundColor: colors.primaryBg,

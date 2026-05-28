@@ -1,5 +1,4 @@
 import { MOCK_CURRICULUMS } from "@/src/constants/mockData";
-import { useWishlistStore } from "@/src/store/useWishlistStore";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -44,11 +43,6 @@ export default function ElectiveGroupScreen() {
   // Tìm curriculum và elective group
   const curriculum = MOCK_CURRICULUMS.find((c) => c.id === curriculumId);
   const electiveGroup = curriculum?.electiveGroups?.find((eg) => eg.id === id);
-
-  const bookmarkedSubjects = useWishlistStore(
-    (state) => state.bookmarkedSubjects,
-  );
-  const toggleBookmark = useWishlistStore((state) => state.toggleBookmark);
 
   if (!electiveGroup) {
     return (
@@ -273,33 +267,6 @@ export default function ElectiveGroupScreen() {
                     {sub.code}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    toggleBookmark(sub.code);
-                  }}
-                  style={{
-                    padding: 6,
-                    borderRadius: 10,
-                    backgroundColor: bookmarkedSubjects.includes(sub.code)
-                      ? "rgba(245,158,11,0.15)"
-                      : "transparent",
-                  }}
-                >
-                  <Ionicons
-                    name={
-                      bookmarkedSubjects.includes(sub.code)
-                        ? "star"
-                        : "star-outline"
-                    }
-                    size={22}
-                    color={
-                      bookmarkedSubjects.includes(sub.code)
-                        ? "#F59E0B"
-                        : colors.textSecondary
-                    }
-                  />
-                </TouchableOpacity>
               </View>
 
               <Text

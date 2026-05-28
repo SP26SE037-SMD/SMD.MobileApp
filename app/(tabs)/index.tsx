@@ -1,6 +1,5 @@
 import { searchSubjects } from "@/src/services/subjectService";
 import { useNotificationStore } from "@/src/store/useNotificationStore";
-import { useWishlistStore } from "@/src/store/useWishlistStore";
 import type { Subject } from "@/src/types";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -66,12 +65,6 @@ export default function DashboardScreen() {
     taskBg: isDark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.08)",
   };
 
-
-
-  const bookmarkedSubjects = useWishlistStore(
-    (state) => state.bookmarkedSubjects,
-  );
-  const toggleBookmark = useWishlistStore((state) => state.toggleBookmark);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   return (
