@@ -395,8 +395,9 @@ export default function SubjectDetailsScreen() {
         <View>
             {materials.length > 0 ? (
                 materials.map((m, idx) => (
-                    <View
+                    <TouchableOpacity
                         key={m.materialId || idx}
+                        onPress={() => router.push({ pathname: '/material/[id]', params: { id: m.materialId, title: m.title || m.description } })}
                         style={[
                             styles.card,
                             {
@@ -489,7 +490,7 @@ export default function SubjectDetailsScreen() {
                                 {"Note: "}{m.note}
                             </Text>
                         ) : null}
-                    </View>
+                    </TouchableOpacity>
                 ))
             ) : (
                 <View style={{ padding: 20, alignItems: "center" }}>
