@@ -18,6 +18,57 @@ import RenderHtml from "react-native-render-html";
 import { getMaterialBlocksByMaterialId } from "@/src/services/syllabusService";
 import type { MaterialBlock } from "@/src/types";
 
+const MaterialBlockItem = React.memo(({ item, width, colors }: { item: MaterialBlock, width: number, colors: any }) => {
+    const isHeading2 = item.blockType === "Heading 2" || item.blockType === "H2";
+    const isHeading1 = item.blockType === "Heading 1" || item.blockType === "H1";
+    
+    let textAlign: "auto" | "left" | "right" | "center" | "justify" = "left";
+    if (item.blockStyle) {
+        if (item.blockStyle.startsWith("{")) {
+            try {
+                const styleObj = JSON.parse(item.blockStyle);
+                if (styleObj.align && ["left", "right", "center", "justify"].includes(styleObj.align)) {
+                    textAlign = styleObj.align as any;
+                }
+            } catch (e) {
+                // Ignore parse error
+            }
+        } else if (["left", "right", "center", "justify"].includes(item.blockStyle)) {
+            textAlign = item.blockStyle as any;
+        }
+    }
+
+    const tagsStyles = React.useMemo(() => ({
+        body: {
+            color: colors.textPrimary,
+            fontSize: isHeading1 ? 24 : isHeading2 ? 20 : 16,
+            fontWeight: (isHeading1 || isHeading2 ? "bold" : "normal") as "bold" | "normal",
+            fontStyle: (item.blockStyle === "italic" ? "italic" : "normal") as "italic" | "normal",
+            textAlign: textAlign,
+        },
+        a: {
+            color: colors.primary,
+            textDecorationLine: "none" as const
+        }
+    }), [colors.textPrimary, colors.primary, isHeading1, isHeading2, item.blockStyle, textAlign]);
+
+    const source = React.useMemo(() => ({ html: item.contentText }), [item.contentText]);
+
+    return (
+        <View style={{ marginBottom: 16 }}>
+            <RenderHtml
+                contentWidth={width - 40}
+                source={source}
+                tagsStyles={tagsStyles}
+            />
+        </View>
+    );
+}, (prevProps, nextProps) => {
+    return prevProps.item.blockId === nextProps.item.blockId && 
+           prevProps.width === nextProps.width &&
+           prevProps.colors.textPrimary === nextProps.colors.textPrimary;
+});
+
 export default function MaterialDetailScreen() {
     const { id, title } = useLocalSearchParams<{ id: string, title?: string }>();
     const colorScheme = useColorScheme();
@@ -115,50 +166,9 @@ export default function MaterialDetailScreen() {
         }
     }, [lastVisibleIndex, blocks.length]);
 
-    const renderBlock = ({ item, index }: { item: MaterialBlock, index: number }) => {
-        const isHeading2 = item.blockType === "Heading 2" || item.blockType === "H2";
-        const isHeading1 = item.blockType === "Heading 1" || item.blockType === "H1";
-        
-        let textAlign: "auto" | "left" | "right" | "center" | "justify" = "left";
-        if (item.blockStyle) {
-            if (item.blockStyle.startsWith("{")) {
-                try {
-                    const styleObj = JSON.parse(item.blockStyle);
-                    if (styleObj.align && ["left", "right", "center", "justify"].includes(styleObj.align)) {
-                        textAlign = styleObj.align as any;
-                    }
-                } catch (e) {
-                    // Ignore parse error
-                }
-            } else if (["left", "right", "center", "justify"].includes(item.blockStyle)) {
-                textAlign = item.blockStyle as any;
-            }
-        }
-
-        const tagsStyles = {
-            body: {
-                color: colors.textPrimary,
-                fontSize: isHeading1 ? 24 : isHeading2 ? 20 : 16,
-                fontWeight: (isHeading1 || isHeading2 ? "bold" : "normal") as "bold" | "normal",
-                fontStyle: (item.blockStyle === "italic" ? "italic" : "normal") as "italic" | "normal",
-                textAlign: textAlign,
-            },
-            a: {
-                color: colors.primary,
-                textDecorationLine: "none" as const
-            }
-        };
-
-        return (
-            <View style={{ marginBottom: 16 }}>
-                <RenderHtml
-                    contentWidth={width - 40}
-                    source={{ html: item.contentText }}
-                    tagsStyles={tagsStyles}
-                />
-            </View>
-        );
-    };
+    const renderBlock = React.useCallback(({ item, index }: { item: MaterialBlock, index: number }) => {
+        return <MaterialBlockItem item={item} width={width} colors={colors} />;
+    }, [width, colors]);
 
     if (isLoading) {
         return (
