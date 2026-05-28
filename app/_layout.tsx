@@ -25,10 +25,25 @@ export default function RootLayout() {
 
   useEffect(() => {
     // Wait for Zustand to rehydrate from AsyncStorage
-    const unsubHydrate = useAuthStore.persist.onFinishHydration(() => setIsHydrated(true));
+    const unsubHydrate = useAuthStore.persist.onFinishHydration(() => {
+        setIsHydrated(true);
+    });
     setIsHydrated(useAuthStore.persist.hasHydrated());
     return () => unsubHydrate();
   }, []);
+
+  useEffect(() => {
+    if (isHydrated) {
+        const store = useAuthStore.getState();
+        if (store.isAuthenticated && store.loginTimestamp) {
+            const fifteenDays = 15 * 24 * 60 * 60 * 1000;
+            if (Date.now() - store.loginTimestamp > fifteenDays) {
+                console.log("[Auth] Session expired (> 15 days). Logging out.");
+                store.logout();
+            }
+        }
+    }
+  }, [isHydrated]);
 
   useEffect(() => {
     // Ensure the root layout is fully mounted and Zustand has hydrated
