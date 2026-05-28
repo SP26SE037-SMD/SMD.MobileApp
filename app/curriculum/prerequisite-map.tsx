@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, Platform, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
-import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
 
 import {
@@ -19,8 +18,8 @@ export default function CurriculumGraphScreen() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
-  const [nodes, setNodes] = useState<any[]>([]);
-  const [edges, setEdges] = useState<any[]>([]);
+  const [semesters, setSemesters] = useState<SemesterMapping[]>([]);
+  const [groupDetails, setGroupDetails] = useState<Record<string, Group>>({});
   const [error, setError] = useState<string | null>(null);
 
   const colors = {
@@ -29,165 +28,61 @@ export default function CurriculumGraphScreen() {
     cardBorder: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
     textPrimary: isDark ? "#F1F5F9" : "#0F172A",
     textSecondary: isDark ? "#94A3B8" : "#64748B",
+    primary: isDark ? "#10B981" : "#059669",
+    primaryBg: isDark ? "rgba(16,185,129,0.15)" : "rgba(5,150,105,0.08)",
+    divider: isDark ? "#334155" : "#E2E8F0",
+    alertText: isDark ? "#FCA5A5" : "#EF4444",
+    alertBg: isDark ? "rgba(239, 68, 68, 0.1)" : "rgba(239, 68, 68, 0.05)",
+    successText: isDark ? "#86EFAC" : "#16A34A",
+    successBg: isDark ? "rgba(34, 197, 94, 0.1)" : "rgba(34, 197, 94, 0.05)",
+    electiveBg: isDark ? "rgba(168, 85, 247, 0.15)" : "rgba(219, 234, 254, 0.8)",
+    electiveText: isDark ? "#C084FC" : "#2563eb",
+    electiveBorder: isDark ? "#8b5cf6" : "#3b82f6",
+    subjectBorder: isDark ? "#22c55e" : "#22c55e",
+    subjectBg: isDark ? "#1E293B" : "#ffffff",
   };
 
   useEffect(() => {
-    if (!id) return;
-
     const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
+      if (!id) return;
       try {
-        const curr = await getCurriculumById(id);
-        setCurriculum(curr);
+        setIsLoading(true);
+        const [currData, semData] = await Promise.all([
+          getCurriculumById(id as string),
+          getSemesterMappings(id as string),
+        ]);
 
-        const semResponse = await getSemesterMappings(id);
-        const semesters = semResponse?.semesterMappings || [];
+        setCurriculum(currData);
 
-        // Collect all group IDs to fetch
+        const sems = semData.semesterMappings || [];
+        sems.sort((a, b) => (a.semester ?? (a as any).semesterNo ?? 0) - (b.semester ?? (b as any).semesterNo ?? 0));
+        setSemesters(sems);
+
+        // Fetch groups
         const groupIds = new Set<string>();
-        semesters.forEach((sem) => {
+        sems.forEach((sem) => {
           (sem.subjects || []).forEach((sub) => {
             const gId = sub.groupId || sub.electiveGroupId;
-            if (gId) groupIds.add(gId);
+            if (gId) {
+              groupIds.add(gId);
+            }
           });
         });
 
-        const groupDetails: Record<string, Group> = {};
         if (groupIds.size > 0) {
           const groupPromises = Array.from(groupIds).map((gId) => getGroupById(gId));
           const groupResults = await Promise.allSettled(groupPromises);
+          const groupMap: Record<string, Group> = {};
           groupResults.forEach((res) => {
-            if (res.status === "fulfilled" && res.value) {
-              groupDetails[res.value.groupId] = res.value;
+            if (res.status === "fulfilled") {
+              groupMap[res.value.groupId] = res.value;
             }
           });
+          setGroupDetails(groupMap);
         }
-
-        // Build Nodes and Edges
-        const newNodes: any[] = [];
-        const newEdges: any[] = [];
-        let yOffset = 50;
-        let maxRowWidth = 800;
-
-        const subjectToGroupMap = new Map<string, string>();
-        semesters.forEach(sem => {
-          (sem.subjects || []).forEach(sub => {
-            const gId = sub.groupId || sub.electiveGroupId;
-            if (gId) subjectToGroupMap.set(sub.subjectCode, gId);
-          });
-        });
-
-        semesters.forEach((sem) => {
-          const semNum = sem.semester ?? (sem as any).semesterNo;
-          const semId = `sem-${semNum}`;
-          const subjects = sem.subjects || [];
-
-          const groupMap = new Map<string, any[]>();
-          const independentSubjects: any[] = [];
-
-          subjects.forEach((sub) => {
-            const gId = sub.groupId || sub.electiveGroupId;
-            if (gId) {
-              if (!groupMap.has(gId)) groupMap.set(gId, []);
-              groupMap.get(gId)?.push(sub);
-            } else {
-              independentSubjects.push(sub);
-            }
-          });
-
-          // Add Semester Pill
-          newNodes.push({
-            id: semId,
-            type: "semesterNode",
-            position: { x: 20, y: yOffset + 30 },
-            data: { label: `Sem ${semNum}` },
-          });
-
-          let currentX = 150;
-
-          // Add Independent Subjects
-          independentSubjects.forEach((sub) => {
-            const prereqs = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
-            newNodes.push({
-              id: sub.subjectCode,
-              type: "customNode",
-              position: { x: currentX, y: yOffset },
-              data: {
-                code: sub.subjectCode,
-                name: sub.subjectName,
-                credits: sub.credit ?? sub.credits ?? 0,
-                prereqs: prereqs.length > 0 ? prereqs.join(", ") : "No prerequisites",
-                isElective: false
-              },
-            });
-            currentX += 220;
-          });
-
-          // Add Groups as SINGLE node
-          groupMap.forEach((subs, gId) => {
-            const groupInfo = groupDetails[gId];
-            const isElective = groupInfo ? groupInfo.type !== "COMBO" : true;
-            
-            // Assume credit from first subject in group
-            const firstSub = subs[0];
-            const credits = firstSub ? (firstSub.credit ?? firstSub.credits ?? 0) : 0;
-            
-            const allPrereqs = new Set<string>();
-            subs.forEach(s => {
-                const ps = s.prerequisiteSubjectCodes || (s.prerequisiteSubjectCode ? [s.prerequisiteSubjectCode] : []);
-                ps.forEach((p: string) => allPrereqs.add(p));
-            });
-            
-            newNodes.push({
-              id: `group-${gId}`,
-              type: "customNode",
-              position: { x: currentX, y: yOffset },
-              data: {
-                code: groupInfo?.groupCode || `GROUP`,
-                name: groupInfo?.groupName || "Group Subject",
-                credits: credits,
-                prereqs: allPrereqs.size > 0 ? Array.from(allPrereqs).join(", ") : "No prerequisites",
-                isElective: isElective
-              },
-            });
-            currentX += 220;
-          });
-
-          // Process Edges
-          subjects.forEach((sub) => {
-            const targetGId = sub.groupId || sub.electiveGroupId;
-            const targetNodeId = targetGId ? `group-${targetGId}` : sub.subjectCode;
-
-            const prereqs = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
-            prereqs.forEach((prereq) => {
-              const sourceGId = subjectToGroupMap.get(prereq);
-              const sourceNodeId = sourceGId ? `group-${sourceGId}` : prereq;
-              
-              const edgeId = `e-${sourceNodeId}-${targetNodeId}`;
-              
-              // avoid duplicate edges between groups
-              if (!newEdges.find(e => e.id === edgeId) && sourceNodeId !== targetNodeId) {
-                newEdges.push({
-                  id: edgeId,
-                  source: sourceNodeId,
-                  target: targetNodeId,
-                  animated: true,
-                  style: { stroke: "#94a3b8", strokeWidth: 2 },
-                  markerEnd: { type: "arrowclosed", color: "#94a3b8" },
-                });
-              }
-            });
-          });
-
-          yOffset += 200;
-        });
-
-        setNodes(newNodes);
-        setEdges(newEdges);
       } catch (err) {
         console.error(err);
-        setError("Failed to load graph data");
+        setError("Failed to load map data");
       } finally {
         setIsLoading(false);
       }
@@ -195,147 +90,69 @@ export default function CurriculumGraphScreen() {
     fetchData();
   }, [id]);
 
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-      <title>React Flow</title>
-      <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-      <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-      <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-      <link rel="stylesheet" href="https://unpkg.com/reactflow@11.11.4/dist/style.css" />
-      <script src="https://unpkg.com/reactflow@11.11.4/dist/umd/index.js"></script>
-      <style>
-        body, html, #root {
-          margin: 0;
-          padding: 0;
-          width: 100vw;
-          height: 100vh;
-          overflow: hidden;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        /* Custom Node Styles */
-        .react-flow__node-customNode {
-           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-           border-radius: 8px;
-        }
-      </style>
-    </head>
-    <body>
-      <div id="root"></div>
-      <script type="text/babel">
-        const { ReactFlow, Controls, Background, MiniMap, ReactFlowProvider, Handle, Position } = window.ReactFlow;
-        const initialNodes = ${JSON.stringify(nodes)};
-        const initialEdges = ${JSON.stringify(edges)};
+  const renderSubjectCard = (sub: any, isGroup: boolean, groupInfo?: Group) => {
+    const isElective = isGroup && groupInfo?.type !== "COMBO";
+    const code = isGroup ? (groupInfo?.groupCode || "GROUP") : sub.subjectCode;
+    const name = isGroup ? (groupInfo?.groupName || "Group Subject") : sub.subjectName;
+    const credits = sub.credit ?? sub.credits ?? 0;
+    
+    // Prereqs
+    let prereqsText = "No prerequisites";
+    if (!isGroup) {
+      const p = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
+      if (p.length > 0) prereqsText = p.join(", ");
+    }
 
-        const CustomNode = ({ data }) => {
-          const isElective = data.isElective;
-          return (
-            <div style={{
-              width: 180,
-              minHeight: 120,
-              backgroundColor: isElective ? "#f0f9ff" : "#ffffff",
-              border: isElective ? "2px solid #3b82f6" : "2px solid #22c55e",
-              borderRadius: 8,
-              padding: 12,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              position: "relative"
-            }}>
-              <Handle type="target" position={Position.Top} style={{ background: '#94a3b8' }} />
-              
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <strong style={{ fontSize: 14, color: "#0f172a" }}>{data.code}</strong>
-                  {isElective && (
-                    <span style={{ fontSize: 9, fontWeight: "bold", color: "#2563eb", backgroundColor: "#dbeafe", padding: "2px 6px", borderRadius: 4 }}>
-                      ELECTIVE
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: 11, color: "#475569", marginBottom: 12, lineHeight: 1.4 }}>
-                  {data.name}
-                </div>
-              </div>
-              
-              <div>
-                <span style={{ fontSize: 11, fontWeight: "bold", color: isElective ? "#3b82f6" : "#22c55e", backgroundColor: isElective ? "#e0f2fe" : "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
-                  {data.credits} TC
-                </span>
-                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 6 }}>
-                  {data.prereqs}
-                </div>
-              </div>
+    return (
+      <TouchableOpacity
+        key={code}
+        activeOpacity={0.8}
+        onPress={() => {
+            if (!isGroup) {
+                router.push({ pathname: "/subject/[code]", params: { code: sub.subjectCode } } as any);
+            }
+        }}
+        style={[
+          styles.subjectCard,
+          {
+            backgroundColor: isElective ? colors.electiveBg : colors.subjectBg,
+            borderColor: isElective ? colors.electiveBorder : colors.subjectBorder,
+            shadowColor: isDark ? "#000" : "#000",
+          },
+        ]}
+      >
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+            <Text style={{ fontWeight: "700", fontSize: 15, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
+              {code}
+            </Text>
+            {isElective && (
+              <View style={[styles.electiveBadge, { backgroundColor: "rgba(37, 99, 235, 0.15)" }]}>
+                <Text style={{ fontSize: 9, fontWeight: "700", color: colors.electiveText }}>ELECTIVE</Text>
+              </View>
+            )}
+          </View>
+          
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 12, lineHeight: 18 }} numberOfLines={2}>
+            {name}
+          </Text>
+        </View>
 
-              <Handle type="source" position={Position.Bottom} style={{ background: '#94a3b8' }} />
-            </div>
-          );
-        };
-
-        const SemesterNode = ({ data }) => {
-          return (
-            <div style={{
-              backgroundColor: "#f8fafc",
-              border: "1px solid #cbd5e1",
-              borderRadius: 20,
-              padding: "6px 16px",
-              fontSize: 12,
-              fontWeight: "bold",
-              color: "#0f172a"
-            }}>
-              {data.label}
-            </div>
-          );
-        };
-
-        const nodeTypes = {
-          customNode: CustomNode,
-          semesterNode: SemesterNode
-        };
-
-        function Flow() {
-          return (
-            <ReactFlow 
-                nodes={initialNodes} 
-                edges={initialEdges} 
-                nodeTypes={nodeTypes}
-                fitView
-                fitViewOptions={{ padding: 0.2 }}
-                minZoom={0.1}
-            >
-              <Background color="#cbd5e1" gap={20} />
-              <Controls />
-              <MiniMap 
-                nodeStrokeColor={(n) => {
-                  if (n.type === 'group') return '#cbd5e1';
-                  return '#3b82f6';
-                }}
-                nodeColor={(n) => {
-                  if (n.type === 'semesterNode') return '#f8fafc';
-                  if (n.data?.isElective) return '#f0f9ff';
-                  return '#fff';
-                }}
-              />
-            </ReactFlow>
-          );
-        }
-
-        const App = () => (
-          <ReactFlowProvider>
-            <Flow />
-          </ReactFlowProvider>
-        );
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-      </script>
-    </body>
-    </html>
-  `;
+        <View style={{ marginTop: 'auto' }}>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+            <View style={[styles.creditBadge, { backgroundColor: isElective ? "rgba(37, 99, 235, 0.1)" : "rgba(34, 197, 94, 0.1)" }]}>
+              <Text style={{ fontSize: 11, fontWeight: "700", color: isElective ? colors.electiveBorder : colors.subjectBorder }}>
+                {credits} TC
+              </Text>
+            </View>
+          </View>
+          <Text style={{ fontSize: 10, color: colors.textSecondary }} numberOfLines={1}>
+            {prereqsText}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -343,32 +160,74 @@ export default function CurriculumGraphScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-          {curriculum ? `${curriculum.curriculumCode} Graph` : "Loading Graph..."}
-        </Text>
+        <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+            Prerequisite Map
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={1}>
+                {curriculum ? curriculum.curriculumCode : "Loading..."}
+            </Text>
+        </View>
       </View>
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#059669" />
-          <Text style={{ marginTop: 12, color: colors.textSecondary }}>Building graph...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ marginTop: 12, color: colors.textSecondary }}>Loading map data...</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
-          <Text style={{ color: "#EF4444" }}>{error}</Text>
+          <Text style={{ color: colors.alertText }}>{error}</Text>
         </View>
       ) : (
-        <View style={{ flex: 1 }}>
-          <WebView
-            originWhitelist={["*"]}
-            source={{ html: htmlContent }}
-            style={{ flex: 1, backgroundColor: "transparent" }}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            scrollEnabled={false} // Disable RN scroll to allow web zoom/pan
-            bounces={false}
-          />
-        </View>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: 20 }}>
+          {semesters.map((sem, idx) => {
+            const semNum = sem.semester ?? (sem as any).semesterNo ?? (idx + 1);
+            const subjects = sem.subjects || [];
+
+            // Group subjects for rendering
+            const groupMap = new Map<string, any[]>();
+            const independentSubjects: any[] = [];
+            subjects.forEach((sub) => {
+              const gId = sub.groupId || sub.electiveGroupId;
+              if (gId) {
+                if (!groupMap.has(gId)) groupMap.set(gId, []);
+                groupMap.get(gId)?.push(sub);
+              } else {
+                independentSubjects.push(sub);
+              }
+            });
+
+            return (
+              <View key={`sem-${semNum}`} style={styles.semesterRow}>
+                {/* Semester Pill */}
+                <View style={styles.semesterPillContainer}>
+                  <View style={[styles.semesterPill, { backgroundColor: colors.card, borderColor: colors.divider }]}>
+                    <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>
+                      Sem {semNum}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Horizontal Subjects */}
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingRight: 20, paddingLeft: 10, paddingBottom: 16 }}
+                >
+                  {independentSubjects.map((sub) => renderSubjectCard(sub, false))}
+                  
+                  {Array.from(groupMap.entries()).map(([gId, subs]) => {
+                    const firstSub = subs[0];
+                    if (!firstSub) return null;
+                    return renderSubjectCard(firstSub, true, groupDetails[gId]);
+                  })}
+                </ScrollView>
+              </View>
+            );
+          })}
+          <View style={{ height: 40 }} />
+        </ScrollView>
       )}
     </SafeAreaView>
   );
@@ -388,13 +247,57 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    flex: 1,
+    fontSize: 16,
+    fontWeight: "700",
   },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  semesterRow: {
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  semesterPillContainer: {
+    width: 80,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingLeft: 16,
+  },
+  semesterPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  subjectCard: {
+    width: 170,
+    height: 130,
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  electiveBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  creditBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: "flex-start",
   },
 });
