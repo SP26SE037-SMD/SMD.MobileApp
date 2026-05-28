@@ -9,6 +9,7 @@ import type {
   SyllabusCompareData,
   MaterialBlock,
   CloSessionMapping,
+  CloAssessmentMapping,
   SessionMaterialBlockDetail,
 } from "@/src/types";
 
@@ -126,20 +127,37 @@ export async function getMaterialBlocks(
 }
 
 /**
- * Lấy danh sách ánh xạ CLO - Session của 1 buổi học
- * GET /api/syllabuses/sessions/{sessionId}/clo-session-mappings
+ * Lấy danh sách ánh xạ CLO - Session của toàn bộ Syllabus
+ * GET /api/clo-session-mappings/syllabus/{syllabusId}
  */
-export async function getCloSessionMappings(
-  sessionId: string,
+export async function getCloSessionMappingsBySyllabus(
+  syllabusId: string,
 ): Promise<CloSessionMapping[]> {
   const response = await apiClient.get(
-    `/syllabuses/sessions/${sessionId}/clo-session-mappings`,
+    `/clo-session-mappings/syllabus/${syllabusId}`,
   );
   const data: ApiResponse<CloSessionMapping[]> = response.data;
-  if (data.status === 1000 && data.data) {
+  if ((data.status === 1000 || data.status === 0) && data.data) {
     return data.data;
   }
   throw new Error(data.message || "Failed to fetch CLO-Session mappings");
+}
+
+/**
+ * Lấy danh sách ánh xạ CLO - Assessment của toàn bộ Syllabus
+ * GET /api/clo-assessment-mappings/syllabus/{syllabusId}
+ */
+export async function getCloAssessmentMappingsBySyllabus(
+  syllabusId: string,
+): Promise<CloAssessmentMapping[]> {
+  const response = await apiClient.get(
+    `/clo-assessment-mappings/syllabus/${syllabusId}`,
+  );
+  const data: ApiResponse<CloAssessmentMapping[]> = response.data;
+  if ((data.status === 1000 || data.status === 0) && data.data) {
+    return data.data;
+  }
+  throw new Error(data.message || "Failed to fetch CLO-Assessment mappings");
 }
 
 /**

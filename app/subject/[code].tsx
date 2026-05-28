@@ -5,6 +5,8 @@ import {
     getSessionsBySyllabus,
     getSyllabusById,
     getPublishedSyllabusBySubject,
+    getCloSessionMappingsBySyllabus,
+    getCloAssessmentMappingsBySyllabus,
 } from "@/src/services/syllabusService";
 import type {
     Assessment,
@@ -14,6 +16,8 @@ import type {
     Syllabus,
     Clo,
     SubjectSource,
+    CloSessionMapping,
+    CloAssessmentMapping,
 } from "@/src/types";
 import { useWishlistStore } from "@/src/store/useWishlistStore";
 import {
@@ -58,6 +62,8 @@ export default function SubjectDetailsScreen() {
     const [materials, setMaterials] = useState<Material[]>([]);
     const [clos, setClos] = useState<Clo[]>([]);
     const [sources, setSources] = useState<SubjectSource[]>([]);
+    const [cloSessionMappings, setCloSessionMappings] = useState<CloSessionMapping[]>([]);
+    const [cloAssessmentMappings, setCloAssessmentMappings] = useState<CloAssessmentMapping[]>([]);
 
     const isBookmarked = useWishlistStore((state) =>
         code ? state.isBookmarked(code) : false,
@@ -125,12 +131,14 @@ export default function SubjectDetailsScreen() {
                     // Step 3: Fetch sessions, assessments, materials in parallel
                     const syllabusId = selectedSyllabusId;
                     const subjectIdForApis = foundSubject.subjectId;
-                    const [sessionsRes, assessmentsRes, materialsRes, closRes, sourcesRes] = await Promise.allSettled([
+                    const [sessionsRes, assessmentsRes, materialsRes, closRes, sourcesRes, cloSessionRes, cloAssessRes] = await Promise.allSettled([
                         getSessionsBySyllabus(syllabusId),
                         getAssessmentsBySyllabus(syllabusId),
                         getMaterialsBySyllabus(syllabusId),
                         getClosBySubject(subjectIdForApis),
                         getSourcesBySubjectId(subjectIdForApis),
+                        getCloSessionMappingsBySyllabus(syllabusId),
+                        getCloAssessmentMappingsBySyllabus(syllabusId),
                     ]);
 
                     if (sessionsRes.status === "fulfilled") {
@@ -147,6 +155,12 @@ export default function SubjectDetailsScreen() {
                     }
                     if (sourcesRes.status === "fulfilled") {
                         setSources(sourcesRes.value || []);
+                    }
+                    if (cloSessionRes.status === "fulfilled") {
+                        setCloSessionMappings(cloSessionRes.value || []);
+                    }
+                    if (cloAssessRes.status === "fulfilled") {
+                        setCloAssessmentMappings(cloAssessRes.value || []);
                     }
                 } catch (syllabusErr) {
                     console.warn("[SubjectDetail] Syllabus not found, showing subject info only:", syllabusErr);
@@ -580,6 +594,18 @@ export default function SubjectDetailsScreen() {
                                     </Text>
                                 )}
 
+                                {(() => {
+                                    const mappedCLOs = cloSessionMappings.filter(m => m.sessionId === s.sessionId).map(m => m.cloCode).join(", ");
+                                    return mappedCLOs ? (
+                                        <Text style={{ color: colors.textSecondary, marginBottom: 12, fontSize: 13 }}>
+                                            {"Mapped CLOs: "}
+                                            <Text style={{ color: colors.primary, fontWeight: "700" }}>
+                                                {mappedCLOs}
+                                            </Text>
+                                        </Text>
+                                    ) : null;
+                                })()}
+
                                 {s.content && (
                                     <View
                                         style={{
@@ -737,16 +763,28 @@ export default function SubjectDetailsScreen() {
                                 borderRadius: 8,
                             }}
                         >
-                            {a.clo && (
-                                <View style={styles.gridRow}>
-                                    <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                        {"Linked CLO:"}
-                                    </Text>
-                                    <Text style={[styles.gridValue, { color: colors.textPrimary, fontWeight: "600" }]}>
-                                        {a.clo}
-                                    </Text>
-                                </View>
-                            )}
+                            {(() => {
+                                const mappedCLOs = cloAssessmentMappings.filter(m => m.assessmentId === a.assessmentId).map(m => m.cloCode).join(", ");
+                                return mappedCLOs ? (
+                                    <View style={styles.gridRow}>
+                                        <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
+                                            {"Mapped CLOs:"}
+                                        </Text>
+                                        <Text style={[styles.gridValue, { color: colors.primary, fontWeight: "700" }]}>
+                                            {mappedCLOs}
+                                        </Text>
+                                    </View>
+                                ) : a.clo ? (
+                                    <View style={styles.gridRow}>
+                                        <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
+                                            {"Linked CLO:"}
+                                        </Text>
+                                        <Text style={[styles.gridValue, { color: colors.textPrimary, fontWeight: "600" }]}>
+                                            {a.clo}
+                                        </Text>
+                                    </View>
+                                ) : null;
+                            })()}
                             {a.completionCriteria && (
                                 <View style={styles.gridRow}>
                                     <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>

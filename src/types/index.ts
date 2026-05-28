@@ -295,6 +295,17 @@ export interface CloSessionMapping {
   syllabusId: string;
 }
 
+export interface CloAssessmentMapping {
+  id: string;
+  cloId: string;
+  cloCode: string;
+  cloName: string;
+  assessmentId: string;
+  assessmentPart?: number;
+  assessmentStatus?: string;
+  syllabusId: string;
+}
+
 export interface SessionMaterialItem {
   materialId: string;
   materialName: string;
