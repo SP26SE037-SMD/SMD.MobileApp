@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, StyleSheet, ScrollView, Modal, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
 
 import {
   getCurriculumById,
@@ -23,12 +24,22 @@ export default function CurriculumGraphScreen() {
   const [groupDetails, setGroupDetails] = useState<Record<string, Group>>({});
   const [error, setError] = useState<string | null>(null);
 
-  // Modal states
+  // Subject Modal states
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalData, setModalData] = useState<Subject | null>(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [showConnections, setShowConnections] = useState(false);
+
+  // Elective Group Modal states
+  const [isGroupModalVisible, setIsGroupModalVisible] = useState(false);
+  const [selectedGroupSubjects, setSelectedGroupSubjects] = useState<any[]>([]);
+  const [selectedGroupName, setSelectedGroupName] = useState("");
+
+  // SVG Connection states
+  const [showGlobalConnections, setShowGlobalConnections] = useState(false);
+  const [semLayouts, setSemLayouts] = useState<Record<number, number>>({});
+  const [cardLayouts, setCardLayouts] = useState<Record<string, { x: number, y: number, w: number, h: number }>>({});
 
   const colors = {
     background: isDark ? "#0F172A" : "#F8FAFC",
@@ -123,7 +134,42 @@ export default function CurriculumGraphScreen() {
     return [...new Set(unlocks)];
   };
 
-  const renderSubjectCard = (sub: any, isGroup: boolean, groupInfo?: Group) => {
+  const getUiIdForSubjectCode = (code: string) => {
+    for (const sem of semesters) {
+       for (const sub of (sem.subjects || [])) {
+          if (sub.subjectCode === code) {
+             const gId = sub.groupId || sub.electiveGroupId;
+             if (gId && groupDetails[gId]) {
+                return groupDetails[gId].groupCode;
+             }
+             return code;
+          }
+       }
+    }
+    return code;
+  };
+
+  const edges = useMemo(() => {
+    const edgeList: { source: string, target: string }[] = [];
+    semesters.forEach(sem => {
+       (sem.subjects || []).forEach(sub => {
+          const prereqs = sub.prerequisiteSubjectCodes || (sub.prerequisiteSubjectCode ? [sub.prerequisiteSubjectCode] : []);
+          const targetUiId = getUiIdForSubjectCode(sub.subjectCode);
+          
+          prereqs.forEach(pCode => {
+             const sourceUiId = getUiIdForSubjectCode(pCode);
+             if (sourceUiId && targetUiId && sourceUiId !== targetUiId) {
+                if (!edgeList.some(e => e.source === sourceUiId && e.target === targetUiId)) {
+                   edgeList.push({ source: sourceUiId, target: targetUiId });
+                }
+             }
+          });
+       });
+    });
+    return edgeList;
+  }, [semesters, groupDetails]);
+
+  const renderSubjectCard = (sub: any, isGroup: boolean, groupInfo?: Group, semNum?: number, allGroupSubs?: any[]) => {
     const isElective = isGroup && groupInfo?.type !== "COMBO";
     const code = isGroup ? (groupInfo?.groupCode || "GROUP") : sub.subjectCode;
     const name = isGroup ? (groupInfo?.groupName || "Group Subject") : sub.subjectName;
@@ -140,8 +186,26 @@ export default function CurriculumGraphScreen() {
         key={code}
         activeOpacity={0.8}
         onPress={() => {
-            if (!isGroup && sub.subjectId) {
+            if (isElective) {
+                setSelectedGroupSubjects(allGroupSubs || []);
+                setSelectedGroupName(name);
+                setIsGroupModalVisible(true);
+            } else if (!isGroup && sub.subjectId) {
                 openSubjectModal(sub.subjectId);
+            }
+        }}
+        onLayout={(e) => {
+            if (semNum !== undefined) {
+                const { x, y, width, height } = e.nativeEvent.layout;
+                setCardLayouts(prev => ({
+                    ...prev,
+                    [code]: {
+                        x: x + 80, // Offset for semester pill container
+                        y: y + (semLayouts[semNum] || 0),
+                        w: width,
+                        h: height
+                    }
+                }));
             }
         }}
         style={[
@@ -179,7 +243,7 @@ export default function CurriculumGraphScreen() {
             </View>
           </View>
           <Text style={{ fontSize: 10, color: colors.textSecondary }} numberOfLines={1}>
-            {prereqsText}
+            {isElective && allGroupSubs ? `${allGroupSubs.length} subjects` : prereqsText}
           </Text>
         </View>
       </TouchableOpacity>
@@ -235,52 +299,6 @@ export default function CurriculumGraphScreen() {
                         </View>
                     )}
                 </View>
-
-                {showConnections ? (
-                    <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.divider, marginTop: 16 }]}>
-                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 12 }}>Connections</Text>
-                        
-                        <View style={{ marginBottom: 16 }}>
-                            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, marginBottom: 8 }}>Requires (Prerequisites)</Text>
-                            {(() => {
-                                const semSub = semesters.flatMap(s => s.subjects || []).find(s => s.subjectCode === modalData.subjectCode);
-                                const prereqs = semSub?.prerequisiteSubjectCodes || (semSub?.prerequisiteSubjectCode ? [semSub.prerequisiteSubjectCode] : []);
-                                if (prereqs.length > 0) {
-                                    return (
-                                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                                            {prereqs.map((p: string) => (
-                                                <View key={p} style={[styles.pill, { backgroundColor: colors.primaryBg }]}>
-                                                    <Text style={{ color: colors.primary, fontWeight: "600" }}>{p}</Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    );
-                                }
-                                return <Text style={{ fontSize: 14, color: colors.textSecondary }}>None</Text>;
-                            })()}
-                        </View>
-
-                        <View>
-                            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, marginBottom: 8 }}>Unlocks (Required By)</Text>
-                            {(() => {
-                                const unlocks = getUnlocks(modalData.subjectCode);
-                                if (unlocks.length > 0) {
-                                    return (
-                                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                                            {unlocks.map((p: string) => (
-                                                <View key={p} style={[styles.pill, { backgroundColor: "rgba(139, 92, 246, 0.15)" }]}>
-                                                    <Text style={{ color: "#8b5cf6", fontWeight: "600" }}>{p}</Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    );
-                                }
-                                return <Text style={{ fontSize: 14, color: colors.textSecondary }}>None</Text>;
-                            })()}
-                        </View>
-                    </View>
-                ) : null}
-
               </ScrollView>
             ) : (
               <View style={styles.center}>
@@ -288,31 +306,74 @@ export default function CurriculumGraphScreen() {
               </View>
             )}
 
-            {/* Modal Bottom Actions */}
             {modalData && (
                 <View style={[styles.modalActions, { borderTopColor: colors.divider }]}>
                     <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: colors.primaryBg, flex: 1, marginRight: 8 }]}
-                        onPress={() => setShowConnections(!showConnections)}
-                    >
-                        <Ionicons name="git-network-outline" size={18} color={colors.primary} />
-                        <Text style={{ color: colors.primary, fontWeight: "600", marginLeft: 6 }}>
-                            {showConnections ? "Hide Connections" : "View Connections"}
-                        </Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: colors.primary, flex: 1, marginLeft: 8 }]}
+                        style={[styles.actionBtn, { backgroundColor: colors.primary, flex: 1 }]}
                         onPress={() => {
                             setIsModalVisible(false);
                             router.push({ pathname: "/subject/[code]", params: { code: modalData.subjectCode } } as any);
                         }}
                     >
                         <Ionicons name="open-outline" size={18} color="#fff" />
-                        <Text style={{ color: "#fff", fontWeight: "600", marginLeft: 6 }}>View Detail</Text>
+                        <Text style={{ color: "#fff", fontWeight: "600", marginLeft: 6 }}>View Full Detail</Text>
                     </TouchableOpacity>
                 </View>
             )}
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  const renderGroupModal = () => {
+    return (
+      <Modal visible={isGroupModalVisible} transparent animationType="slide" onRequestClose={() => setIsGroupModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setIsGroupModalVisible(false)} />
+          
+          <View style={[styles.modalContent, { backgroundColor: colors.background, height: "65%" }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Elective Group</Text>
+                <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>{selectedGroupName}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsGroupModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+                {selectedGroupSubjects.map((sub, index) => (
+                    <TouchableOpacity
+                        key={sub.subjectCode || index}
+                        style={[styles.groupSubjectItem, { backgroundColor: colors.card, borderColor: colors.divider }]}
+                        onPress={() => {
+                            // Close group modal and open subject modal
+                            setIsGroupModalVisible(false);
+                            setTimeout(() => {
+                                if (sub.subjectId) openSubjectModal(sub.subjectId);
+                            }, 300);
+                        }}
+                    >
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 }}>
+                                    {sub.subjectCode}
+                                </Text>
+                                <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                                    {sub.subjectName}
+                                </Text>
+                            </View>
+                            <View style={[styles.creditBadge, { backgroundColor: colors.primaryBg, alignSelf: "center", paddingVertical: 4, paddingHorizontal: 10 }]}>
+                                <Text style={{ fontSize: 12, fontWeight: "700", color: colors.primary }}>
+                                    {sub.credit ?? sub.credits ?? 0} TC
+                                </Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -333,6 +394,15 @@ export default function CurriculumGraphScreen() {
                 {curriculum ? curriculum.curriculumCode : "Loading..."}
             </Text>
         </View>
+        <TouchableOpacity 
+            style={[styles.headerToggle, { backgroundColor: showGlobalConnections ? colors.primary : colors.card, borderColor: showGlobalConnections ? colors.primary : colors.divider }]}
+            onPress={() => setShowGlobalConnections(!showGlobalConnections)}
+        >
+            <Ionicons name="git-network-outline" size={16} color={showGlobalConnections ? "#fff" : colors.textPrimary} />
+            <Text style={{ color: showGlobalConnections ? "#fff" : colors.textPrimary, fontSize: 12, fontWeight: "600", marginLeft: 6 }}>
+                Links
+            </Text>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -346,56 +416,97 @@ export default function CurriculumGraphScreen() {
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingVertical: 20 }}>
-          {semesters.map((sem, idx) => {
-            const semNum = sem.semester ?? (sem as any).semesterNo ?? (idx + 1);
-            const subjects = sem.subjects || [];
+          <View style={{ position: "relative" }}>
+              {showGlobalConnections && (
+                  <Svg style={StyleSheet.absoluteFill}>
+                      {edges.map(e => {
+                          const sL = cardLayouts[e.source];
+                          const tL = cardLayouts[e.target];
+                          if (!sL || !tL) return null;
+                          
+                          // Source is typically above or left of target
+                          const startX = sL.x + (sL.w / 2);
+                          const startY = sL.y + sL.h;
+                          const endX = tL.x + (tL.w / 2);
+                          const endY = tL.y;
+                          
+                          // Bezier curve points
+                          const cpX1 = startX;
+                          const cpY1 = startY + 40;
+                          const cpX2 = endX;
+                          const cpY2 = endY - 40;
+                          
+                          const path = `M ${startX} ${startY} C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${endX} ${endY}`;
+                          
+                          return (
+                              <Path 
+                                  key={`${e.source}-${e.target}`} 
+                                  d={path} 
+                                  stroke={colors.primary} 
+                                  strokeWidth={2.5} 
+                                  fill="none" 
+                                  opacity={0.6}
+                                  strokeDasharray="4, 4"
+                              />
+                          );
+                      })}
+                  </Svg>
+              )}
 
-            // Group subjects for rendering
-            const groupMap = new Map<string, any[]>();
-            const independentSubjects: any[] = [];
-            subjects.forEach((sub) => {
-              const gId = sub.groupId || sub.electiveGroupId;
-              if (gId) {
-                if (!groupMap.has(gId)) groupMap.set(gId, []);
-                groupMap.get(gId)?.push(sub);
-              } else {
-                independentSubjects.push(sub);
-              }
-            });
+              {semesters.map((sem, idx) => {
+                const semNum = sem.semester ?? (sem as any).semesterNo ?? (idx + 1);
+                const subjects = sem.subjects || [];
 
-            return (
-              <View key={`sem-${semNum}`} style={styles.semesterRow}>
-                {/* Semester Pill */}
-                <View style={styles.semesterPillContainer}>
-                  <View style={[styles.semesterPill, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-                    <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>
-                      Sem {semNum}
-                    </Text>
+                // Group subjects for rendering
+                const groupMap = new Map<string, any[]>();
+                const independentSubjects: any[] = [];
+                subjects.forEach((sub) => {
+                  const gId = sub.groupId || sub.electiveGroupId;
+                  if (gId) {
+                    if (!groupMap.has(gId)) groupMap.set(gId, []);
+                    groupMap.get(gId)?.push(sub);
+                  } else {
+                    independentSubjects.push(sub);
+                  }
+                });
+
+                return (
+                  <View 
+                      key={`sem-${semNum}`} 
+                      style={styles.semesterRow}
+                      onLayout={(e) => {
+                          setSemLayouts(prev => ({ ...prev, [semNum]: e.nativeEvent.layout.y }));
+                      }}
+                  >
+                    {/* Semester Pill */}
+                    <View style={styles.semesterPillContainer}>
+                      <View style={[styles.semesterPill, { backgroundColor: colors.card, borderColor: colors.divider }]}>
+                        <Text style={{ fontWeight: "700", color: colors.primary, fontSize: 13 }}>
+                          Sem {semNum}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Wrapping Subjects */}
+                    <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', paddingRight: 16 }}>
+                      {independentSubjects.map((sub) => renderSubjectCard(sub, false, undefined, semNum, undefined))}
+                      
+                      {Array.from(groupMap.entries()).map(([gId, subs]) => {
+                        const firstSub = subs[0];
+                        if (!firstSub) return null;
+                        return renderSubjectCard(firstSub, true, groupDetails[gId], semNum, subs);
+                      })}
+                    </View>
                   </View>
-                </View>
-
-                {/* Horizontal Subjects */}
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingRight: 20, paddingLeft: 10, paddingBottom: 16 }}
-                >
-                  {independentSubjects.map((sub) => renderSubjectCard(sub, false))}
-                  
-                  {Array.from(groupMap.entries()).map(([gId, subs]) => {
-                    const firstSub = subs[0];
-                    if (!firstSub) return null;
-                    return renderSubjectCard(firstSub, true, groupDetails[gId]);
-                  })}
-                </ScrollView>
-              </View>
-            );
-          })}
-          <View style={{ height: 40 }} />
+                );
+              })}
+          </View>
+          <View style={{ height: 60 }} />
         </ScrollView>
       )}
 
       {renderSubjectModal()}
+      {renderGroupModal()}
     </SafeAreaView>
   );
 }
@@ -417,21 +528,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  headerToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   semesterRow: {
-    marginBottom: 16,
+    marginBottom: 24,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start", // changed to flex-start for wrap support
   },
   semesterPillContainer: {
     width: 80,
     alignItems: "center",
-    justifyContent: "center",
-    paddingLeft: 16,
+    paddingTop: 12,
   },
   semesterPill: {
     paddingHorizontal: 12,
@@ -445,12 +563,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   subjectCard: {
-    width: 170,
-    height: 130,
+    width: 130, // Slightly smaller width to fit 2 per row nicely on small phones
+    height: 120,
     borderWidth: 2,
     borderRadius: 12,
-    padding: 12,
-    marginHorizontal: 6,
+    padding: 10,
+    marginRight: 10,
+    marginBottom: 10, // Margin bottom for wrapping
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -515,11 +634,6 @@ const styles = StyleSheet.create({
   infoItem: {
     flex: 1,
   },
-  pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
   modalActions: {
     flexDirection: "row",
     padding: 16,
@@ -533,4 +647,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
   },
+  groupSubjectItem: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+  }
 });
