@@ -2,7 +2,7 @@ import { searchCurriculums } from "@/src/services/curriculumService";
 import type { Curriculum } from "@/src/types";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -14,6 +14,8 @@ import {
     TouchableOpacity,
     useColorScheme,
     View,
+    Animated,
+    Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -23,9 +25,21 @@ export default function SearchCurriculumScreen() {
     const isDark = colorScheme === "dark";
     
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchBy, setSearchBy] = useState<"code" | "name" | "all">("all");
+    const [searchBy, setSearchBy] = useState<"code" | "name">("code");
     const [results, setResults] = useState<Curriculum[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const windowWidth = Dimensions.get('window').width;
+    const tabWidth = (windowWidth - 40) / 2;
+    const slideAnim = useRef(new Animated.Value(0)).current; // Default is "code"
+
+    useEffect(() => {
+        Animated.timing(slideAnim, {
+            toValue: searchBy === "name" ? 1 : 0,
+            duration: 250,
+            useNativeDriver: true,
+        }).start();
+    }, [searchBy]);
     
     // Pagination state
     const [page, setPage] = useState(0);
@@ -191,9 +205,27 @@ export default function SearchCurriculumScreen() {
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
                 
                 <View style={{ backgroundColor: colors.card, borderBottomColor: colors.border, borderBottomWidth: 1, paddingHorizontal: 20, paddingVertical: 16 }}>
-                    {/* Toggle searchBy */}
-                    <View style={{ flexDirection: "row", borderRadius: 8, padding: 4, marginBottom: 16, backgroundColor: colors.toggleBg }}>
-                        {(["code", "name", "all"] as const).map((type) => (
+                    {/* Underline Tabs */}
+                    <View style={{ flexDirection: "row", marginBottom: 20, borderBottomWidth: 1, borderBottomColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+                        {/* Sliding Indicator */}
+                        <Animated.View
+                           style={{
+                               position: "absolute",
+                               bottom: -1,
+                               left: 0,
+                               width: tabWidth,
+                               height: 2,
+                               backgroundColor: colors.primary,
+                               transform: [{
+                                   translateX: slideAnim.interpolate({
+                                       inputRange: [0, 1],
+                                       outputRange: [0, tabWidth]
+                                   })
+                               }]
+                           }}
+                        />
+
+                        {(["code", "name"] as const).map((type) => (
                             <TouchableOpacity
                                 key={type}
                                 style={{
@@ -201,20 +233,21 @@ export default function SearchCurriculumScreen() {
                                     flexDirection: "row",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    paddingVertical: 8,
-                                    borderRadius: 6,
-                                    backgroundColor: searchBy === type ? colors.toggleActiveBg : "transparent",
+                                    paddingVertical: 12,
+                                    borderBottomWidth: 2,
+                                    borderBottomColor: "transparent",
+                                    marginBottom: -1,
                                 }}
                                 onPress={() => setSearchBy(type)}
                                 activeOpacity={0.8}
                             >
                                 <Ionicons 
-                                    name={type === "code" ? "code-slash-outline" : type === "name" ? "text-outline" : "options-outline"} 
+                                    name={type === "code" ? "code-slash-outline" : "text-outline"} 
                                     size={14} 
-                                    color={searchBy === type ? "#FFFFFF" : colors.textSecondary} 
+                                    color={searchBy === type ? colors.primary : colors.textSecondary} 
                                     style={{ marginRight: 5 }} 
                                 />
-                                <Text style={{ fontSize: 13, fontWeight: "600", color: searchBy === type ? "#FFFFFF" : colors.textSecondary, textTransform: "capitalize" }}>
+                                <Text style={{ fontSize: 13, fontWeight: "600", color: searchBy === type ? colors.primary : colors.textSecondary, textTransform: "capitalize" }}>
                                     {type}
                                 </Text>
                             </TouchableOpacity>
