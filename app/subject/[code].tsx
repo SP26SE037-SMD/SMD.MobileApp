@@ -749,10 +749,13 @@ export default function SubjectDetailsScreen() {
                                         paddingHorizontal: 8,
                                         paddingVertical: 4,
                                         borderRadius: 6,
+                                        flexDirection: "row",
+                                        alignItems: "center"
                                     }}
                                 >
+                                    <Ionicons name="time-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
                                     <Text style={{ fontWeight: "600", color: colors.textPrimary, fontSize: 12 }}>
-                                        {a.duration}
+                                        {a.duration} mins
                                     </Text>
                                 </View>
                             )}
@@ -767,25 +770,17 @@ export default function SubjectDetailsScreen() {
                         >
                             {(() => {
                                 const mappedCLOs = cloAssessmentMappings.filter(m => m.assessmentId === a.assessmentId).map(m => m.cloCode).join(", ");
-                                return mappedCLOs ? (
+                                const displayCLOs = mappedCLOs || a.clo || "None";
+                                return (
                                     <View style={styles.gridRow}>
                                         <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
                                             {"Mapped CLOs:"}
                                         </Text>
-                                        <Text style={[styles.gridValue, { color: colors.primary, fontWeight: "700" }]}>
-                                            {mappedCLOs}
+                                        <Text style={[styles.gridValue, { color: mappedCLOs || a.clo ? colors.primary : colors.textSecondary, fontWeight: mappedCLOs || a.clo ? "700" : "500" }]}>
+                                            {displayCLOs}
                                         </Text>
                                     </View>
-                                ) : a.clo ? (
-                                    <View style={styles.gridRow}>
-                                        <Text style={[styles.gridLabel, { color: colors.textSecondary }]}>
-                                            {"Linked CLO:"}
-                                        </Text>
-                                        <Text style={[styles.gridValue, { color: colors.textPrimary, fontWeight: "600" }]}>
-                                            {a.clo}
-                                        </Text>
-                                    </View>
-                                ) : null;
+                                );
                             })()}
                             {a.completionCriteria && (
                                 <View style={styles.gridRow}>
