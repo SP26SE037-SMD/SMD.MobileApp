@@ -337,19 +337,37 @@ export default function SubjectDetailsScreen() {
             {clos.length > 0 ? (
                 clos.map((c, idx) => (
                     <View key={c.cloId || idx} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadowSmall }]}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-                            <Text style={{ fontSize: 16, fontWeight: "700", color: colors.primary, flex: 1, marginRight: 8 }}>{c.cloName}</Text>
-                            <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
-                                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700" }}>{c.bloomLevel || "N/A"}</Text>
+                        {/* Header Row: CLO Code & Bloom Level */}
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: colors.primary, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}>
+                                <Ionicons name="bulb" size={14} color="#FFF" style={{ marginRight: 6 }} />
+                                <Text style={{ fontSize: 14, fontWeight: "700", color: "#FFF", textTransform: "uppercase" }}>{c.cloCode || `CLO ${idx + 1}`}</Text>
+                            </View>
+                            
+                            <View style={{ backgroundColor: colors.primaryBg, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, flexDirection: "row", alignItems: "center" }}>
+                                <Ionicons name="bar-chart" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700" }}>Level {c.bloomLevel || "N/A"}</Text>
                             </View>
                         </View>
-                        <Text style={{ color: colors.textSecondary, marginBottom: 8, fontWeight: "600" }}>Code: {c.cloCode}</Text>
-                        {c.description && <Text style={{ color: colors.textPrimary, lineHeight: 20 }}>{c.description}</Text>}
+                        
+                        {/* Optional CLO Name */}
+                        {c.cloName ? (
+                            <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>{c.cloName}</Text>
+                        ) : null}
+
+                        {/* Description */}
+                        {c.description ? (
+                            <View style={{ backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#F8FAFC", padding: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.divider }}>
+                                <Text style={{ color: colors.textPrimary, lineHeight: 22, fontSize: 14 }}>{c.description}</Text>
+                            </View>
+                        ) : (
+                            <Text style={{ color: colors.textSecondary, fontStyle: "italic", fontSize: 14 }}>No description provided.</Text>
+                        )}
                     </View>
                 ))
             ) : (
                 <View style={{ padding: 20, alignItems: "center" }}>
-                    <Ionicons name="list-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
+                    <Ionicons name="bulb-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5, marginBottom: 12 }} />
                     <Text style={{ color: colors.textSecondary, fontStyle: "italic", textAlign: "center" }}>{"No CLOs available."}</Text>
                 </View>
             )}
