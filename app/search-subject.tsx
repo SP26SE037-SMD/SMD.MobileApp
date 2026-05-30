@@ -134,10 +134,10 @@ export default function SearchSubjectScreen() {
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
         <View style={{ flex: 1, paddingRight: 16 }}>
-          <Text style={[styles.itemCode, { color: colors.primary }]}>{item.subjectCode}</Text>
           <Text style={[styles.itemName, { color: colors.textPrimary }]} numberOfLines={2}>
             {item.subjectName}
           </Text>
+          <Text style={[styles.itemCode, { color: colors.primary }]}>{item.subjectCode}</Text>
         </View>
         {item.credits != null && (
           <View style={[styles.creditsBadge, { backgroundColor: colors.primaryBg }]}>
@@ -352,8 +352,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
-  itemCode: { fontSize: 16, fontWeight: "700", marginBottom: 4 },
-  itemName: { fontSize: 15, fontWeight: "500", lineHeight: 22, height: 44 },
+  itemName: { fontSize: 16, fontWeight: "600", marginBottom: 6, lineHeight: 22 },
+  itemCode: { fontSize: 14, fontWeight: "500" },
   creditsBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
