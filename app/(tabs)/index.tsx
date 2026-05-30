@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     FlatList,
+    Image,
     Modal,
     ScrollView,
     Text,
@@ -219,13 +220,21 @@ export default function DashboardScreen() {
                 width: 56,
                 height: 56,
                 borderRadius: 16,
-                backgroundColor: "rgba(255,255,255,0.2)",
+                backgroundColor: "transparent",
                 alignItems: "center",
                 justifyContent: "center",
                 marginRight: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 5,
               }}
             >
-              <MaterialIcons name="school" size={28} color="white" />
+              <Image 
+                source={require("@/assets/images/logo/logo-without-name.png")}
+                style={{ width: "100%", height: "100%", borderRadius: 16, resizeMode: "contain" }}
+              />
             </View>
 
             <View style={{ flex: 1 }}>

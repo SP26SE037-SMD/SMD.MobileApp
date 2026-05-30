@@ -9,6 +9,7 @@ import {
     ScrollView,
     useColorScheme,
     ActivityIndicator,
+    Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -171,15 +172,29 @@ export default function SignUpScreen() {
                     <View style={{ alignItems: "center", marginBottom: 28 }}>
                         <View
                             style={{
-                                backgroundColor: isDark
-                                    ? "rgba(16,185,129,0.15)"
-                                    : "rgba(5,150,105,0.1)",
-                                padding: 14,
-                                borderRadius: 16,
+                                width: 96,
+                                height: 96,
+                                borderRadius: 24,
+                                backgroundColor: isDark ? "#FFFFFF" : "transparent",
                                 marginBottom: 16,
+                                shadowColor: colors.primary,
+                                shadowOffset: { width: 0, height: 8 },
+                                shadowOpacity: isDark ? 0.2 : 0.15,
+                                shadowRadius: 16,
+                                elevation: 10,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: 8,
                             }}
                         >
-                            <MaterialIcons name="school" size={36} color={colors.primary} />
+                            <Image
+                                source={require("@/assets/images/logo/logo-without-name.png")}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    resizeMode: "contain"
+                                }}
+                            />
                         </View>
                         <Text
                             style={{
