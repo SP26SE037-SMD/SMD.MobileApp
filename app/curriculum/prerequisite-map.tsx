@@ -227,19 +227,19 @@ export default function CurriculumGraphScreen() {
         ]}
       >
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-            <Text style={{ fontWeight: "700", fontSize: 15, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
-              {code}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+            <Text style={{ fontWeight: "700", fontSize: 14, color: colors.textPrimary, flex: 1, paddingRight: 4, lineHeight: 18 }} numberOfLines={2}>
+              {name}
             </Text>
             {isElective && (
-              <View style={[styles.electiveBadge, { backgroundColor: "rgba(37, 99, 235, 0.15)" }]}>
+              <View style={[styles.electiveBadge, { backgroundColor: "rgba(37, 99, 235, 0.15)", marginLeft: 4 }]}>
                 <Text style={{ fontSize: 9, fontWeight: "700", color: colors.electiveText }}>ELECTIVE</Text>
               </View>
             )}
           </View>
           
-          <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 12, lineHeight: 18 }} numberOfLines={2}>
-            {name}
+          <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 8, fontWeight: "500" }} numberOfLines={1}>
+            {code}
           </Text>
         </View>
 
@@ -465,7 +465,7 @@ export default function CurriculumGraphScreen() {
                                       stroke={colors.primary} 
                                       strokeWidth={2} 
                                       fill="none" 
-                                      opacity={0.4}
+                                      opacity={isDark ? 0.8 : 0.4}
                                   />
                                   {/* Start point dot */}
                                   <Circle 
@@ -473,13 +473,13 @@ export default function CurriculumGraphScreen() {
                                       cy={startY} 
                                       r={3} 
                                       fill={colors.primary} 
-                                      opacity={0.7} 
+                                      opacity={isDark ? 1 : 0.7} 
                                   />
                                   {/* End point arrowhead */}
                                   <Path 
                                       d={`M ${endX - 5} ${endY - 6} L ${endX} ${endY} L ${endX + 5} ${endY - 6} Z`} 
                                       fill={colors.primary}
-                                      opacity={0.7}
+                                      opacity={isDark ? 1 : 0.7}
                                   />
                               </React.Fragment>
                           );
