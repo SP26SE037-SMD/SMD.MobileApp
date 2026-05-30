@@ -268,7 +268,36 @@ export default function SubjectDetailsScreen() {
 
     // Tab: General Info
     const renderGeneralTab = () => (
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadow }]}>
+        <View style={{ gap: 16 }}>
+            {syllabus?.syllabusId && (
+                <TouchableOpacity
+                    style={{
+                        backgroundColor: colors.primary,
+                        paddingVertical: 14,
+                        paddingHorizontal: 16,
+                        borderRadius: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        shadowColor: colors.primary,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 8,
+                        elevation: 4,
+                    }}
+                    onPress={() => {
+                        router.push({ pathname: "/compare", params: { id: syllabus.syllabusId } } as any);
+                    }}
+                    activeOpacity={0.8}
+                >
+                    <Ionicons name="git-compare" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                    <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 16 }}>
+                        Compare with Previous Version
+                    </Text>
+                </TouchableOpacity>
+            )}
+
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...styles.shadow }]}>
             <View style={{ marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.divider }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 }}>
                     {"Basic Information"}
@@ -327,6 +356,7 @@ export default function SubjectDetailsScreen() {
                 <Text style={{ color: colors.textPrimary, lineHeight: 22 }}>
                     {syllabus?.decisionNo || subject?.decisionNo || "N/A"} {(syllabus?.approvedDate || subject?.approvedDate) ? `(Approved: ${syllabus?.approvedDate || subject?.approvedDate})` : "(Approved: N/A)"}
                 </Text>
+            </View>
             </View>
         </View>
     );
