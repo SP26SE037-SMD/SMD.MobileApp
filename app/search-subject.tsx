@@ -2,7 +2,7 @@ import { searchSubjects } from "@/src/services/subjectService";
 import type { Subject } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,6 +14,8 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -27,6 +29,18 @@ export default function SearchSubjectScreen() {
   const [results, setResults] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  const windowWidth = Dimensions.get('window').width;
+  const tabWidth = (windowWidth - 40) / 2; // 40 is the horizontal padding of searchContainer
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: searchBy === "name" ? 1 : 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [searchBy]);
+
   // Pagination state
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -57,7 +71,7 @@ export default function SearchSubjectScreen() {
       // We do not need to send searchBy if searchQuery is empty to get all
       const response = await searchSubjects({
           search: searchQuery.trim(),
-          searchBy: searchQuery.trim() ? searchBy : "code",
+          searchBy: searchQuery.trim() ? searchBy : "all" as any,
           status: "COMPLETED",
           page: currentPage,
           size: 15,
@@ -176,26 +190,47 @@ export default function SearchSubjectScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         {/* Search Section */}
         <View style={[styles.searchContainer, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-          {/* Toggle searchBy */}
-          <View style={[styles.toggleWrapper, { backgroundColor: colors.toggleBg }]}>
+          {/* Underline Tabs */}
+          <View style={[styles.toggleWrapper, { borderBottomColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }]}>
+            {/* Sliding Indicator */}
+            <Animated.View
+               style={{
+                 position: "absolute",
+                 bottom: -1, // Overlaps the wrapper's border
+                 left: 0,
+                 width: tabWidth,
+                 height: 2,
+                 backgroundColor: colors.primary,
+                 transform: [
+                   {
+                     translateX: slideAnim.interpolate({
+                       inputRange: [0, 1],
+                       outputRange: [0, tabWidth]
+                     })
+                   }
+                 ]
+               }}
+            />
+
             <TouchableOpacity
-              style={[styles.toggleButton, searchBy === "code" && { backgroundColor: colors.toggleActiveBg }]}
+              style={styles.toggleButton}
               onPress={() => setSearchBy("code")}
               activeOpacity={0.8}
             >
-              <Ionicons name="code-slash-outline" size={14} color={searchBy === "code" ? "#FFFFFF" : colors.textSecondary} style={{ marginRight: 5 }} />
-              <Text style={[styles.toggleText, { color: searchBy === "code" ? "#FFFFFF" : colors.textSecondary }]}>
-                {"By Code"}
+              <Ionicons name="code-slash-outline" size={16} color={searchBy === "code" ? colors.primary : colors.textSecondary} style={{ marginRight: 6 }} />
+              <Text style={[styles.toggleText, { color: searchBy === "code" ? colors.primary : colors.textSecondary }]}>
+                By Code
               </Text>
             </TouchableOpacity>
+            
             <TouchableOpacity
-              style={[styles.toggleButton, searchBy === "name" && { backgroundColor: colors.toggleActiveBg }]}
+              style={styles.toggleButton}
               onPress={() => setSearchBy("name")}
               activeOpacity={0.8}
             >
-              <Ionicons name="text-outline" size={14} color={searchBy === "name" ? "#FFFFFF" : colors.textSecondary} style={{ marginRight: 5 }} />
-              <Text style={[styles.toggleText, { color: searchBy === "name" ? "#FFFFFF" : colors.textSecondary }]}>
-                {"By Name"}
+              <Ionicons name="text-outline" size={16} color={searchBy === "name" ? colors.primary : colors.textSecondary} style={{ marginRight: 6 }} />
+              <Text style={[styles.toggleText, { color: searchBy === "name" ? colors.primary : colors.textSecondary }]}>
+                By Name
               </Text>
             </TouchableOpacity>
           </View>
@@ -278,19 +313,27 @@ const styles = StyleSheet.create({
   },
   toggleWrapper: {
     flexDirection: "row",
-    borderRadius: 8,
-    padding: 4,
-    marginBottom: 16,
+    marginBottom: 20,
+    borderBottomWidth: 1,
   },
   toggleButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+    marginBottom: -1, // Overlaps the wrapper's border
   },
-  toggleText: { fontSize: 14, fontWeight: "600" },
+  toggleActive: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  toggleText: { fontSize: 14, fontWeight: "700" },
   searchInputWrapper: {
     flexDirection: "row",
     alignItems: "center",
