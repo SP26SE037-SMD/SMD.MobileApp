@@ -3,7 +3,7 @@ import { View, ActivityIndicator, Text, TouchableOpacity, useColorScheme, StyleS
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, Circle } from "react-native-svg";
 
 import {
   getCurriculumById,
@@ -445,24 +445,43 @@ export default function CurriculumGraphScreen() {
                           const endX = tL.x + (tL.w / 2);
                           const endY = tY;
                           
+                          // Calculate vertical distance for smooth bezier
+                          const deltaY = Math.abs(endY - startY);
+                          const cpOffset = Math.max(40, deltaY * 0.5);
+                          
                           // Bezier curve points
                           const cpX1 = startX;
-                          const cpY1 = startY + 40;
+                          const cpY1 = startY + cpOffset;
                           const cpX2 = endX;
-                          const cpY2 = endY - 40;
+                          const cpY2 = endY - cpOffset;
                           
                           const path = `M ${startX} ${startY} C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${endX} ${endY}`;
                           
                           return (
-                              <Path 
-                                  key={`${e.source}-${e.target}`} 
-                                  d={path} 
-                                  stroke={colors.primary} 
-                                  strokeWidth={2.5} 
-                                  fill="none" 
-                                  opacity={0.6}
-                                  strokeDasharray="4, 4"
-                              />
+                              <React.Fragment key={`${e.source}-${e.target}`}>
+                                  {/* Main connection line */}
+                                  <Path 
+                                      d={path} 
+                                      stroke={colors.primary} 
+                                      strokeWidth={2} 
+                                      fill="none" 
+                                      opacity={0.4}
+                                  />
+                                  {/* Start point dot */}
+                                  <Circle 
+                                      cx={startX} 
+                                      cy={startY} 
+                                      r={3} 
+                                      fill={colors.primary} 
+                                      opacity={0.7} 
+                                  />
+                                  {/* End point arrowhead */}
+                                  <Path 
+                                      d={`M ${endX - 5} ${endY - 6} L ${endX} ${endY} L ${endX + 5} ${endY - 6} Z`} 
+                                      fill={colors.primary}
+                                      opacity={0.7}
+                                  />
+                              </React.Fragment>
                           );
                       })}
                   </Svg>

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "syllabus-management-app",
+    "name": "Syllabus Management",
     "slug": "syllabus-management-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -27,8 +27,6 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
@@ -57,11 +55,18 @@
         {
           "cameraPermission": "Allow syllabus-management-app to access your camera"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9f366043-0527-4629-90c0-69181c7a67eb"
+      }
     }
   }
 }
