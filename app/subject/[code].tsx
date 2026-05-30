@@ -403,6 +403,16 @@ export default function SubjectDetailsScreen() {
         </View>
     );
 
+    // Helper to get an icon based on material type
+    const getMaterialIcon = (type?: string) => {
+        const t = type?.toUpperCase() || "";
+        if (t.includes("VIDEO")) return "videocam";
+        if (t.includes("URL") || t.includes("LINK")) return "link";
+        if (t.includes("BOOK") || t.includes("TEXTBOOK")) return "book";
+        if (t.includes("SLIDE") || t.includes("PRESENTATION")) return "easel";
+        return "document-text";
+    };
+
     // Tab: Materials
     const renderMaterialsTab = () => (
         <View>
@@ -410,99 +420,77 @@ export default function SubjectDetailsScreen() {
                 materials.map((m, idx) => (
                     <TouchableOpacity
                         key={m.materialId || idx}
+                        activeOpacity={0.7}
                         onPress={() => router.push({ pathname: '/material/[id]', params: { id: m.materialId, title: m.title || m.description } })}
                         style={[
                             styles.card,
                             {
                                 backgroundColor: colors.card,
                                 borderColor: colors.cardBorder,
+                                flexDirection: "row",
+                                alignItems: "center",
                                 ...styles.shadowSmall,
                             },
                         ]}
                     >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: 8,
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: 16,
-                                    fontWeight: "700",
-                                    color: colors.primary,
-                                    flex: 1,
-                                }}
-                            >
-                                {m.title || m.description}
-                            </Text>
-                            {m.isMainMaterial && (
-                                <View
-                                    style={{
-                                        backgroundColor: colors.successBg,
-                                        paddingHorizontal: 8,
-                                        paddingVertical: 4,
-                                        borderRadius: 4,
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            color: colors.successText,
-                                            fontSize: 12,
-                                            fontWeight: "700",
-                                        }}
-                                    >
-                                        {"MAIN"}
-                                    </Text>
-                                </View>
-                            )}
+                        {/* Icon Container */}
+                        <View style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 12,
+                            backgroundColor: colors.primaryBg,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginRight: 16
+                        }}>
+                            <Ionicons name={getMaterialIcon(m.materialType) as any} size={24} color={colors.primary} />
                         </View>
-                        {m.author && (
-                            <Text style={{ color: colors.textPrimary, marginBottom: 4, fontWeight: "500" }}>
-                                {"Author: "}{m.author}
-                            </Text>
-                        )}
-                        {m.publisher && (
-                            <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
-                                {"Publisher: "}{m.publisher}{m.publishedDate ? ` (${m.publishedDate})` : ""}
-                            </Text>
-                        )}
-                        {(m.edition || m.isbn) && (
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontSize: 13 }}>
-                                {m.edition ? `Edition: ${m.edition}` : ""}
-                                {m.isbn ? ` • ISBN: ${m.isbn}` : ""}
-                            </Text>
-                        )}
-                        {m.materialType && (
-                            <View style={{ flexDirection: "row", gap: 8 }}>
-                                <Text
-                                    style={{
-                                        color: colors.textPrimary,
-                                        fontSize: 12,
-                                        backgroundColor: colors.divider,
-                                        paddingHorizontal: 8,
-                                        paddingVertical: 2,
-                                        borderRadius: 4,
-                                    }}
-                                >
-                                    {m.materialType}
+                        
+                        {/* Content Container */}
+                        <View style={{ flex: 1 }}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: 6 }}>
+                                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary, flex: 1, marginRight: 8, lineHeight: 22 }} numberOfLines={2}>
+                                    {m.title || m.description}
                                 </Text>
+                                {m.isMainMaterial && (
+                                    <View style={{ backgroundColor: colors.successBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginTop: 2 }}>
+                                        <Text style={{ color: colors.successText, fontSize: 10, fontWeight: "700" }}>MAIN</Text>
+                                    </View>
+                                )}
                             </View>
-                        )}
-                        {m.note ? (
-                            <Text
-                                style={{
-                                    color: colors.textSecondary,
-                                    fontStyle: "italic",
-                                    marginTop: 8,
-                                    fontSize: 13,
-                                }}
-                            >
-                                {"Note: "}{m.note}
-                            </Text>
-                        ) : null}
+                            
+                            <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                                {m.materialType && (
+                                    <View style={{ backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#F1F5F9", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                        <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "600", textTransform: "uppercase" }}>
+                                            {m.materialType}
+                                        </Text>
+                                    </View>
+                                )}
+                                {m.author && (
+                                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "500" }} numberOfLines={1}>
+                                        <Ionicons name="person-outline" size={12} /> {m.author}
+                                    </Text>
+                                )}
+                            </View>
+                            
+                            {(m.publisher || m.isbn || m.edition) && (
+                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 6, lineHeight: 18 }} numberOfLines={2}>
+                                    {m.publisher ? `Pub: ${m.publisher} ` : ""}
+                                    {m.edition ? `(Ed: ${m.edition}) ` : ""}
+                                    {m.isbn ? `ISBN: ${m.isbn}` : ""}
+                                </Text>
+                            )}
+                            
+                            {m.note ? (
+                                <Text style={{ color: colors.textSecondary, fontStyle: "italic", fontSize: 12, marginTop: 6 }} numberOfLines={1}>
+                                    Note: {m.note}
+                                </Text>
+                            ) : null}
+                        </View>
+                        
+                        {/* Right Arrow */}
+                        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} style={{ opacity: 0.5, marginLeft: 8 }} />
                     </TouchableOpacity>
                 ))
             ) : (
