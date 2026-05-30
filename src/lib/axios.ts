@@ -23,8 +23,8 @@ apiClient.interceptors.request.use(
     console.log("[Axios] METHOD:", config.method?.toUpperCase());
     console.log("[Axios] URL:", (config.baseURL ?? "") + (config.url ?? ""));
     console.log(
-      "[Axios] TOKEN:",
-      token ? `Bearer ${token.substring(0, 20)}...` : "NO TOKEN",
+      "[Axios] FULL_TOKEN_EXPORT:",
+      token ? `Bearer ${token}` : "NO TOKEN",
     );
     if (config.params) {
       console.log("[Axios] PARAMS:", JSON.stringify(config.params, null, 2));
