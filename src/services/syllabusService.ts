@@ -215,3 +215,31 @@ export async function getMaterialBlocksByMaterialId(
   }
   throw new Error(responseData.message || "Failed to fetch material blocks");
 }
+
+export interface SyllabusCompareStudentData {
+  historyId: string;
+  oldSyllabusId: string;
+  newSyllabusId: string;
+  assessmentDiffJson: string;
+  conceptDiffJson: string;
+  selectedCompare: boolean;
+  createdAt: string;
+}
+
+/**
+ * Get compare syllabus history for student view
+ * GET /api/syllabus/{newSyllabusId}/get-syllabus-compare/student
+ */
+export async function getSyllabusCompareStudent(
+  newSyllabusId: string,
+): Promise<SyllabusCompareStudentData> {
+  const response = await apiClient.get(
+    `/syllabus/${newSyllabusId}/get-syllabus-compare/student`
+  );
+  const data: ApiResponse<SyllabusCompareStudentData> = response.data;
+  // Based on the screenshot, status might be 0 for success
+  if ((data.status === 1000 || data.status === 0) && data.data) {
+    return data.data;
+  }
+  throw new Error(data.message || "Failed to fetch syllabus compare data");
+}
