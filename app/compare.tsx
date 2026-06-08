@@ -37,6 +37,7 @@ export default function CompareSyllabusScreen() {
                 
                 let assessmentDiff: any = {};
                 let conceptDiff: any = {};
+                let sessionDiff: any = {};
 
                 if (data.assessmentDiffJson) {
                     try { assessmentDiff = JSON.parse(data.assessmentDiffJson); } catch (e) { console.error(e); }
@@ -45,11 +46,15 @@ export default function CompareSyllabusScreen() {
                 if (data.conceptDiffJson) {
                     try { conceptDiff = JSON.parse(data.conceptDiffJson); } catch (e) { console.error(e); }
                 }
+                
+                if (data.sessionDiffJson) {
+                    try { sessionDiff = JSON.parse(data.sessionDiffJson); } catch (e) { console.error(e); }
+                }
 
                 const sections: any[] = [];
 
                 // 1. Map Concepts
-                const conceptItems = [];
+                const conceptItems: any[] = [];
                 if (conceptDiff.added_concepts && Array.isArray(conceptDiff.added_concepts)) {
                     conceptDiff.added_concepts.forEach((c: string) => {
                         conceptItems.push({ field: "Concept", new: c, status: "ADDED" });
@@ -79,7 +84,7 @@ export default function CompareSyllabusScreen() {
                 }
 
                 // 2. Map Assessments
-                const assessmentItems = [];
+                const assessmentItems: any[] = [];
                 if (assessmentDiff.addedAssessments && Array.isArray(assessmentDiff.addedAssessments)) {
                     assessmentDiff.addedAssessments.forEach((a: any) => {
                         assessmentItems.push({ field: a.assessmentIdentifier || "Assessment", new: JSON.stringify(a), status: "ADDED" });
@@ -102,6 +107,32 @@ export default function CompareSyllabusScreen() {
 
                 if (assessmentItems.length > 0) {
                     sections.push({ section: "Assessments", items: assessmentItems });
+                }
+
+                // 3. Map Sessions
+                const sessionItems: any[] = [];
+                if (sessionDiff.addedSessions && Array.isArray(sessionDiff.addedSessions)) {
+                    sessionDiff.addedSessions.forEach((s: any) => {
+                        sessionItems.push({ field: "Session", new: s, status: "ADDED" });
+                    });
+                }
+                if (sessionDiff.removedSessions && Array.isArray(sessionDiff.removedSessions)) {
+                    sessionDiff.removedSessions.forEach((s: any) => {
+                        sessionItems.push({ field: "Session", old: s, status: "REMOVED" });
+                    });
+                }
+                if (sessionDiff.changedSessions && Array.isArray(sessionDiff.changedSessions)) {
+                    sessionDiff.changedSessions.forEach((s: any) => {
+                        sessionItems.push({ 
+                            field: s.sessionName || "Session", 
+                            details: Array.isArray(s.detailChanges) ? s.detailChanges : [],
+                            status: "MODIFIED" 
+                        });
+                    });
+                }
+
+                if (sessionItems.length > 0) {
+                    sections.push({ section: "Sessions", items: sessionItems });
                 }
 
                 setParsedData(sections);
