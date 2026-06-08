@@ -597,7 +597,7 @@ export default function SubjectDetailsScreen() {
                                     <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13 }}>
                                         {"Topic: "}
                                         <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
-                                            {s.sessionTopic}
+                                            {s.sessionTopic.replace(/[~˜]+/g, "\n").replace(/\s*\n\s*/g, "\n").trim()}
                                         </Text>
                                     </Text>
                                 )}

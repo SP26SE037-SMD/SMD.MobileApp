@@ -221,6 +221,7 @@ export interface SyllabusCompareStudentData {
   oldSyllabusId: string;
   newSyllabusId: string;
   assessmentDiffJson: string;
+  sessionDiffJson: string;
   conceptDiffJson: string;
   selectedCompare: boolean;
   createdAt: string;
