@@ -188,7 +188,7 @@ export default function SignUpScreen() {
                             }}
                         >
                             <Image
-                                source={require("@/assets/images/logo/logo-without-name.png")}
+                                source={require("@/assets/images/logo/giggling-logo.png")}
                                 style={{
                                     width: "100%",
                                     height: "100%",
