@@ -4,7 +4,7 @@
     "slug": "syllabus-management-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo/logo-without-name.png",
+    "icon": "./assets/images/logo/giggling-logo.png",
     "scheme": "syllabusmanagementapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -20,7 +20,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/images/logo/logo-without-name.png"
+        "foregroundImage": "./assets/images/logo/giggling-logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -32,14 +32,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo/giggling-logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo/logo-with-name.png",
+          "image": "./assets/images/logo/giggling-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

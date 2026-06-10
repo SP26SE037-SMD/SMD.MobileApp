@@ -19,6 +19,7 @@ import {
     TouchableOpacity,
     useColorScheme,
     View,
+    Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
@@ -60,11 +61,11 @@ export default function LoginScreen() {
         if (accessToken) {
           // Bypass Implicit Grant (đã nhận token nhưng url dạng #access_token=...)
           // Nếu đăng nhập thành công, ẩn Safari/Chrome
-          if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
+          if (Platform.OS === "ios" && WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
           handleGoogleToken(accessToken, idToken);
         } else if (params.get("error")) {
           setIsGoogleLoading(false);
-          if (WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
+          if (Platform.OS === "ios" && WebBrowser.dismissAuthSession) WebBrowser.dismissAuthSession();
           Alert.alert("Lỗi", params.get("error") || "Đăng nhập thất bại");
         }
       }
@@ -250,7 +251,7 @@ export default function LoginScreen() {
             }}
           >
             <Image
-              source={require("@/assets/images/logo/logo-without-name.png")}
+              source={require("@/assets/images/logo/giggling-logo.png")}
               style={{
                 width: "100%",
                 height: "100%",
