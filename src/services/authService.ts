@@ -99,11 +99,43 @@ export async function loginWithBackendGoogle(idToken: string) {
       error.response = { status: response.status, data };
       throw error;
     }
-
     return data;
   } catch (error: any) {
     console.error("[Auth] loginWithBackendGoogle FAILED:");
     console.error("[Auth] Error:", error?.message);
+    throw error;
+  }
+}
+
+export async function loginWithEmailPassword(email: string, password: string) {
+  const BASE_URL =
+    process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.syllabus.io.vn/api";
+  const url = `${BASE_URL}/auth/login`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      data = { message: `Non-JSON response (Status ${response.status})` };
+    }
+
+    if (!response.ok) {
+      const error: any = new Error(data?.message || `HTTP ${response.status}`);
+      error.response = { status: response.status, data };
+      throw error;
+    }
+    return data;
+  } catch (error) {
     throw error;
   }
 }
